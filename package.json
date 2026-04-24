@@ -3,13 +3,13 @@
   "private": true,
   "version": "0.0.1",
   "type": "module",
-  "homepage": "https://nt1998.github.io/tracker/v2",
+  "homepage": "https://nt1998.github.io/tracker/v3",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "deploy": "npm run build && gh-pages -d dist --dest v2 --add"
+    "deploy": "npm run build && gh-pages -d dist --dest v3 --add"
   },
   "dependencies": {
     "chart.js": "^4.5.1",

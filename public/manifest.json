@@ -1,7 +1,8 @@
 {
   "name": "Tracker",
   "short_name": "Tracker",
-  "start_url": "/tracker/v2/",
+  "start_url": "/tracker/v3/",
+  "scope": "/tracker/v3/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#1e1e2e",
