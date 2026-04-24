@@ -113,19 +113,14 @@ const weekMarkersPlugin = {
 }
 ChartJS.register(weekMarkersPlugin)
 
-// Year-change markers: vertical dashed line + year label across the chart area
+// Year-change markers: dashed vertical line + bold year label on top.
+// Runs in afterDraw (after gapMarksPlugin's blanking) so the label isn't hidden.
 const yearMarkersPlugin = {
   id: 'yearMarkers',
-  afterDatasetsDraw(chart) {
+  afterDraw(chart) {
     const dates = chart.options.plugins?.yearMarkers?.dates
     if (!dates || dates.length < 2) return
     const { ctx, chartArea, scales } = chart
-    ctx.save()
-    ctx.strokeStyle = 'rgba(166, 227, 161, 0.5)'
-    ctx.fillStyle = '#a6e3a1'
-    ctx.font = '9px -apple-system, sans-serif'
-    ctx.textAlign = 'center'
-    ctx.textBaseline = 'top'
     let lastYear = null
     for (let i = 0; i < dates.length; i++) {
       if (!dates[i]) continue
@@ -134,14 +129,48 @@ const yearMarkersPlugin = {
         const xCur = scales.x.getPixelForValue(i)
         const xPrev = i > 0 ? scales.x.getPixelForValue(i - 1) : xCur
         const x = Math.round((xCur + xPrev) / 2)
-        ctx.setLineDash([3, 3]); ctx.lineWidth = 1
-        ctx.beginPath(); ctx.moveTo(x, chartArea.top); ctx.lineTo(x, chartArea.bottom); ctx.stroke()
+        ctx.save()
+        // solid bright line
+        ctx.strokeStyle = '#a6e3a1'
+        ctx.lineWidth = 1.5
+        ctx.setLineDash([4, 3])
+        ctx.beginPath()
+        ctx.moveTo(x, chartArea.top + 14)
+        ctx.lineTo(x, chartArea.bottom)
+        ctx.stroke()
         ctx.setLineDash([])
-        ctx.fillText(y, x, chartArea.top + 2)
+        // pill backdrop behind the year label so it stays readable over anything
+        ctx.font = 'bold 11px -apple-system, sans-serif'
+        const label = y
+        const w = ctx.measureText(label).width + 10
+        const h = 14
+        const rectX = x - w / 2
+        const rectY = chartArea.top
+        ctx.fillStyle = '#1e1e2e'
+        ctx.strokeStyle = '#a6e3a1'
+        ctx.lineWidth = 1
+        ctx.beginPath()
+        const r = 4
+        ctx.moveTo(rectX + r, rectY)
+        ctx.lineTo(rectX + w - r, rectY)
+        ctx.quadraticCurveTo(rectX + w, rectY, rectX + w, rectY + r)
+        ctx.lineTo(rectX + w, rectY + h - r)
+        ctx.quadraticCurveTo(rectX + w, rectY + h, rectX + w - r, rectY + h)
+        ctx.lineTo(rectX + r, rectY + h)
+        ctx.quadraticCurveTo(rectX, rectY + h, rectX, rectY + h - r)
+        ctx.lineTo(rectX, rectY + r)
+        ctx.quadraticCurveTo(rectX, rectY, rectX + r, rectY)
+        ctx.closePath()
+        ctx.fill()
+        ctx.stroke()
+        ctx.fillStyle = '#a6e3a1'
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'middle'
+        ctx.fillText(label, x, rectY + h / 2 + 0.5)
+        ctx.restore()
       }
       lastYear = y
     }
-    ctx.restore()
   },
 }
 ChartJS.register(yearMarkersPlugin)

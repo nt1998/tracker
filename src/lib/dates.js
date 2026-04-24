@@ -77,7 +77,7 @@ export function buildTimeSeries(firstKey, lastKey, entries, gapThresholdDays = 1
       }
     } else {
       // Reserve multiple slots so the zigzag break reads clearly
-      for (let g = 0; g < 5; g++) { keys.push('__gap__'); dates.push(null); isGap.push(true) }
+      for (let g = 0; g < 8; g++) { keys.push('__gap__'); dates.push(null); isGap.push(true) }
     }
   }
   return { keys, dates, isGap }
