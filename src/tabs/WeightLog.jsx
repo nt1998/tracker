@@ -274,7 +274,7 @@ export default function WeightLog({ entries, setEntries, autoHabitsByDate, habit
       <div className="log-metrics">
         {activeMetrics.map(m => (
           <div key={m.key} className="log-metric">
-            <div className="lm-label">{m.label} {m.unit && `(${m.unit})`}</div>
+            <div className="lm-label">{m.label}</div>
             <div className="lm-row">
               <button className="lm-btn" onClick={() => adjustValue(m.key, -1)}>-</button>
               <div className={`lm-val ${isYesterdayValue(m.key) ? 'yesterday' : ''}`} style={{ color: m.color }}>
