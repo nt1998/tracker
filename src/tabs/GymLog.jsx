@@ -150,41 +150,62 @@ export default function GymLog({ workouts, setWorkouts, routines, exerciseNotes,
     })
   }
 
+  // Look up exercise by stable id (captured at call time), not by index —
+  // avoids stale exerciseIdx if state changed between tap and state flush.
+  const writeExercise = (exId, mutator) => {
+    if (exId == null) return
+    setWorkouts(prev => {
+      const base = prev[date] || defaultGetWorkoutFromRoutine(currentRoutineType, currentRoutine, exerciseNotes)
+      const next = JSON.parse(JSON.stringify(base))
+      const ex = next.exercises.find(e => e.id === exId)
+      if (!ex) return prev
+      mutator(next, ex)
+      return { ...prev, [date]: next }
+    })
+  }
+
   const updateSet = (type, setIdx, field, value, autoCommit = false) => {
-    writeWorkout(next => {
-      const sets = type === 'warmup' ? next.exercises[exerciseIdx].warmupSets : next.exercises[exerciseIdx].workSets
+    const exId = currentExercise?.id
+    const unit = routineTemplate?.unit || 'kg'
+    writeExercise(exId, (_next, ex) => {
+      const sets = type === 'warmup' ? ex.warmupSets : ex.workSets
       sets[setIdx] = { ...sets[setIdx], [field]: value }
-      if (field === 'weight' && value) sets[setIdx].unit = routineTemplate?.unit || 'kg'
+      if (field === 'weight' && value) sets[setIdx].unit = unit
       if (autoCommit) {
         sets[setIdx].committed = true
-        markCommit(next.exercises[exerciseIdx]?.id)
+        markCommit(ex.id)
       }
     })
     setActiveSetIdx({ type, idx: setIdx })
   }
 
   const toggleSetCommitted = (type, setIdx) => {
-    writeWorkout(next => {
-      const sets = type === 'warmup' ? next.exercises[exerciseIdx].warmupSets : next.exercises[exerciseIdx].workSets
+    const exId = currentExercise?.id
+    const unit = routineTemplate?.unit || 'kg'
+    const prevSets = type === 'warmup' ? lastExerciseValues.warmupSets : lastExerciseValues.workSets
+    writeExercise(exId, (_next, ex) => {
+      const sets = type === 'warmup' ? ex.warmupSets : ex.workSets
       const set = sets[setIdx]
       if (set.committed) {
         set.committed = false
       } else {
-        const prevSets = type === 'warmup' ? lastExerciseValues.warmupSets : lastExerciseValues.workSets
         const prevSet = prevSets[setIdx]
         if (!set.weight && prevSet?.weight) {
           set.weight = prevSet.weight
-          set.unit = prevSet.unit || routineTemplate?.unit || 'kg'
+          set.unit = prevSet.unit || unit
         }
         if (!set.reps && prevSet?.reps) set.reps = prevSet.reps
         set.committed = true
-        markCommit(next.exercises[exerciseIdx]?.id)
+        markCommit(ex.id)
       }
     })
     setActiveSetIdx({ type, idx: setIdx })
   }
 
   const adjustWeight = (type, setIdx, delta) => {
+    if (!currentExercise) return
+    const exId = currentExercise.id
+    const unit = routineTemplate?.unit || 'kg'
     const sets = type === 'warmup' ? currentExercise.warmupSets : currentExercise.workSets
     const set = sets[setIdx]
     const prevSets = type === 'warmup' ? lastExerciseValues.warmupSets : lastExerciseValues.workSets
@@ -212,20 +233,23 @@ export default function GymLog({ workouts, setWorkouts, routines, exerciseNotes,
       }
     }
 
-    writeWorkout(next => {
-      const newSets = type === 'warmup' ? next.exercises[exerciseIdx].warmupSets : next.exercises[exerciseIdx].workSets
+    writeExercise(exId, (_next, ex) => {
+      const newSets = type === 'warmup' ? ex.warmupSets : ex.workSets
       newSets[setIdx].weight = newWeight.toString()
-      newSets[setIdx].unit = routineTemplate?.unit || 'kg'
+      newSets[setIdx].unit = unit
       if (!newSets[setIdx].reps && prevSets[setIdx]?.reps) {
         newSets[setIdx].reps = prevSets[setIdx].reps
       }
       newSets[setIdx].committed = true
-      markCommit(next.exercises[exerciseIdx]?.id)
+      markCommit(ex.id)
     })
     setActiveSetIdx({ type, idx: setIdx })
   }
 
   const adjustReps = (type, setIdx, delta) => {
+    if (!currentExercise) return
+    const exId = currentExercise.id
+    const unit = routineTemplate?.unit || 'kg'
     const sets = type === 'warmup' ? currentExercise.warmupSets : currentExercise.workSets
     const set = sets[setIdx]
     const prevSets = type === 'warmup' ? lastExerciseValues.warmupSets : lastExerciseValues.workSets
@@ -233,22 +257,25 @@ export default function GymLog({ workouts, setWorkouts, routines, exerciseNotes,
     const currentReps = parseInt(set.reps) || parseInt(prevReps) || 0
     const newReps = Math.max(0, currentReps + delta)
 
-    writeWorkout(next => {
-      const newSets = type === 'warmup' ? next.exercises[exerciseIdx].warmupSets : next.exercises[exerciseIdx].workSets
+    writeExercise(exId, (_next, ex) => {
+      const newSets = type === 'warmup' ? ex.warmupSets : ex.workSets
       newSets[setIdx].reps = newReps.toString()
       if (!newSets[setIdx].weight && prevSets[setIdx]?.weight) {
         newSets[setIdx].weight = prevSets[setIdx].weight
-        newSets[setIdx].unit = prevSets[setIdx].unit || routineTemplate?.unit || 'kg'
+        newSets[setIdx].unit = prevSets[setIdx].unit || unit
       }
       newSets[setIdx].committed = true
-      markCommit(next.exercises[exerciseIdx]?.id)
+      markCommit(ex.id)
     })
     setActiveSetIdx({ type, idx: setIdx })
   }
 
   const updateExerciseNote = (note) => {
-    writeWorkout(next => { next.exercises[exerciseIdx].notes = note })
-    setExerciseNotes(prev => ({ ...prev, [currentExercise.name]: note }))
+    if (!currentExercise) return
+    const exId = currentExercise.id
+    const name = currentExercise.name
+    writeExercise(exId, (_next, ex) => { ex.notes = note })
+    setExerciseNotes(prev => ({ ...prev, [name]: note }))
   }
 
   const nextExercise = () => {
