@@ -45,21 +45,7 @@ export async function pullFromGithub(gh) {
   if (tracker?.data && typeof tracker.data === 'object') {
     return { source: 'tracker', data: tracker.data }
   }
-  // Legacy fallback: body-tracker data.json + gym-tracker gym.json
-  const [body, gym] = await Promise.all([
-    getFile(gh, 'data.json').catch(() => null),
-    getFile(gh, 'gym.json').catch(() => null),
-  ])
-  if (!body && !gym) return { source: 'empty', data: null }
-  return {
-    source: 'legacy',
-    data: {
-      entries: body?.data?.entries || {},
-      phases: body?.data?.phases || [],
-      workouts: gym?.data?.workouts || {},
-      exerciseNotes: gym?.data?.notes || {},
-    },
-  }
+  return { source: 'empty', data: null }
 }
 
 export async function pushToGithub(gh, payload) {

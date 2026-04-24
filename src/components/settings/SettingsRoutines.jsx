@@ -165,9 +165,7 @@ export default function SettingsRoutines({
         const isActive = r.id === activeRoutineId
         return (
           <div key={r.id} className={`phase-card ${isActive ? 'current' : ''}`} style={{ marginBottom: 10 }}>
-            <div className="pc-name">
-              {r.name}{isActive && <span style={{ fontSize: 10, color: '#89b4fa', marginLeft: 8 }}>· active</span>}
-            </div>
+            <div className="pc-name">{r.name}</div>
             <div className="pc-dates">
               {Object.keys(r.workouts || {}).length} day{Object.keys(r.workouts || {}).length !== 1 ? 's' : ''}
               {' · '}
@@ -175,8 +173,15 @@ export default function SettingsRoutines({
                 ? `cycle of ${(r.schedule.cycle || []).length}`
                 : `${Object.keys(r.schedule.weekdayMap || {}).length}/7 weekdays scheduled`}
             </div>
-            <div className="pc-actions" style={{ gap: 6, flexWrap: 'wrap' }}>
-              {!isActive && <button onClick={() => setActiveRoutineId(r.id)}>Set active</button>}
+            <div className="pc-actions" style={{ gap: 6, alignItems: 'center' }}>
+              <label className="toggle-switch" onClick={(e) => e.stopPropagation()} title={isActive ? 'Active' : 'Set active'}>
+                <input
+                  type="checkbox"
+                  checked={isActive}
+                  onChange={() => { if (!isActive) setActiveRoutineId(r.id) }}
+                />
+                <span className="slider"></span>
+              </label>
               <button onClick={() => setEditRoutineId(r.id)}>Edit</button>
               <button className="del" onClick={() => deleteRoutine(r.id)}>{'×'}</button>
             </div>

@@ -108,7 +108,7 @@ export default function SettingsGeneral({
               </div>
               <button className="primary-btn" onClick={() => onConnectGithub(ghForm)}>Connect &amp; Pull</button>
               <p style={{ fontSize: 10, color: '#6c7086', marginTop: 6 }}>
-                Reads tracker.json; if missing, migrates from data.json (body) + gym.json (gym).
+                Reads / writes tracker.json only.
               </p>
             </>
           ) : (

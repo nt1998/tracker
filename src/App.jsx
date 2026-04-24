@@ -122,7 +122,7 @@ export default function App() {
       if (!data) { setSyncStatus('Nothing on remote'); setTimeout(() => setSyncStatus(''), 2000); return { source } }
       applyPayload(data, setters)
       setLastSyncAt(Date.now())
-      setSyncStatus(source === 'legacy' ? 'Pulled (migrated from body + gym tracker)' : 'Pulled from remote')
+      setSyncStatus('Pulled from remote')
       setTimeout(() => setSyncStatus(''), 2500)
       return { source }
     } catch (e) {
