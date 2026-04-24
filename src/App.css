@@ -2074,13 +2074,16 @@ body:has(textarea:focus) .tabbar {
 .orbit-wrap {
   display: flex;
   justify-content: center;
-  padding: 12px 0 8px;
+  padding: 4px 0;
   position: relative;
 }
 .orbit {
   position: relative;
   width: 280px;
   height: 280px;
+  transform: scale(0.82);
+  transform-origin: top center;
+  margin-bottom: -55px; /* absorb scaled-down footprint */
 }
 .orbit-ring {
   position: absolute;
@@ -2281,7 +2284,7 @@ body:has(textarea:focus) .tabbar {
   color: #6c7086;
   text-transform: uppercase;
   letter-spacing: 1px;
-  padding: 10px 2px 6px;
+  padding: 4px 2px 4px;
   font-variant: small-caps;
 }
 .log-section-title::before {
@@ -2301,7 +2304,7 @@ body:has(textarea:focus) .tabbar {
   background: rgba(30,30,46,0.85);
   border: 1px solid rgba(137,180,250,.1);
   border-radius: 10px;
-  padding: 14px 10px;
+  padding: 8px 10px;
   text-align: center;
 }
 .log-metric .lm-label {
@@ -2373,8 +2376,8 @@ body:has(textarea:focus) .tabbar {
   background: rgba(30,30,46,0.85);
   border: 1px solid rgba(137,220,235,.12);
   border-radius: 12px;
-  padding: 14px 14px 16px;
-  margin-bottom: 10px;
+  padding: 8px 12px 10px;
+  margin-bottom: 8px;
 }
 .water-progress-row {
   display: flex;
