@@ -1442,7 +1442,8 @@ body:has(textarea:focus) .tabbar {
 .app.is-swiping .stats-page,
 
 .log-page {
-  padding: 16px 16px 8px 16px;
+  /* .content already provides 16px horizontal padding; only vertical here */
+  padding: 16px 0 8px 0;
   display: flex;
   flex-direction: column;
   gap: 12px;
