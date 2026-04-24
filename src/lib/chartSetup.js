@@ -87,7 +87,8 @@ export function buildPhaseBands(sortedDates, phases) {
 
 export function baseChartOpts(extraScales, phaseBands, dates) {
   return {
-    responsive: false,
+    responsive: true,
+    maintainAspectRatio: false,
     animation: false,
     plugins: {
       legend: { display: false },

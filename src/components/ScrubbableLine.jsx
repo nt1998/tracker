@@ -95,15 +95,12 @@ export default function ScrubbableLine({ data, options, width, height, style, re
         className={className}
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
-        style={{ touchAction: 'pan-y' }}
+        style={{ touchAction: 'pan-y', width: '100%', height: height ?? style?.height }}
       >
         <Line
           ref={chartRef}
           data={data}
           options={options}
-          width={width}
-          height={height}
-          style={style}
           plugins={[scrubPlugin]}
         />
       </div>
