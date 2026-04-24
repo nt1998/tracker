@@ -6,11 +6,12 @@ import useOrientationLock from './hooks/useOrientationLock'
 import useSwipeNav from './hooks/useSwipeNav'
 import WeightLog from './tabs/WeightLog'
 import GymLog from './tabs/GymLog'
-import Stats from './tabs/Stats'
+import BodyStats from './tabs/BodyStats'
+import GymStats from './tabs/GymStats'
 import Settings from './tabs/Settings'
 import { SunIcon, DumbbellIcon, ChartIcon, GearIcon } from './components/icons'
 
-const TABS = ['weight', 'gym', 'stats', 'settings']
+const TABS = ['weight', 'gym', 'body-stats', 'gym-stats', 'settings']
 
 export default function App() {
   const [tab, setTab] = useState('weight')
@@ -50,9 +51,10 @@ export default function App() {
             setExerciseNotes={setExerciseNotes}
           />
         )}
-        {tab === 'stats' && (
-          <Stats entries={entries} phases={phases} autoHabitsByDate={autoHabitsByDate} />
+        {tab === 'body-stats' && (
+          <BodyStats entries={entries} phases={phases} autoHabitsByDate={autoHabitsByDate} />
         )}
+        {tab === 'gym-stats' && <GymStats />}
         {tab === 'settings' && <Settings />}
       </main>
 
@@ -63,7 +65,10 @@ export default function App() {
         <button className={tabCls('gym')} style={tabStl('gym')} onClick={() => setTab('gym')}>
           <span className="glyph"><DumbbellIcon /></span>
         </button>
-        <button className={tabCls('stats')} style={tabStl('stats')} onClick={() => setTab('stats')}>
+        <button className={tabCls('body-stats')} style={tabStl('body-stats')} onClick={() => setTab('body-stats')}>
+          <span className="glyph"><ChartIcon /></span>
+        </button>
+        <button className={tabCls('gym-stats')} style={tabStl('gym-stats')} onClick={() => setTab('gym-stats')}>
           <span className="glyph"><ChartIcon /></span>
         </button>
         <button className={tabCls('settings')} style={tabStl('settings')} onClick={() => setTab('settings')}>

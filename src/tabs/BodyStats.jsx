@@ -5,7 +5,7 @@ import HabitsPanel from '../components/stats/HabitsPanel'
 import { ORBIT_HABITS, ensureHabits, habitApplies } from '../lib/bodyData'
 import { addDays, todayKey } from '../lib/dates'
 
-export default function Stats({ entries, phases, autoHabitsByDate }) {
+export default function BodyStats({ entries, phases, autoHabitsByDate }) {
   const [statsTab, setStatsTab] = useState('journey')
   const [statsPhaseIdx, setStatsPhaseIdx] = useState(-1)
 
