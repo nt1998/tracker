@@ -55,19 +55,15 @@ export const PlanetIcon = () => (
 
 export const SunIcon = () => (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="9" />
+    <circle cx="12" cy="12" r="4" />
+    <path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41m11.32-11.32l1.41-1.41" />
   </svg>
 )
 
+// Barbell — matches gym-tracker's nav icon
 export const DumbbellIcon = () => (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M6.5 6.5l11 11" />
-    <path d="M21 21l-1-1" />
-    <path d="M3 3l1 1" />
-    <path d="M18 22l4-4" />
-    <path d="M2 6l4-4" />
-    <path d="M3 10l7-7" />
-    <path d="M14 21l7-7" />
+    <path d="M17 3v18M7 3v18M3 7v10M21 7v10M7 12h10M3 12h4M17 12h4" />
   </svg>
 )
 

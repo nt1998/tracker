@@ -54,7 +54,7 @@ export default function App() {
         {tab === 'body-stats' && (
           <BodyStats entries={entries} phases={phases} autoHabitsByDate={autoHabitsByDate} />
         )}
-        {tab === 'gym-stats' && <GymStats />}
+        {tab === 'gym-stats' && <GymStats workouts={workouts} phases={phases} routines={routines} />}
         {tab === 'settings' && <Settings />}
       </main>
 

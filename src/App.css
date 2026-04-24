@@ -182,8 +182,8 @@ body:has(textarea:focus) .navbar {
   justify-content: center;
   cursor: pointer;
   pointer-events: auto;
-  width: calc(50px + var(--glow) * 8px);
-  height: calc(50px + var(--glow) * 8px);
+  width: calc(40px + var(--glow) * 6px);
+  height: calc(40px + var(--glow) * 6px);
   border-radius: 50%;
   color: color-mix(in srgb, #6c7086, #89b4fa calc(var(--glow) * 100%));
   background: linear-gradient(145deg,
@@ -1945,7 +1945,7 @@ body:has(textarea:focus) .tabbar {
 .tabbar {
   display: flex;
   padding: 0;
-  gap: 16px;
+  gap: 12px;
   position: fixed;
   bottom: 0;
   padding-bottom: 25px;
@@ -1977,8 +1977,8 @@ body:has(textarea:focus) .tabbar {
   justify-content: center;
   cursor: pointer;
   pointer-events: auto;
-  width: calc(50px + var(--glow) * 8px);
-  height: calc(50px + var(--glow) * 8px);
+  width: calc(40px + var(--glow) * 6px);
+  height: calc(40px + var(--glow) * 6px);
   border-radius: 50%;
   color: color-mix(in srgb, #6c7086, #89b4fa calc(var(--glow) * 100%));
   background: linear-gradient(145deg,
@@ -3274,4 +3274,10 @@ body:has(textarea:focus) .tabbar {
    overflowed. Drop the horizontal padding from .log-page here. */
 .log-page {
   padding: 16px 0 8px 0;
+}
+
+/* Smaller tab icons */
+.tabbar .glyph svg {
+  width: 18px;
+  height: 18px;
 }
