@@ -238,7 +238,6 @@ export default function GymStats({ workouts, phases, routines, forcedScope, forc
   const setStatsTab = forcedSubTab !== undefined ? () => {} : setOwnSubTab
   const [exSort, setExSort] = useState('recent')
   const [histFilter, setHistFilter] = useState('all')
-  const [balanceMode, setBalanceMode] = useState('volume')
   const [openHistDates, setOpenHistDates] = useState(new Set())
   const [calendarMonth, setCalendarMonth] = useState(new Date())
   const today = todayKey()
@@ -254,20 +253,7 @@ export default function GymStats({ workouts, phases, routines, forcedScope, forc
   const exIdx = useMemo(() => buildExerciseIndex(routines, workouts, phases, statsFilter), [routines, workouts, phases, statsFilter])
   const prs = useMemo(() => detectPRsInRange(routines, workouts, phases, statsFilter), [routines, workouts, phases, statsFilter])
 
-  let pushAgg = 0, pullAgg = 0
-  workSessions.forEach(([, w]) => {
-    const v = getSessionVolume(routines, w)
-    const amt = balanceMode === 'volume' ? v.volume : v.sets
-    if (w.routineType === 'push') pushAgg += amt
-    else if (w.routineType === 'pull') pullAgg += amt
-  })
-  const balTotal = pushAgg + pullAgg || 1
-  const pushPct = pushAgg / balTotal * 100
-  const pullPct = pullAgg / balTotal * 100
-
   const exList = Object.values(exIdx)
-  const upEx = [...exList].filter(e => e.slope > 0.1).sort((a, b) => b.slope - a.slope).slice(0, 4)
-  const stallEx = [...exList].filter(e => e.stalled).sort((a, b) => a.slope - b.slope).slice(0, 4)
 
   const sortedExList = [...exList]
   if (exSort === 'alpha') sortedExList.sort((a, b) => a.name.localeCompare(b.name))
@@ -410,64 +396,6 @@ export default function GymStats({ workouts, phases, routines, forcedScope, forc
             </div>
           </div>
 
-          <div className="stats-block">
-            <h4>
-              Push / Pull Balance
-              <span className="toggle">
-                <button className={balanceMode === 'volume' ? 'active' : ''} onClick={() => setBalanceMode('volume')}>Vol</button>
-                <button className={balanceMode === 'sets' ? 'active' : ''} onClick={() => setBalanceMode('sets')}>Sets</button>
-              </span>
-            </h4>
-            <div className="balance-bar">
-              <div className="seg push" style={{ width: pushPct + '%' }} />
-              <div className="seg pull" style={{ width: pullPct + '%' }} />
-            </div>
-            <div className="balance-labels">
-              <span className="push">Push {Math.round(pushPct)}% ({fmtKgVal(pushAgg)}{balanceMode === 'volume' ? ' kg' : ''})</span>
-              <span className="pull">Pull {Math.round(pullPct)}% ({fmtKgVal(pullAgg)}{balanceMode === 'volume' ? ' kg' : ''})</span>
-            </div>
-          </div>
-
-          <div className="stats-block">
-            <h4>Trending</h4>
-            <div className="trend-grid">
-              <div className="trend-list up">
-                <div className="title">📈 Progressing</div>
-                {upEx.length ? upEx.map(e => (
-                  <div key={e.name} className="trend-row">
-                    <span className="nm">{e.name}</span>
-                    <span className="v">+{e.slope.toFixed(1)}</span>
-                  </div>
-                )) : <div className="empty-mini">None yet</div>}
-              </div>
-              <div className="trend-list stall">
-                <div className="title">⚠ Stalled</div>
-                {stallEx.length ? stallEx.map(e => (
-                  <div key={e.name} className="trend-row">
-                    <span className="nm">{e.name}</span>
-                    <span className="v">{e.daysSince}d</span>
-                  </div>
-                )) : <div className="empty-mini">None 🎉</div>}
-              </div>
-            </div>
-          </div>
-
-          <div className="stats-block">
-            <h4>Recent PRs</h4>
-            {prs.length ? (
-              <div className="pr-feed">
-                {[...prs].reverse().slice(0, 6).map((p, i) => (
-                  <div key={i} className="pr-row">
-                    <div>
-                      <div className="nm">{p.name}</div>
-                      <div className="meta">{fmtMD(p.date)}</div>
-                    </div>
-                    <div className="v">{p.weight.toFixed(1)}kg × {p.reps}</div>
-                  </div>
-                ))}
-              </div>
-            ) : <div className="empty-msg">No PRs in this period</div>}
-          </div>
         </>
       )}
 
