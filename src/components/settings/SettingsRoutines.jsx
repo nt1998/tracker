@@ -187,20 +187,19 @@ export default function SettingsRoutines({
               {dayKeys.map(k => {
                 const w = editRoutine.workouts[k]
                 return (
-                  <div key={k} className="phase-card" style={{ marginBottom: 6 }}>
-                    <div className="pc-name" style={{ fontSize: 13, cursor: 'pointer' }} onClick={() => setEditWorkoutKey(k)}>
-                      {w.name}{w.isRest ? ' · rest' : ''}
+                  <div key={k} className="day-item" onClick={() => setEditWorkoutKey(k)}>
+                    <div className="di-name">
+                      <div className={`n ${w.isRest ? 'rest' : ''}`}>{w.name}{w.isRest ? ' · rest' : ''}</div>
+                      <div className="s">{w.isRest ? `${(w.blocks || []).length} blocks` : `${(w.items || []).length} exercises`}</div>
                     </div>
-                    <div className="pc-dates" style={{ cursor: 'pointer' }} onClick={() => setEditWorkoutKey(k)}>
-                      {w.isRest ? `${(w.blocks || []).length} blocks` : `${(w.items || []).length} exercises`}
-                    </div>
-                    <div className="pc-actions">
-                      <button className="del" onClick={() => deleteDay(k)}>{'×'}</button>
+                    <div className="di-actions" onClick={(e) => e.stopPropagation()}>
+                      <button className="edit-btn" onClick={() => setEditWorkoutKey(k)}>Edit</button>
+                      <button className="x-btn" onClick={() => deleteDay(k)}>{'×'}</button>
                     </div>
                   </div>
                 )
               })}
-              <button className="add-phase-btn" onClick={addDay}>+ Add day</button>
+              <button className="add-btn-wide" onClick={addDay}>+ Add day</button>
             </div>
 
             {/* ---- Schedule ---- */}
@@ -255,10 +254,10 @@ export default function SettingsRoutines({
                   {(editRoutine.schedule.cycle || []).map((k, i) => {
                     const w = editRoutine.workouts[k]
                     return (
-                      <div key={i} className="cycle-row">
-                        <span className="cr-idx">{i + 1}</span>
-                        <span className="cr-name">{w?.name || '(missing)'}</span>
-                        <div className="cr-actions">
+                      <div key={i} className="cycle-row-v2">
+                        <span className="ci">{i + 1}</span>
+                        <span className="cn">{w?.name || '(missing)'}</span>
+                        <div className="ca">
                           <button className="x-btn" onClick={() => moveCycleItem(i, -1)} disabled={i === 0}>↑</button>
                           <button className="x-btn" onClick={() => moveCycleItem(i, 1)} disabled={i === (editRoutine.schedule.cycle.length - 1)}>↓</button>
                           <button className="x-btn" onClick={() => removeCycleAt(i)}>{'×'}</button>
@@ -300,15 +299,18 @@ export default function SettingsRoutines({
               <input value={editWorkout.name || ''} onChange={(e) => updateWorkout(editWorkoutKey, { name: e.target.value })} />
             </div>
 
-            <div className="field">
-              <label>
+            <div className="toggle-row">
+              <span>
+                <div className="tr-title">Rest day</div>
+                <div className="tr-sub">No logged sets — just rehab blocks.</div>
+              </span>
+              <label className="toggle-switch">
                 <input
                   type="checkbox"
                   checked={!!editWorkout.isRest}
                   onChange={(e) => updateWorkout(editWorkoutKey, { isRest: e.target.checked })}
-                  style={{ marginRight: 8 }}
                 />
-                Rest day
+                <span className="slider"></span>
               </label>
             </div>
 
@@ -326,37 +328,37 @@ export default function SettingsRoutines({
                   const ex = exercises[item.exerciseId]
                   const { min, max } = splitReps(item.reps)
                   return (
-                    <div key={idx} className="phase-card" style={{ marginBottom: 8 }}>
-                      <div className="pc-name" style={{ fontSize: 13 }}>
-                        {ex?.name || `(missing exerciseId ${item.exerciseId})`}
+                    <div key={idx} className="ex-item">
+                      <div className="ei-head">
+                        <div className="ei-name">{ex?.name || `(missing)`}</div>
+                        <button className="x-btn" onClick={() => removeItem(editWorkoutKey, idx)}>{'×'}</button>
                       </div>
-                      <div style={{ display: 'flex', gap: 6, marginTop: 6, alignItems: 'flex-end' }}>
-                        <label style={{ fontSize: 10, color: '#a6adc8', display: 'flex', flexDirection: 'column', flex: 1 }}>
+                      <div className="ei-grid">
+                        <label>
                           Warmup
                           <input type="number" min={0} value={item.warmupSets}
                             onChange={(e) => updateItem(editWorkoutKey, idx, { warmupSets: +e.target.value })} />
                         </label>
-                        <label style={{ fontSize: 10, color: '#a6adc8', display: 'flex', flexDirection: 'column', flex: 1 }}>
+                        <label>
                           Work
                           <input type="number" min={1} value={item.workSets}
                             onChange={(e) => updateItem(editWorkoutKey, idx, { workSets: +e.target.value })} />
                         </label>
-                        <label style={{ fontSize: 10, color: '#a6adc8', display: 'flex', flexDirection: 'column', flex: 1 }}>
+                        <label>
                           Rep min
                           <input type="number" min={1} value={min}
                             onChange={(e) => updateItem(editWorkoutKey, idx, { reps: joinReps(e.target.value, max) })} />
                         </label>
-                        <label style={{ fontSize: 10, color: '#a6adc8', display: 'flex', flexDirection: 'column', flex: 1 }}>
+                        <label>
                           Rep max
                           <input type="number" min={1} value={max}
                             onChange={(e) => updateItem(editWorkoutKey, idx, { reps: joinReps(min, e.target.value) })} />
                         </label>
-                        <button className="x-btn" style={{ marginBottom: 2 }} onClick={() => removeItem(editWorkoutKey, idx)}>{'×'}</button>
                       </div>
                     </div>
                   )
                 })}
-                <button className="add-phase-btn" onClick={() => setAddExerciseToKey(editWorkoutKey)}>+ Add exercise</button>
+                <button className="add-btn-wide" onClick={() => setAddExerciseToKey(editWorkoutKey)}>+ Add exercise</button>
               </div>
             )}
 

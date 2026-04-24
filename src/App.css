@@ -3697,3 +3697,182 @@ body:has(textarea:focus) .tabbar {
 .heatmap-cell.gym.l3 { background: rgba(137,180,250,.65); }
 .heatmap-cell.gym.l4 { background: rgba(137,180,250,.95); }
 .badge.gym { background: rgba(137,180,250,.15); color: #89b4fa; border: 1px solid rgba(137,180,250,.4); }
+
+/* ============================================
+   TOGGLE SWITCH (green on, gray off)
+   ============================================ */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+}
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+.toggle-switch .slider {
+  position: absolute;
+  inset: 0;
+  background: #45475a;
+  border-radius: 24px;
+  cursor: pointer;
+  transition: background .2s;
+  box-shadow: inset 1px 1px 3px rgba(17,17,27,.55);
+}
+.toggle-switch .slider::before {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 3px;
+  width: 18px;
+  height: 18px;
+  background: #cdd6f4;
+  border-radius: 50%;
+  transition: transform .2s;
+  box-shadow: 1px 1px 3px rgba(17,17,27,.4);
+}
+.toggle-switch input:checked + .slider {
+  background: #a6e3a1;
+  box-shadow: inset 1px 1px 3px rgba(0,0,0,.3);
+}
+.toggle-switch input:checked + .slider::before {
+  transform: translateX(20px);
+  background: #1e1e2e;
+}
+
+/* Apply toggle-switch in any toggle-row layout */
+.toggle-row input[type="checkbox"] {
+  display: none;
+}
+
+/* ============================================
+   ROUTINE EDIT POLISH
+   ============================================ */
+
+/* Day card (inside routine edit) — compact row */
+.day-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: rgba(30,30,46,0.85);
+  border: 1px solid rgba(137,180,250,.08);
+  border-radius: 10px;
+  margin-bottom: 6px;
+}
+.day-item .di-name {
+  flex: 1;
+  min-width: 0;
+}
+.day-item .di-name .n {
+  font-size: 13px;
+  font-weight: 600;
+  color: #cdd6f4;
+  cursor: pointer;
+}
+.day-item .di-name .n.rest { color: #94e2d5; }
+.day-item .di-name .s {
+  font-size: 10px;
+  color: #6c7086;
+  margin-top: 2px;
+}
+.day-item .di-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-shrink: 0;
+}
+.day-item .edit-btn {
+  padding: 6px 12px;
+  border: 1px solid rgba(137,180,250,.15);
+  border-radius: 8px;
+  background: linear-gradient(145deg, rgba(49,50,68,.6), rgba(30,30,46,.75));
+  color: #89b4fa;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+/* Unified "+ Add X" button style */
+.add-btn-wide {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
+  padding: 10px;
+  border: 1px dashed rgba(137,180,250,.3);
+  border-radius: 10px;
+  background: transparent;
+  color: #89b4fa;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  margin-top: 6px;
+  transition: all .15s;
+}
+.add-btn-wide:active { transform: scale(0.98); background: rgba(137,180,250,.06); }
+
+/* Cycle row: cleaner */
+.cycle-row-v2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: #181825;
+  border: 1px solid rgba(137,180,250,.06);
+  border-radius: 8px;
+  margin-bottom: 4px;
+}
+.cycle-row-v2 .ci { width: 18px; text-align: center; color: #6c7086; font-size: 11px; font-weight: 700; }
+.cycle-row-v2 .cn { flex: 1; color: #cdd6f4; font-size: 13px; }
+.cycle-row-v2 .ca { display: flex; gap: 4px; flex-shrink: 0; }
+.cycle-row-v2 .ca .x-btn { width: 26px; height: 26px; font-size: 12px; }
+
+/* Exercise item inside workout edit */
+.ex-item {
+  padding: 10px 12px;
+  background: rgba(30,30,46,0.85);
+  border: 1px solid rgba(137,180,250,.08);
+  border-radius: 10px;
+  margin-bottom: 6px;
+  position: relative;
+}
+.ex-item .ei-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.ex-item .ei-name {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 600;
+  color: #cdd6f4;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ex-item .ei-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+.ex-item .ei-grid label {
+  display: flex;
+  flex-direction: column;
+  font-size: 10px;
+  color: #a6adc8;
+  gap: 2px;
+}
+.ex-item .ei-grid input {
+  width: 100%;
+  min-width: 0;
+}

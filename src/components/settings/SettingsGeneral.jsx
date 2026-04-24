@@ -76,17 +76,20 @@ export default function SettingsGeneral({
       {phases.length === 0 && <div style={{ color: '#45475a', fontSize: 12, padding: '8px 0' }}>No phases yet</div>}
 
       <div className="settings-section">Tracking</div>
-      <label className="toggle-row">
+      <div className="toggle-row">
         <span>
           <div className="tr-title">Visceral fat</div>
           <div className="tr-sub">Record and chart the 4th measurement.</div>
         </span>
-        <input
-          type="checkbox"
-          checked={!!settings?.visceralEnabled}
-          onChange={(e) => setSettings({ ...settings, visceralEnabled: e.target.checked })}
-        />
-      </label>
+        <label className="toggle-switch">
+          <input
+            type="checkbox"
+            checked={!!settings?.visceralEnabled}
+            onChange={(e) => setSettings({ ...settings, visceralEnabled: e.target.checked })}
+          />
+          <span className="slider"></span>
+        </label>
+      </div>
 
       <div className="settings-section">Sync</div>
       <div className="settings-row" onClick={() => setGhExpanded(!ghExpanded)}>

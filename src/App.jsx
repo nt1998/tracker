@@ -10,7 +10,7 @@ import WeightLog from './tabs/WeightLog'
 import GymLog from './tabs/GymLog'
 import Stats from './tabs/Stats'
 import Settings from './tabs/Settings'
-import { SunIcon, ChartIcon, GearIcon } from './components/icons'
+import { SunIcon, DumbbellIcon, ChartIcon, GearIcon } from './components/icons'
 import { templateKeyForDate } from './lib/routine'
 import { todayKey } from './lib/dates'
 
@@ -235,19 +235,7 @@ export default function App() {
           onPointerLeave={cancelGymLongPress}
           onPointerCancel={cancelGymLongPress}
         >
-          <span className="glyph day-dots">
-            {dayEntries.length === 0 ? (
-              <span className="day-dot empty">·</span>
-            ) : dayEntries.map(([k, w]) => {
-              const letter = (w.name || k).trim().charAt(0).toUpperCase() || '•'
-              const isToday = k === todaysDayKey
-              return (
-                <span key={k} className={`day-dot ${isToday ? 'today' : ''} ${w.isRest ? 'rest' : ''}`}>
-                  {letter}
-                </span>
-              )
-            })}
-          </span>
+          <span className="glyph"><DumbbellIcon /></span>
         </button>
         <button className={tabCls('stats')} style={tabStl('stats')} onClick={() => setTab('stats')}>
           <span className="glyph"><ChartIcon /></span>
