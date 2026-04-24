@@ -249,7 +249,7 @@ export default function GymStats({ workouts, phases, routines, forcedScope, forc
   const workSessions = filteredEntries.filter(([, w]) => w.routineType !== 'rest')
   const totalVolume = workSessions.reduce((s, [, w]) => s + getSessionVolume(routines, w).volume, 0)
   const weekly = useMemo(() => getWeeklyVolume(routines, workouts, phases, statsFilter), [routines, workouts, phases, statsFilter])
-  const cadence = useMemo(() => getCadenceCells(routines, workouts, today), [routines, workouts, today])
+  const cadence = useMemo(() => getCadenceCells(routines, filtered, today), [routines, filtered, today])
   const exIdx = useMemo(() => buildExerciseIndex(routines, workouts, phases, statsFilter), [routines, workouts, phases, statsFilter])
   const prs = useMemo(() => detectPRsInRange(routines, workouts, phases, statsFilter), [routines, workouts, phases, statsFilter])
 
@@ -380,7 +380,7 @@ export default function GymStats({ workouts, phases, routines, forcedScope, forc
               {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => <span key={i}>{d}</span>)}
             </div>
             <div className="calendar-grid">
-              {getCalendarDays(workouts, calendarMonth).map((day, i) => (
+              {getCalendarDays(filtered, calendarMonth).map((day, i) => (
                 <div
                   key={i}
                   className={`calendar-day ${day?.hasWorkout ? 'workout' : ''} ${day?.routineType || ''} ${day?.date === today ? 'today' : ''}`}
