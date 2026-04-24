@@ -491,9 +491,11 @@ export default function GymLog({ workouts, setWorkouts, exercises, routines, act
         <>
           {(pr.maxWeight > 0 || isWeightPR || isRepPR) ? (
             <div className={`pr-info ${isWeightPR ? 'new-weight-pr' : ''} ${isRepPR ? 'new-rep-pr' : ''}`}>
-              <span className="pr-label">{isWeightPR || isRepPR ? 'NEW PR!' : 'PR'}</span>
-              <span className="pr-value">{pr.maxWeight}kg × {pr.maxRepsAtMaxWeight}</span>
-              {lastData && <span className="last-value">Last: {lastData.weight}{unit} {unit !== 'kg' ? `(${lastDataKg}kg)` : ''} × {lastData.reps}</span>}
+              <span className="pr-label">{isWeightPR || isRepPR ? 'NEW PR' : 'PR'}</span>
+              <span className="pr-value">{pr.maxWeight}kg×{pr.maxRepsAtMaxWeight}</span>
+              {lastData && !(isWeightPR || isRepPR) && (
+                <span className="last-value">Last {lastData.weight}{unit}×{lastData.reps}</span>
+              )}
               {timer}
             </div>
           ) : lastData ? (

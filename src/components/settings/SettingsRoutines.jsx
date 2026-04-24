@@ -2,6 +2,21 @@ import { useState } from 'react'
 
 const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
+function splitReps(raw) {
+  const s = String(raw || '').trim()
+  if (!s) return { min: '', max: '' }
+  const parts = s.split('-').map(x => x.trim())
+  return { min: parts[0] || '', max: parts[1] || '' }
+}
+function joinReps(min, max) {
+  const a = String(min).trim()
+  const b = String(max).trim()
+  if (a && b) return `${a}-${b}`
+  if (a) return a
+  if (b) return b
+  return ''
+}
+
 const EMPTY_WORKOUTS = () => ({
   push: { name: 'Push', warmups: [], items: [] },
   pull: { name: 'Pull', warmups: [], items: [] },
@@ -177,7 +192,7 @@ export default function SettingsRoutines({
                       <select value={k} onChange={(e) => setCycleDay(i, e.target.value)} style={{ flex: 1 }}>
                         {wKeys.map(tk => <option key={tk} value={tk}>{editRoutine.workouts[tk].name || tk}</option>)}
                       </select>
-                      <button className="del" onClick={() => removeCycleDay(i)}>{'×'}</button>
+                      <button className="x-btn" onClick={() => removeCycleDay(i)}>{'×'}</button>
                     </div>
                   ))}
                   <button className="add-phase-btn" onClick={addCycleDay}>+ Add day to cycle</button>
@@ -233,26 +248,34 @@ export default function SettingsRoutines({
                         <div className="pc-name" style={{ fontSize: 13 }}>
                           {ex?.name || `(missing exerciseId ${item.exerciseId})`}
                         </div>
-                        <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
-                          <label style={{ fontSize: 10, color: '#a6adc8', display: 'flex', flexDirection: 'column', flex: 1 }}>
-                            Warmup sets
-                            <input type="number" min={0} value={item.warmupSets}
-                              onChange={(e) => updateItem(editWorkoutKey, idx, { warmupSets: +e.target.value })} />
-                          </label>
-                          <label style={{ fontSize: 10, color: '#a6adc8', display: 'flex', flexDirection: 'column', flex: 1 }}>
-                            Work sets
-                            <input type="number" min={1} value={item.workSets}
-                              onChange={(e) => updateItem(editWorkoutKey, idx, { workSets: +e.target.value })} />
-                          </label>
-                          <label style={{ fontSize: 10, color: '#a6adc8', display: 'flex', flexDirection: 'column', flex: 1 }}>
-                            Reps
-                            <input value={item.reps}
-                              onChange={(e) => updateItem(editWorkoutKey, idx, { reps: e.target.value })} placeholder="8-12" />
-                          </label>
-                        </div>
-                        <div className="pc-actions">
-                          <button className="del" onClick={() => removeItem(editWorkoutKey, idx)}>{'×'}</button>
-                        </div>
+                        {(() => {
+                          const { min, max } = splitReps(item.reps)
+                          return (
+                            <div style={{ display: 'flex', gap: 6, marginTop: 6, alignItems: 'flex-end' }}>
+                              <label style={{ fontSize: 10, color: '#a6adc8', display: 'flex', flexDirection: 'column', flex: 1 }}>
+                                Warmup
+                                <input type="number" min={0} value={item.warmupSets}
+                                  onChange={(e) => updateItem(editWorkoutKey, idx, { warmupSets: +e.target.value })} />
+                              </label>
+                              <label style={{ fontSize: 10, color: '#a6adc8', display: 'flex', flexDirection: 'column', flex: 1 }}>
+                                Work
+                                <input type="number" min={1} value={item.workSets}
+                                  onChange={(e) => updateItem(editWorkoutKey, idx, { workSets: +e.target.value })} />
+                              </label>
+                              <label style={{ fontSize: 10, color: '#a6adc8', display: 'flex', flexDirection: 'column', flex: 1 }}>
+                                Reps min
+                                <input type="number" min={1} value={min}
+                                  onChange={(e) => updateItem(editWorkoutKey, idx, { reps: joinReps(e.target.value, max) })} />
+                              </label>
+                              <label style={{ fontSize: 10, color: '#a6adc8', display: 'flex', flexDirection: 'column', flex: 1 }}>
+                                Reps max
+                                <input type="number" min={1} value={max}
+                                  onChange={(e) => updateItem(editWorkoutKey, idx, { reps: joinReps(min, e.target.value) })} />
+                              </label>
+                              <button className="x-btn" style={{ marginBottom: 2 }} onClick={() => removeItem(editWorkoutKey, idx)}>{'×'}</button>
+                            </div>
+                          )
+                        })()}
                       </div>
                     )
                   })}
@@ -273,20 +296,17 @@ export default function SettingsRoutines({
         <div className="modal-overlay" onClick={() => setAddExerciseToKey(null)}>
           <div className="modal" onClick={e => e.stopPropagation()} style={{ maxHeight: '85vh', overflowY: 'auto' }}>
             <h3>Add exercise</h3>
-            {Object.values(exercises).sort((a, b) => a.name.localeCompare(b.name)).map(ex => {
-              const alreadyIn = (editRoutine.workouts[addExerciseToKey]?.items || []).some(it => it.exerciseId === ex.id)
-              return (
-                <div
-                  key={ex.id}
-                  className="phase-card"
-                  style={{ cursor: alreadyIn ? 'not-allowed' : 'pointer', opacity: alreadyIn ? 0.4 : 1, marginBottom: 4 }}
-                  onClick={() => !alreadyIn && addItem(addExerciseToKey, ex.id)}
-                >
-                  <div className="pc-name" style={{ fontSize: 13 }}>{ex.name}</div>
-                  <div className="pc-dates">{ex.equipmentType} · {ex.unit}</div>
-                </div>
-              )
-            })}
+            {Object.values(exercises).sort((a, b) => a.name.localeCompare(b.name)).map(ex => (
+              <div
+                key={ex.id}
+                className="phase-card"
+                style={{ cursor: 'pointer', marginBottom: 4 }}
+                onClick={() => addItem(addExerciseToKey, ex.id)}
+              >
+                <div className="pc-name" style={{ fontSize: 13 }}>{ex.name}</div>
+                <div className="pc-dates">{ex.equipmentType} · {ex.unit}</div>
+              </div>
+            ))}
             <div className="modal-actions">
               <button className="cancel-btn" onClick={() => setAddExerciseToKey(null)}>Cancel</button>
             </div>

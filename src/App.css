@@ -315,15 +315,20 @@ body:has(textarea:focus) .navbar {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 10px 12px;
+  gap: 6px;
+  padding: 6px 10px;
   background: #313244;
   border-radius: 8px;
-  font-size: 0.85rem;
+  font-size: 0.75rem;
+  line-height: 1.15;
   border: 2px solid transparent;
-  min-height: 42px;
+  min-height: 34px;
   box-sizing: border-box;
+  white-space: nowrap;
+  overflow: hidden;
 }
+.pr-info > * { flex-shrink: 0; }
+.pr-info .last-value { flex-shrink: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 
 .pr-info.new-weight-pr {
   background: linear-gradient(135deg, #4a3a2a 0%, #5a4020 100%);
@@ -340,8 +345,9 @@ body:has(textarea:focus) .navbar {
   color: #1e1e2e;
   padding: 2px 6px;
   border-radius: 4px;
-  font-size: 0.7rem;
+  font-size: 0.62rem;
   font-weight: 700;
+  letter-spacing: 0.3px;
 }
 
 .pr-info.new-weight-pr .pr-label,
@@ -356,7 +362,7 @@ body:has(textarea:focus) .navbar {
 
 .last-value {
   color: #6c7086;
-  margin-left: 8px;
+  font-size: 0.68rem;
 }
 
 .sets-section {
@@ -1602,11 +1608,12 @@ body:has(textarea:focus) .navbar {
 .set-timer {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-size: 0.75rem;
+  gap: 3px;
+  font-size: 0.68rem;
   font-weight: 600;
   color: #89b4fa;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
   padding: 2px 8px;
   background: rgba(137, 180, 250, 0.12);
   border-radius: 10px;
@@ -3454,4 +3461,30 @@ body:has(textarea:focus) .tabbar {
 .schedule-details {
   min-height: 70px;
   margin-top: 8px;
+}
+
+/* Unified tiny × icon button (used anywhere outside .pc-actions) */
+.x-btn {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: linear-gradient(145deg, rgba(49,50,68,.6), rgba(30,30,46,.75));
+  color: #f38ba8;
+  font-size: 14px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  box-shadow: 2px 2px 4px rgba(17,17,27,.4),
+              -1px -1px 3px rgba(69,71,90,.12);
+  transition: all .12s;
+}
+.x-btn:active {
+  transform: scale(0.93);
+  box-shadow: inset 2px 2px 4px rgba(17,17,27,.5),
+              inset -1px -1px 2px rgba(69,71,90,.1);
 }

@@ -7,8 +7,8 @@ import SettingsExercises from '../components/settings/SettingsExercises'
 const SECTIONS = [
   { id: 'general',   label: 'General' },
   { id: 'habits',    label: 'Habits' },
-  { id: 'routines',  label: 'Routines' },
   { id: 'exercises', label: 'Exercises' },
+  { id: 'routines',  label: 'Routines' },
 ]
 
 export default function Settings(props) {
