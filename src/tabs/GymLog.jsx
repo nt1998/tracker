@@ -2,12 +2,13 @@ import { useEffect, useRef, useState } from 'react'
 import { todayKey } from '../lib/dates'
 import { fmtSec, formatPlates, generateWeightSteps, getPlatesPerSide, toKg } from '../lib/weights'
 import RestSetRow from '../components/RestSetRow'
+import { templateKeyForDate } from '../lib/routine'
 
-const defaultGetWorkoutFromRoutine = (routineType, routine, exerciseNotes) => {
-  if (routine?.isRest) {
-    const flat = (routine.blocks || []).flatMap(b => b.exercises)
+const defaultGetWorkoutFromTemplate = (templateKey, template, exercises, exerciseNotes) => {
+  if (template?.isRest) {
+    const flat = (template.blocks || []).flatMap(b => b.exercises)
     return {
-      routineType,
+      routineType: templateKey,
       exercises: [],
       restChecks: flat.map(ex => Array(ex.sets || 1).fill(false)),
       warmupChecks: [],
@@ -15,20 +16,24 @@ const defaultGetWorkoutFromRoutine = (routineType, routine, exerciseNotes) => {
     }
   }
   return {
-    routineType,
-    exercises: (routine?.exercises || []).map(ex => ({
-      id: ex.id,
-      name: ex.name,
-      warmupSets: Array(ex.warmupSets).fill().map(() => ({ weight: '', reps: '', committed: false })),
-      workSets: Array(ex.workSets).fill().map(() => ({ weight: '', reps: '', committed: false })),
-      notes: exerciseNotes[ex.name] || '',
-    })),
-    warmupChecks: (routine?.warmups || []).map(() => false),
+    routineType: templateKey,
+    exercises: (template?.items || []).map(item => {
+      const ex = exercises[item.exerciseId]
+      if (!ex) return null
+      return {
+        id: ex.id,
+        name: ex.name,
+        warmupSets: Array(item.warmupSets).fill().map(() => ({ weight: '', reps: '', committed: false })),
+        workSets: Array(item.workSets).fill().map(() => ({ weight: '', reps: '', committed: false })),
+        notes: exerciseNotes[ex.name] || '',
+      }
+    }).filter(Boolean),
+    warmupChecks: (template?.warmups || []).map(() => false),
     committed: false,
   }
 }
 
-export default function GymLog({ workouts, setWorkouts, routines, exerciseNotes, setExerciseNotes }) {
+export default function GymLog({ workouts, setWorkouts, workoutTemplates, exercises, routines, activeRoutineId, exerciseNotes, setExerciseNotes }) {
   const [date] = useState(todayKey())
   const [currentExerciseIdx, setCurrentExerciseIdx] = useState(0)
   const [activeSetIdx, setActiveSetIdx] = useState({ type: 'work', idx: 0 })
@@ -41,41 +46,35 @@ export default function GymLog({ workouts, setWorkouts, routines, exerciseNotes,
     return () => clearInterval(iv)
   }, [])
 
-  const getNextRoutineType = () => {
-    const dayOfWeek = new Date().getDay()
-    const isRestDay = [0, 3, 6].includes(dayOfWeek)
-    if (isRestDay) return 'rest'
-    const sortedDates = Object.keys(workouts).sort().reverse()
-    if (sortedDates.length === 0) return 'push'
-    const lastGymWorkout = sortedDates.find(d => workouts[d]?.routineType !== 'rest')
-    if (!lastGymWorkout) return 'push'
-    return workouts[lastGymWorkout]?.routineType === 'push' ? 'pull' : 'push'
-  }
+  const activeRoutine = (routines || []).find(r => r.id === activeRoutineId) || routines?.[0]
 
   const getTodaysRoutineType = () => {
     if (workouts[date]?.routineType) return workouts[date].routineType
-    return getNextRoutineType()
+    return templateKeyForDate(activeRoutine, date) || 'push'
   }
 
   const currentRoutineType = getTodaysRoutineType()
-  const currentRoutine = routines[currentRoutineType]
+  const currentRoutine = workoutTemplates[currentRoutineType]
 
-  const workout = workouts[date] || defaultGetWorkoutFromRoutine(currentRoutineType, currentRoutine, exerciseNotes)
+  const workout = workouts[date] || defaultGetWorkoutFromTemplate(currentRoutineType, currentRoutine, exercises, exerciseNotes)
   const warmups = currentRoutine?.warmups || []
   const hasWarmups = warmups.length > 0
   const isOnWarmup = hasWarmups && currentExerciseIdx === 0
   const exerciseIdx = hasWarmups ? currentExerciseIdx - 1 : currentExerciseIdx
   const currentExercise = isOnWarmup ? null : workout.exercises[exerciseIdx]
-  const routineTemplate = currentExercise ? (currentRoutine?.exercises.find(e => e.id === currentExercise?.id) || currentRoutine?.exercises[exerciseIdx]) : null
+  // Per-workout item config (reps, warmup/work sets) for the current exercise
+  const templateItem = currentExercise
+    ? (currentRoutine?.items || []).find(it => it.exerciseId === currentExercise.id)
+    : null
+  // Exercise library entry — holds unit / equipment / increment
+  const exerciseLib = currentExercise ? exercises[currentExercise.id] : null
+  const routineTemplate = templateItem && exerciseLib ? { ...exerciseLib, ...templateItem, name: exerciseLib.name } : null
   const restExercises = currentRoutine?.isRest ? (currentRoutine.blocks || []).flatMap(b => b.exercises) : []
   const totalItems = currentRoutine?.isRest ? restExercises.length : ((hasWarmups ? 1 : 0) + workout.exercises.length)
 
   const getExerciseConfig = (exerciseName) => {
-    for (const routine of Object.values(routines)) {
-      const ex = routine.exercises?.find(e => e.name === exerciseName)
-      if (ex) return ex
-    }
-    return { unit: 'kg', equipmentType: 'machine', startWeight: 5, increment: 5 }
+    const ex = Object.values(exercises).find(e => e.name === exerciseName)
+    return ex || { unit: 'kg', equipmentType: 'machine', startWeight: 5, increment: 5 }
   }
 
   const getLastExerciseValues = (exerciseName) => {
@@ -143,7 +142,7 @@ export default function GymLog({ workouts, setWorkouts, routines, exerciseNotes,
 
   const writeWorkout = (mutator) => {
     setWorkouts(prev => {
-      const base = prev[date] || defaultGetWorkoutFromRoutine(currentRoutineType, currentRoutine, exerciseNotes)
+      const base = prev[date] || defaultGetWorkoutFromTemplate(currentRoutineType, currentRoutine, exercises, exerciseNotes)
       const next = JSON.parse(JSON.stringify(base))
       mutator(next)
       return { ...prev, [date]: next }
@@ -155,7 +154,7 @@ export default function GymLog({ workouts, setWorkouts, routines, exerciseNotes,
   const writeExercise = (exId, mutator) => {
     if (exId == null) return
     setWorkouts(prev => {
-      const base = prev[date] || defaultGetWorkoutFromRoutine(currentRoutineType, currentRoutine, exerciseNotes)
+      const base = prev[date] || defaultGetWorkoutFromTemplate(currentRoutineType, currentRoutine, exercises, exerciseNotes)
       const next = JSON.parse(JSON.stringify(base))
       const ex = next.exercises.find(e => e.id === exId)
       if (!ex) return prev

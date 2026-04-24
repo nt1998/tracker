@@ -6,18 +6,15 @@ import { toKg } from '../lib/weights'
 const fmtKgVal = v => v >= 1000 ? (v / 1000).toFixed(1) + 'k' : Math.round(v).toString()
 const fmtMD = d => { const [, m, da] = d.split('-'); return `${m}/${da}` }
 
-function getExerciseConfig(routines, name) {
-  for (const r of Object.values(routines)) {
-    const ex = r.exercises?.find(e => e.name === name)
-    if (ex) return ex
-  }
-  return { unit: 'kg', equipmentType: 'machine', startWeight: 5, increment: 5 }
+function getExerciseConfig(exercises, name) {
+  const ex = Object.values(exercises || {}).find(e => e.name === name)
+  return ex || { unit: 'kg', equipmentType: 'machine', startWeight: 5, increment: 5 }
 }
 
-function getSessionVolume(routines, w) {
+function getSessionVolume(exercises, w) {
   let total = 0, setCount = 0
   w.exercises?.forEach(ex => {
-    const cfg = getExerciseConfig(routines, ex.name)
+    const cfg = getExerciseConfig(exercises, ex.name)
     ex.workSets?.forEach(s => {
       if (s.committed === false) return
       const wt = toKg(s.weight, cfg.unit, cfg.kgPerUnit)
@@ -72,7 +69,7 @@ function getWeeklyStreak(workouts, phases, filterByCurrentPhase) {
   return streak
 }
 
-function getWeeklyVolume(routines, workouts, phases, statsFilter) {
+function getWeeklyVolume(exercises, workouts, phases, statsFilter) {
   const filtered = filterByPhase(workouts, phases, statsFilter)
   const map = {}
   Object.entries(filtered).forEach(([date, w]) => {
@@ -82,14 +79,14 @@ function getWeeklyVolume(routines, workouts, phases, statsFilter) {
     d.setDate(d.getDate() - day)
     const wk = d.toISOString().slice(0, 10)
     if (!map[wk]) map[wk] = { week: wk, push: 0, pull: 0 }
-    const { volume } = getSessionVolume(routines, w)
+    const { volume } = getSessionVolume(exercises, w)
     if (w.routineType === 'push') map[wk].push += volume
     else if (w.routineType === 'pull') map[wk].pull += volume
   })
   return Object.values(map).sort((a, b) => a.week.localeCompare(b.week))
 }
 
-function getCadenceCells(routines, workouts, today) {
+function getCadenceCells(exercises, workouts, today) {
   const t = new Date()
   t.setHours(0, 0, 0, 0)
   const dow = (t.getDay() + 6) % 7
@@ -98,7 +95,7 @@ function getCadenceCells(routines, workouts, today) {
   const cols = []
   let maxVol = 1
   Object.entries(workouts).forEach(([, w]) => {
-    if (w.committed && w.routineType !== 'rest') maxVol = Math.max(maxVol, getSessionVolume(routines, w).volume)
+    if (w.committed && w.routineType !== 'rest') maxVol = Math.max(maxVol, getSessionVolume(exercises, w).volume)
   })
   let lastMonth = -1
   for (let w = 0; w < 12; w++) {
@@ -116,7 +113,7 @@ function getCadenceCells(routines, workouts, today) {
       if (wk?.committed) {
         if (wk.routineType === 'rest') days.push({ ds, type: 'rest', level: 0 })
         else {
-          const vol = getSessionVolume(routines, wk).volume
+          const vol = getSessionVolume(exercises, wk).volume
           const lvl = Math.min(4, Math.max(1, Math.ceil((vol / maxVol) * 4)))
           days.push({ ds, type: wk.routineType, level: lvl, volume: vol })
         }
@@ -149,13 +146,13 @@ function getCalendarDays(workouts, calendarMonth) {
   return days
 }
 
-function buildExerciseIndex(routines, workouts, phases, statsFilter) {
+function buildExerciseIndex(exercises, workouts, phases, statsFilter) {
   const filtered = filterByPhase(workouts, phases, statsFilter)
   const idx = {}
   Object.entries(filtered).sort(([a], [b]) => a.localeCompare(b)).forEach(([date, w]) => {
     if (w.routineType === 'rest') return
     w.exercises?.forEach(ex => {
-      const cfg = getExerciseConfig(routines, ex.name)
+      const cfg = getExerciseConfig(exercises, ex.name)
       const workSets = (ex.workSets || []).filter(s => s.committed !== false).map(s => {
         const wKg = toKg(s.weight, cfg.unit, cfg.kgPerUnit)
         const reps = parseInt(s.reps) || 0
@@ -198,7 +195,7 @@ function buildExerciseIndex(routines, workouts, phases, statsFilter) {
   return idx
 }
 
-function detectPRsInRange(routines, workouts, phases, statsFilter) {
+function detectPRsInRange(exercises, workouts, phases, statsFilter) {
   const filtered = filterByPhase(workouts, phases, statsFilter)
   const sorted = Object.entries(filtered).sort(([a], [b]) => a.localeCompare(b))
   const best = {}
@@ -206,7 +203,7 @@ function detectPRsInRange(routines, workouts, phases, statsFilter) {
   sorted.forEach(([date, w]) => {
     if (w.routineType === 'rest') return
     w.exercises?.forEach(ex => {
-      const cfg = getExerciseConfig(routines, ex.name)
+      const cfg = getExerciseConfig(exercises, ex.name)
       let topW = 0, topR = 0, e1RM = 0
       ex.workSets?.forEach(s => {
         if (s.committed === false) return
@@ -229,7 +226,7 @@ function detectPRsInRange(routines, workouts, phases, statsFilter) {
   return prs
 }
 
-export default function GymStats({ workouts, phases, routines, forcedScope, forcedSubTab, hideSubTabs, flatLayout }) {
+export default function GymStats({ workouts, phases, exercises, forcedScope, forcedSubTab, hideSubTabs, flatLayout }) {
   const [ownFilter, setOwnFilter] = useState('current')
   const statsFilter = forcedScope !== undefined ? forcedScope : ownFilter
   const setStatsFilter = forcedScope !== undefined ? () => {} : setOwnFilter
@@ -247,11 +244,11 @@ export default function GymStats({ workouts, phases, routines, forcedScope, forc
   const filtered = useMemo(() => filterByPhase(workouts, phases, statsFilter), [workouts, phases, statsFilter])
   const filteredEntries = Object.entries(filtered)
   const workSessions = filteredEntries.filter(([, w]) => w.routineType !== 'rest')
-  const totalVolume = workSessions.reduce((s, [, w]) => s + getSessionVolume(routines, w).volume, 0)
-  const weekly = useMemo(() => getWeeklyVolume(routines, workouts, phases, statsFilter), [routines, workouts, phases, statsFilter])
-  const cadence = useMemo(() => getCadenceCells(routines, filtered, today), [routines, filtered, today])
-  const exIdx = useMemo(() => buildExerciseIndex(routines, workouts, phases, statsFilter), [routines, workouts, phases, statsFilter])
-  const prs = useMemo(() => detectPRsInRange(routines, workouts, phases, statsFilter), [routines, workouts, phases, statsFilter])
+  const totalVolume = workSessions.reduce((s, [, w]) => s + getSessionVolume(exercises, w).volume, 0)
+  const weekly = useMemo(() => getWeeklyVolume(exercises, workouts, phases, statsFilter), [exercises, workouts, phases, statsFilter])
+  const cadence = useMemo(() => getCadenceCells(exercises, filtered, today), [exercises, filtered, today])
+  const exIdx = useMemo(() => buildExerciseIndex(exercises, workouts, phases, statsFilter), [exercises, workouts, phases, statsFilter])
+  const prs = useMemo(() => detectPRsInRange(exercises, workouts, phases, statsFilter), [exercises, workouts, phases, statsFilter])
 
   const exList = Object.values(exIdx)
 
@@ -484,7 +481,7 @@ export default function GymStats({ workouts, phases, routines, forcedScope, forc
               <div className="hist-week">Week of {fmtMD(wk)}</div>
               {histGroups[wk].map(([d, w]) => {
                 const isRest = w.routineType === 'rest'
-                const { volume, sets } = isRest ? { volume: 0, sets: 0 } : getSessionVolume(routines, w)
+                const { volume, sets } = isRest ? { volume: 0, sets: 0 } : getSessionVolume(exercises, w)
                 const open = openHistDates.has(d)
                 const exPRs = isRest ? 0 : (w.exercises || []).filter(ex => prSet.has(d + '|' + ex.name)).length
                 return (
@@ -509,7 +506,7 @@ export default function GymStats({ workouts, phases, routines, forcedScope, forc
                         {isRest ? (
                           <div className="sess-rest">Rehab session completed.</div>
                         ) : (w.exercises || []).map((ex, ei) => {
-                          const cfg = getExerciseConfig(routines, ex.name)
+                          const cfg = getExerciseConfig(exercises, ex.name)
                           const work = (ex.workSets || []).filter(s => s.committed !== false && parseFloat(s.weight) > 0)
                           const warm = (ex.warmupSets || []).filter(s => parseFloat(s.weight) > 0)
                           const isPR = prSet.has(d + '|' + ex.name)

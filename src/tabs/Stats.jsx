@@ -8,7 +8,7 @@ import { addDays, todayKey } from '../lib/dates'
 import { PersonIcon, BarbellIcon } from '../components/icons'
 import GymStats from './GymStats'
 
-export default function Stats({ entries, phases, workouts, routines, autoHabitsByDate, habits }) {
+export default function Stats({ entries, phases, workouts, exercises, autoHabitsByDate, habits }) {
   const [view, setView] = useState('body') // 'body' | 'workout'
   // 'journey' | phase id — history lives inline at the bottom of each view
   const [scope, setScope] = useState('journey')
@@ -117,7 +117,7 @@ export default function Stats({ entries, phases, workouts, routines, autoHabitsB
         <GymStats
           workouts={workouts}
           phases={phases}
-          routines={routines}
+          exercises={exercises}
           forcedScope={scope === 'journey' ? 'all' : scope}
           flatLayout
         />

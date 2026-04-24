@@ -110,62 +110,86 @@ function buildPhases() {
   ]
 }
 
-const routines = {
+// Flat exercise library (pure movement metadata — no sets/reps here).
+const exercises = {
+  1: { id: 1, name: 'Bench Press',      unit: 'kg', equipmentType: 'plates',    startWeight: 60, increment: 2.5, barWeight: 20, templateNotes: 'Keep elbows 45°, touch low chest.' },
+  2: { id: 2, name: 'Overhead Press',   unit: 'kg', equipmentType: 'plates',    startWeight: 30, increment: 2.5, barWeight: 20, templateNotes: 'Glutes tight, no low-back arch.' },
+  3: { id: 3, name: 'Incline DB Press', unit: 'kg', equipmentType: 'dumbbell',  startWeight: 16, increment: 2,   templateNotes: '' },
+  4: { id: 4, name: 'Cable Fly',        unit: 'kg', equipmentType: 'machine',   startWeight: 10, increment: 5,   templateNotes: '' },
+  5: { id: 5, name: 'Triceps Pushdown', unit: 'kg', equipmentType: 'machine',   startWeight: 15, increment: 5,   templateNotes: '' },
+  6: { id: 6, name: 'Pull-ups',         unit: 'kg', equipmentType: 'bodyweight',startWeight: 0,  increment: 2.5, templateNotes: 'Dead hang each rep.' },
+  7: { id: 7, name: 'Barbell Row',      unit: 'kg', equipmentType: 'plates',    startWeight: 50, increment: 2.5, barWeight: 20, templateNotes: 'Torso 45°, pull to belly.' },
+  8: { id: 8, name: 'Lat Pulldown',     unit: 'kg', equipmentType: 'machine',   startWeight: 40, increment: 5,   templateNotes: '' },
+  9: { id: 9, name: 'Face Pull',        unit: 'kg', equipmentType: 'machine',   startWeight: 15, increment: 5,   templateNotes: '' },
+  10:{ id:10, name: 'Biceps Curl',      unit: 'kg', equipmentType: 'dumbbell',  startWeight: 10, increment: 1,   templateNotes: '' },
+}
+
+// Workout templates (Push/Pull/Rest) reference exercises by id and
+// carry the per-workout sets / reps configuration.
+const workoutTemplates = {
   push: {
     name: 'Push',
-    schedule: 'Mon · Thu',
     warmups: [
       { id: 1, name: 'Band pull-aparts', reps: '2×15', notes: '' },
-      { id: 2, name: 'Scap push-ups', reps: '2×10', notes: '' },
+      { id: 2, name: 'Scap push-ups',    reps: '2×10', notes: '' },
     ],
-    exercises: [
-      { id: 1, name: 'Bench Press',       warmupSets: 2, workSets: 4, reps: '6-10',  unit: 'kg',  equipmentType: 'plates',  startWeight: 60,  increment: 2.5, barWeight: 20 },
-      { id: 2, name: 'Overhead Press',    warmupSets: 1, workSets: 3, reps: '6-10',  unit: 'kg',  equipmentType: 'plates',  startWeight: 30,  increment: 2.5, barWeight: 20 },
-      { id: 3, name: 'Incline DB Press',  warmupSets: 1, workSets: 3, reps: '8-12',  unit: 'kg',  equipmentType: 'dumbbell',startWeight: 16,  increment: 2 },
-      { id: 4, name: 'Cable Fly',         warmupSets: 0, workSets: 3, reps: '10-14', unit: 'kg',  equipmentType: 'machine', startWeight: 10,  increment: 5 },
-      { id: 5, name: 'Triceps Pushdown',  warmupSets: 0, workSets: 3, reps: '10-14', unit: 'kg',  equipmentType: 'machine', startWeight: 15,  increment: 5 },
+    items: [
+      { exerciseId: 1, warmupSets: 2, workSets: 4, reps: '6-10' },
+      { exerciseId: 2, warmupSets: 1, workSets: 3, reps: '6-10' },
+      { exerciseId: 3, warmupSets: 1, workSets: 3, reps: '8-12' },
+      { exerciseId: 4, warmupSets: 0, workSets: 3, reps: '10-14' },
+      { exerciseId: 5, warmupSets: 0, workSets: 3, reps: '10-14' },
     ],
   },
   pull: {
     name: 'Pull',
-    schedule: 'Tue · Fri',
     warmups: [
-      { id: 1, name: 'Dead hang', reps: '2×20s', notes: '' },
-      { id: 2, name: 'Scap pull-ups', reps: '2×8', notes: '' },
+      { id: 1, name: 'Dead hang',     reps: '2×20s', notes: '' },
+      { id: 2, name: 'Scap pull-ups', reps: '2×8',   notes: '' },
     ],
-    exercises: [
-      { id: 1, name: 'Pull-ups',          warmupSets: 1, workSets: 4, reps: '5-10',  unit: 'kg', equipmentType: 'bodyweight', startWeight: 0, increment: 2.5 },
-      { id: 2, name: 'Barbell Row',       warmupSets: 2, workSets: 3, reps: '6-10',  unit: 'kg', equipmentType: 'plates',  startWeight: 50,  increment: 2.5, barWeight: 20 },
-      { id: 3, name: 'Lat Pulldown',      warmupSets: 1, workSets: 3, reps: '8-12',  unit: 'kg', equipmentType: 'machine', startWeight: 40,  increment: 5 },
-      { id: 4, name: 'Face Pull',         warmupSets: 0, workSets: 3, reps: '12-15', unit: 'kg', equipmentType: 'machine', startWeight: 15,  increment: 5 },
-      { id: 5, name: 'Biceps Curl',       warmupSets: 0, workSets: 3, reps: '10-14', unit: 'kg', equipmentType: 'dumbbell',startWeight: 10,  increment: 1 },
+    items: [
+      { exerciseId: 6,  warmupSets: 1, workSets: 4, reps: '5-10' },
+      { exerciseId: 7,  warmupSets: 2, workSets: 3, reps: '6-10' },
+      { exerciseId: 8,  warmupSets: 1, workSets: 3, reps: '8-12' },
+      { exerciseId: 9,  warmupSets: 0, workSets: 3, reps: '12-15' },
+      { exerciseId: 10, warmupSets: 0, workSets: 3, reps: '10-14' },
     ],
   },
   rest: {
     name: 'Rest Day',
-    schedule: 'Wed · Sat · Sun',
     isRest: true,
     warmups: [],
+    items: [],
     blocks: [
-      {
-        name: 'Mobility',
-        exercises: [
-          { name: 'Cat-cow',       type: 'rep',  sets: 2, reps: '10', perSide: false },
-          { name: '90/90 hip',     type: 'time', sets: 2, duration: 30, perSide: true },
-          { name: 'Thoracic rot',  type: 'rep',  sets: 2, reps: '8',  perSide: true },
-        ],
-      },
-      {
-        name: 'Feet',
-        exercises: [
-          { name: 'Arch squeeze',  type: 'time', sets: 2, duration: 30, perSide: true },
-          { name: 'Toe yoga',      type: 'rep',  sets: 2, reps: '10', perSide: true },
-        ],
-      },
+      { name: 'Mobility', exercises: [
+        { name: 'Cat-cow',      type: 'rep',  sets: 2, reps: '10', perSide: false },
+        { name: '90/90 hip',    type: 'time', sets: 2, duration: 30, perSide: true },
+        { name: 'Thoracic rot', type: 'rep',  sets: 2, reps: '8',  perSide: true },
+      ] },
+      { name: 'Feet', exercises: [
+        { name: 'Arch squeeze', type: 'time', sets: 2, duration: 30, perSide: true },
+        { name: 'Toe yoga',     type: 'rep',  sets: 2, reps: '10', perSide: true },
+      ] },
     ],
-    exercises: [],
   },
 }
+
+// User's own routines. Schedule maps weekdays (or a cycle) to workout
+// template keys.
+const routines = [
+  {
+    id: 'r_default',
+    name: 'PPL Classic',
+    schedule: {
+      mode: 'weekday',
+      weekdayMap: { 0: 'rest', 1: 'push', 2: 'pull', 3: 'rest', 4: 'push', 5: 'pull', 6: 'rest' },
+      cycle: ['push', 'pull', 'rest'],
+      cycleAnchor: START,
+    },
+  },
+]
+
+const activeRoutineId = 'r_default'
 
 function buildWorkouts() {
   const dates = dateRange(START, TODAY)
@@ -173,33 +197,31 @@ function buildWorkouts() {
   dates.forEach((d, i) => {
     const day = new Date(d + 'T12:00:00')
     const dow = day.getDay()
-    // Mon/Thu = push, Tue/Fri = pull, else rest
     const isPush = [1, 4].includes(dow)
     const isPull = [2, 5].includes(dow)
-    // miss ~15% of scheduled workouts
     if ((isPush || isPull) && (i * 3) % 7 === 2) return
 
     if (isPush || isPull) {
-      const routine = routines[isPush ? 'push' : 'pull']
-      // progressive overload: weight climbs slowly
+      const tmpl = workoutTemplates[isPush ? 'push' : 'pull']
       const progress = i / 60
       out[d] = {
         routineType: isPush ? 'push' : 'pull',
         committed: true,
-        warmupChecks: routine.warmups.map(() => true),
-        exercises: routine.exercises.map((ex, ei) => {
+        warmupChecks: tmpl.warmups.map(() => true),
+        exercises: tmpl.items.map((item, ei) => {
+          const ex = exercises[item.exerciseId]
           const baseWeight = (ex.startWeight || 20) + progress * 10 + ei * 0.5
           const unit = ex.unit || 'kg'
           return {
             id: ex.id,
             name: ex.name,
-            warmupSets: Array.from({ length: ex.warmupSets }).map((_, si) => ({
+            warmupSets: Array.from({ length: item.warmupSets }).map((_, si) => ({
               weight: Math.round((baseWeight * 0.5 + si * 5) * 10) / 10 + '',
               reps: '8',
               unit,
               committed: true,
             })),
-            workSets: Array.from({ length: ex.workSets }).map((_, si) => {
+            workSets: Array.from({ length: item.workSets }).map((_, si) => {
               const w = baseWeight + noise(i * 31 + ei * 7 + si, 1.5)
               const r = 8 - Math.floor(si / 2) + Math.floor(noise(i + ei + si, 1.2))
               return {
@@ -214,9 +236,8 @@ function buildWorkouts() {
         }),
       }
     } else if (dow === 0) {
-      // Sunday rehab
       if ((i * 5) % 8 === 3) return
-      const restEx = (routines.rest.blocks || []).flatMap(b => b.exercises)
+      const restEx = (workoutTemplates.rest.blocks || []).flatMap(b => b.exercises)
       out[d] = {
         routineType: 'rest',
         committed: true,
@@ -239,5 +260,8 @@ const notes = {
 export const seedEntries = buildEntries()
 export const seedPhases = buildPhases()
 export const seedWorkouts = buildWorkouts()
+export const seedExercises = exercises
+export const seedWorkoutTemplates = workoutTemplates
 export const seedRoutines = routines
+export const seedActiveRoutineId = activeRoutineId
 export const seedNotes = notes

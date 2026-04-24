@@ -22,9 +22,12 @@ export default function App() {
     entries, setEntries,
     phases, setPhases,
     workouts, setWorkouts,
-    routines, setRoutines,
     exerciseNotes, setExerciseNotes,
     habits, setHabits,
+    exercises, setExercises,
+    workoutTemplates, setWorkoutTemplates,
+    routines, setRoutines,
+    activeRoutineId, setActiveRoutineId,
     autoHabitsByDate,
   } = useStore()
 
@@ -46,7 +49,10 @@ export default function App() {
           <GymLog
             workouts={workouts}
             setWorkouts={setWorkouts}
+            workoutTemplates={workoutTemplates}
+            exercises={exercises}
             routines={routines}
+            activeRoutineId={activeRoutineId}
             exerciseNotes={exerciseNotes}
             setExerciseNotes={setExerciseNotes}
           />
@@ -56,7 +62,7 @@ export default function App() {
             entries={entries}
             phases={phases}
             workouts={workouts}
-            routines={routines}
+            exercises={exercises}
             autoHabitsByDate={autoHabitsByDate}
             habits={habits}
           />
@@ -64,8 +70,11 @@ export default function App() {
         {tab === 'settings' && (
           <Settings
             phases={phases} setPhases={setPhases}
-            routines={routines} setRoutines={setRoutines}
             habits={habits} setHabits={setHabits}
+            exercises={exercises} setExercises={setExercises}
+            workoutTemplates={workoutTemplates} setWorkoutTemplates={setWorkoutTemplates}
+            routines={routines} setRoutines={setRoutines}
+            activeRoutineId={activeRoutineId} setActiveRoutineId={setActiveRoutineId}
           />
         )}
       </main>
