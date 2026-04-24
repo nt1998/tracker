@@ -37,16 +37,23 @@ export const DEFAULT_HABITS = [
 // the default list when no persisted habits exist yet.
 export const ORBIT_HABITS = DEFAULT_HABITS
 
-export function habitApplies(h, dateStr) {
+export function habitApplies(h, dateStr, entries) {
   const d = new Date(dateStr + 'T12:00:00')
   const sched = h.schedule || { mode: 'daily' }
   if (sched.mode === 'weekdays') return (sched.weekdays || []).includes(d.getDay())
   if (sched.mode === 'everyN') {
     const n = Math.max(1, sched.everyN || 1)
-    const epochDay = Math.floor(d.getTime() / 86400000)
-    return epochDay % n === 0
+    if (n === 1) return true
+    // Applies today unless it was actually done within the last (n-1) days.
+    // If user skips a scheduled day, it still applies the next day.
+    for (let i = 1; i <= n - 1; i++) {
+      const k = addDays(dateStr, -i)
+      const done = !!entries?.[k]?.habits?.[h.key]
+      if (done) return false
+    }
+    return true
   }
-  return true // daily or unknown → always applies
+  return true
 }
 
 export function makeEmptyHabits() {

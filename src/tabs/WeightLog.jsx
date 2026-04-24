@@ -65,8 +65,8 @@ export default function WeightLog({ entries, setEntries, autoHabitsByDate, habit
   }, [entries, autoHabitsByDate, habits])
 
   const applicable = useMemo(
-    () => habits.filter(h => !h.auto && habitApplies(h, date)),
-    [date, habits],
+    () => habits.filter(h => !h.auto && habitApplies(h, date, entries)),
+    [date, habits, entries],
   )
 
   const orbitFraction = useMemo(() => {

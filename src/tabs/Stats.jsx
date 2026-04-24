@@ -22,7 +22,7 @@ export default function Stats({ entries, phases, workouts, exercises, autoHabits
       for (let i = 20; i >= 0; i--) {
         const d = addDays(today, -i)
         const isTodayDot = i === 0
-        const appl = habitApplies(h, d)
+        const appl = habitApplies(h, d, entries)
         let val = null
         if (appl) {
           if (h.auto) val = !!autoHabitsByDate[d]?.[h.key]
@@ -48,7 +48,7 @@ export default function Stats({ entries, phases, workouts, exercises, autoHabits
     return habits.map(h => {
       let done = 0, total = 0
       sortedDates.forEach(k => {
-        if (!habitApplies(h, k)) return
+        if (!habitApplies(h, k, entries)) return
         const v = h.auto ? !!autoHabitsByDate[k]?.[h.key] : !!ensureHabits(entries[k]).habits?.[h.key]
         total++
         if (v) done++

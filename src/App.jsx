@@ -41,7 +41,10 @@ export default function App() {
   })
 
   const activeRoutine = (routines || []).find(r => r.id === activeRoutineId) || routines?.[0]
-  const todaysDayKey = activeRoutine ? templateKeyForDate(activeRoutine, todayKey()) : null
+  const today = todayKey()
+  const scheduledDayKey = activeRoutine ? templateKeyForDate(activeRoutine, today) : null
+  // What's actually logged for today, falling back to the schedule
+  const todaysDayKey = workouts[today]?.routineType || scheduledDayKey
   const dayEntries = Object.entries(activeRoutine?.workouts || {}).slice(0, 6)
 
   // Day picker (long-press on gym tab)
