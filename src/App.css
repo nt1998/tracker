@@ -2404,12 +2404,12 @@ body:has(textarea:focus) .tabbar {
   margin-top: 8px;
 }
 .water-btn {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
+  flex: 1;
+  height: 36px;
+  border-radius: 18px;
   border: 1px solid rgba(137,220,235,.14);
   color: #89dceb;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   cursor: pointer;
