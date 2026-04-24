@@ -596,9 +596,9 @@ body:has(textarea:focus) .navbar {
   color: #a6adc8;
 }
 
-/* Stats page */
+/* Stats page — .content already provides 16px horizontal padding */
 .stats-page {
-  padding: 16px;
+  padding: 16px 0;
 }
 
 .stat-cards {
