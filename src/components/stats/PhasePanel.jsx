@@ -7,8 +7,10 @@ import { ensureHabits, ORBIT_HABITS } from '../../lib/bodyData'
 
 const CANVAS_W = 337
 
-export default function PhasePanel({ entries, phases, sortedDates, statsPhaseIdx, setStatsPhaseIdx, settings }) {
+export default function PhasePanel({ entries, phases, sortedDates, statsPhaseIdx, setStatsPhaseIdx, settings, water }) {
   const visceralEnabled = !!settings?.visceralEnabled
+  const waterEnabled = !!settings?.waterEnabled
+  const waterGoal = Math.max(1, parseInt(settings?.waterGoalML, 10) || 2500)
   if (phases.length === 0) return <div style={{ color: '#45475a', textAlign: 'center', padding: 40 }}>No phases yet</div>
 
   const currentIdx = phases.findIndex(p => !p.end)
@@ -348,6 +350,52 @@ export default function PhasePanel({ entries, phases, sortedDates, statsPhaseIdx
           </div>
         ))}
       </div>
+
+      {waterEnabled && (() => {
+        const phaseWater = phaseKeys.map(k => (water && water[k]) || 0)
+        const loggedVals = phaseWater.filter(v => v > 0)
+        const phaseAvg = loggedVals.length ? Math.round(loggedVals.reduce((a, b) => a + b, 0) / loggedVals.length) : 0
+        const daysHit = phaseWater.filter(v => v >= waterGoal).length
+        const daysHitPct = phaseKeys.length ? Math.round((daysHit / phaseKeys.length) * 100) : 0
+        return (
+          <>
+            <div className="stat-section-title">Water in this phase</div>
+            <div className="hero-metrics">
+              <div className="hero-card" style={{ '--accent': '#89dceb' }}>
+                <div className="hero-val">{phaseAvg}</div>
+                <div className="hero-label">Avg ml/day</div>
+              </div>
+              <div className="hero-card" style={{ '--accent': '#89dceb' }}>
+                <div className="hero-val">{daysHit}</div>
+                <div className="hero-label">Days at goal</div>
+              </div>
+              <div className="hero-card" style={{ '--accent': '#89dceb' }}>
+                <div className="hero-val">{daysHitPct}%</div>
+                <div className="hero-label">Goal rate</div>
+              </div>
+            </div>
+            <div className="chart-card">
+              <ScrubbableLine
+                data={{
+                  labels,
+                  datasets: [
+                    { data: phaseWater, borderColor: '#89dceb', backgroundColor: hexToRgba('#89dceb', 0.18), fill: true },
+                    { data: phaseWater.map(() => waterGoal), borderColor: '#45475a', borderDash: [4, 4], borderWidth: 1, fill: false, pointRadius: 0 },
+                  ],
+                }}
+                options={phaseOpts()}
+                width={CANVAS_W} height={120}
+                style={{ width: CANVAS_W, height: 120 }}
+                renderHead={(idx) => {
+                  const i = idx ?? pickLast(phaseWater)
+                  const v = phaseWater[i]
+                  return <div className="card-head">Water <span className="v">{v != null ? v : '--'} ml {idx != null && <span className="d">{phaseKeys[i]}</span>}</span></div>
+                }}
+              />
+            </div>
+          </>
+        )
+      })()}
 
       <div className="stat-section-title">Activity totals</div>
       <div className="chart-card">

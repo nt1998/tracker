@@ -2368,6 +2368,69 @@ body:has(textarea:focus) .tabbar {
   color: #6c7086;
 }
 
+/* ---- Water tracker ---- */
+.water-section {
+  background: rgba(30,30,46,0.85);
+  border: 1px solid rgba(137,220,235,.12);
+  border-radius: 12px;
+  padding: 14px 14px 16px;
+  margin-bottom: 10px;
+}
+.water-progress-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+  font-variant-numeric: tabular-nums;
+}
+.water-progress-row .wpr-left {
+  font-size: 14px;
+  font-weight: 600;
+  color: #cdd6f4;
+}
+.water-progress-row .wpr-left.over {
+  font-size: 12px;
+  color: #a6adc8;
+}
+.water-progress-row .wpr-right {
+  font-size: 14px;
+  font-weight: 700;
+}
+.water-btn-row {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  gap: 12px;
+  margin-top: 14px;
+}
+.water-btn {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  border: 1px solid rgba(137,220,235,.14);
+  color: #89dceb;
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(145deg, rgba(49,50,68,.55), rgba(30,30,46,.7));
+  box-shadow: 4px 4px 9px rgba(17,17,27,.55),
+              -2px -2px 6px rgba(69,71,90,.18),
+              inset 0 1px 0 rgba(88,91,112,.12);
+  transition: all .15s ease;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
+}
+.water-btn:active {
+  transform: scale(0.93);
+  box-shadow: inset 3px 3px 7px rgba(17,17,27,.6),
+              inset -1px -1px 3px rgba(69,71,90,.1);
+}
+
 /* Habit chips (toggles below measurements) */
 .habit-chips {
   display: flex;

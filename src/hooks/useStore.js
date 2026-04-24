@@ -47,7 +47,8 @@ export default function useStore() {
   const [exercises, setExercises] = useLocalStorage('tracker_exercises', {})
   const [routines, setRoutines] = useLocalStorage('tracker_routines', [])
   const [activeRoutineId, setActiveRoutineId] = useLocalStorage('tracker_active_routine', null)
-  const [settings, setSettings] = useLocalStorage('tracker_settings', { visceralEnabled: false })
+  const [settings, setSettings] = useLocalStorage('tracker_settings', { visceralEnabled: false, waterEnabled: true, waterGoalML: 2500 })
+  const [water, setWater] = useLocalStorage('tracker_water', {})
 
   const autoHabitsByDate = useMemo(() => {
     const out = {}
@@ -72,6 +73,7 @@ export default function useStore() {
     routines, setRoutines,
     activeRoutineId, setActiveRoutineId,
     settings, setSettings,
+    water, setWater,
     autoHabitsByDate,
   }
 }

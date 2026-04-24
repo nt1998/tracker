@@ -3,7 +3,7 @@ import { addDays, formatDateLabel, todayKey } from '../lib/dates'
 import { METRICS, getActiveMetrics, ensureHabits, habitApplies, makeEmptyEntry } from '../lib/bodyData'
 import { BlackHoleIcon } from '../components/icons'
 
-export default function WeightLog({ entries, setEntries, autoHabitsByDate, habits, settings }) {
+export default function WeightLog({ entries, setEntries, autoHabitsByDate, habits, settings, water, setWater }) {
   const activeMetrics = getActiveMetrics(settings)
   const today = todayKey()
   const [date, setDate] = useState(today)
@@ -13,6 +13,54 @@ export default function WeightLog({ entries, setEntries, autoHabitsByDate, habit
   const dateInputRef = useRef(null)
   const longPressRef = useRef(null)
   const celebRafRef = useRef(null)
+  const waterLongPressRef = useRef(null)
+  const waterLongFiredRef = useRef(false)
+
+  const waterEnabled = !!settings?.waterEnabled
+  const waterGoal = Math.max(1, parseInt(settings?.waterGoalML, 10) || 2500)
+  const waterToday = (water && water[date]) || 0
+  const waterPct = Math.round((waterToday / waterGoal) * 100)
+  const waterAtGoal = waterToday >= waterGoal
+
+  const addWater = (ml) => {
+    setWater(prev => {
+      const cur = (prev && prev[date]) || 0
+      return { ...(prev || {}), [date]: cur + ml }
+    })
+  }
+  const resetWater = () => {
+    setWater(prev => {
+      const next = { ...(prev || {}) }
+      delete next[date]
+      return next
+    })
+  }
+  const waterBtnDown = () => {
+    waterLongFiredRef.current = false
+    if (waterLongPressRef.current) clearTimeout(waterLongPressRef.current)
+    waterLongPressRef.current = setTimeout(() => {
+      waterLongFiredRef.current = true
+      waterLongPressRef.current = null
+      if (confirm('Reset today’s water intake to 0?')) resetWater()
+    }, 500)
+  }
+  const waterBtnUp = (ml) => {
+    if (waterLongPressRef.current) {
+      clearTimeout(waterLongPressRef.current)
+      waterLongPressRef.current = null
+    }
+    if (waterLongFiredRef.current) {
+      waterLongFiredRef.current = false
+      return
+    }
+    addWater(ml)
+  }
+  const waterBtnCancel = () => {
+    if (waterLongPressRef.current) {
+      clearTimeout(waterLongPressRef.current)
+      waterLongPressRef.current = null
+    }
+  }
 
   const isToday = date === today
 
@@ -223,6 +271,47 @@ export default function WeightLog({ entries, setEntries, autoHabitsByDate, habit
           })}
         </div>
       </div>
+
+      {waterEnabled && (
+        <>
+          <div className="log-section-title">Water</div>
+          <div className="water-section">
+            <div className="water-progress-row">
+              <span className={`wpr-left ${waterAtGoal ? 'over' : ''}`}>
+                {waterToday} / {waterGoal} ml
+              </span>
+              <span className="wpr-right" style={{ color: '#89dceb' }}>
+                {waterAtGoal ? '✓' : waterPct + '%'}
+              </span>
+            </div>
+            <div className="progress-bar-track">
+              <div
+                className="progress-bar-fill"
+                style={{ width: Math.min(100, waterPct) + '%', background: '#89dceb' }}
+              ></div>
+            </div>
+            <div className="water-btn-row">
+              {[
+                { label: '+250', ml: 250 },
+                { label: '+330', ml: 330 },
+                { label: '+1L', ml: 1000 },
+              ].map(b => (
+                <button
+                  key={b.label}
+                  type="button"
+                  className="water-btn"
+                  onPointerDown={waterBtnDown}
+                  onPointerUp={() => waterBtnUp(b.ml)}
+                  onPointerLeave={waterBtnCancel}
+                  onPointerCancel={waterBtnCancel}
+                >
+                  {b.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
 
       <div className="log-section-title">Measurements</div>
       <div className="log-metrics">

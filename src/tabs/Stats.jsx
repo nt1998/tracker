@@ -8,16 +8,34 @@ import { addDays, todayKey } from '../lib/dates'
 import { PersonIcon, BarbellIcon } from '../components/icons'
 import GymStats from './GymStats'
 
-export default function Stats({ entries, phases, workouts, exercises, autoHabitsByDate, habits, settings }) {
+export default function Stats({ entries, phases, workouts, exercises, autoHabitsByDate, habits, settings, water }) {
   const [view, setView] = useState('body') // 'body' | 'workout'
   // 'journey' | phase id — history lives inline at the bottom of each view
   const [scope, setScope] = useState('journey')
 
   const sortedDates = useMemo(() => Object.keys(entries).sort(), [entries])
   const today = todayKey()
+  const waterEnabled = !!settings?.waterEnabled
+  const waterGoal = Math.max(1, parseInt(settings?.waterGoalML, 10) || 2500)
 
   const trailsData = useMemo(() => {
-    return habits.map(h => {
+    const rows = []
+    if (waterEnabled) {
+      const dots = []
+      for (let i = 20; i >= 0; i--) {
+        const d = addDays(today, -i)
+        const isTodayDot = i === 0
+        const ml = (water && water[d]) || 0
+        const val = ml >= waterGoal
+        let cls = 'dot'
+        if (val) cls += ' done'
+        else cls += ' miss'
+        if (isTodayDot) cls += ' today-dot ' + (val ? 'done' : 'pending')
+        dots.push({ cls, color: '#89dceb' })
+      }
+      rows.push({ key: '_water', icon: '💧', name: 'Water goal', color: '#89dceb', dots })
+    }
+    habits.forEach(h => {
       const dots = []
       for (let i = 20; i >= 0; i--) {
         const d = addDays(today, -i)
@@ -40,12 +58,25 @@ export default function Stats({ entries, phases, workouts, exercises, autoHabits
         }
         dots.push({ cls, color: h.color })
       }
-      return { ...h, dots }
+      rows.push({ ...h, dots })
     })
-  }, [entries, today, autoHabitsByDate, habits])
+    return rows
+  }, [entries, today, autoHabitsByDate, habits, water, waterEnabled, waterGoal])
 
   const habitScores = useMemo(() => {
-    return habits.map(h => {
+    const rows = []
+    if (waterEnabled) {
+      let done = 0, total = 0
+      // Score across dates where water has data OR the user was tracking entries; use sortedDates as range
+      sortedDates.forEach(k => {
+        total++
+        const ml = (water && water[k]) || 0
+        if (ml >= waterGoal) done++
+      })
+      const pct = total > 0 ? done / total : 0
+      rows.push({ key: '_water', icon: '💧', name: 'Water goal', color: '#89dceb', pct, done, total })
+    }
+    habits.forEach(h => {
       let done = 0, total = 0
       sortedDates.forEach(k => {
         if (!habitApplies(h, k, entries)) return
@@ -54,9 +85,10 @@ export default function Stats({ entries, phases, workouts, exercises, autoHabits
         if (v) done++
       })
       const pct = total > 0 ? done / total : 0
-      return { ...h, pct, done, total }
+      rows.push({ ...h, pct, done, total })
     })
-  }, [entries, sortedDates, autoHabitsByDate, habits])
+    return rows
+  }, [entries, sortedDates, autoHabitsByDate, habits, water, waterEnabled, waterGoal])
 
   const phaseOpts = useMemo(() => {
     return [...phases].sort((a, b) => (b.start || '').localeCompare(a.start || ''))
@@ -93,7 +125,7 @@ export default function Stats({ entries, phases, workouts, exercises, autoHabits
       {/* BODY VIEW */}
       {view === 'body' && scope === 'journey' && (
         <>
-          <JourneyPanel entries={entries} phases={phases} sortedDates={sortedDates} hideMeasurements settings={settings} />
+          <JourneyPanel entries={entries} phases={phases} sortedDates={sortedDates} hideMeasurements settings={settings} water={water} />
           <HabitsPanel trailsData={trailsData} habitScores={habitScores} entries={entries} phases={phases} sortedDates={sortedDates} habits={habits} />
           <MeasurementsTable entries={entries} dates={sortedDates} />
         </>
@@ -105,6 +137,7 @@ export default function Stats({ entries, phases, workouts, exercises, autoHabits
           phases={phases}
           sortedDates={sortedDates}
           settings={settings}
+          water={water}
           statsPhaseIdx={scopedPhaseIdx}
           setStatsPhaseIdx={(idx) => {
             const p = phases[idx]

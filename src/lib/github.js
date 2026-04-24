@@ -57,13 +57,13 @@ export async function pushToGithub(gh, payload) {
 export function buildPayload(stores) {
   const {
     entries, phases, workouts, exerciseNotes,
-    habits, exercises, routines, activeRoutineId, settings,
+    habits, exercises, routines, activeRoutineId, settings, water,
   } = stores
   return {
     version: 1,
     updatedAt: new Date().toISOString(),
     entries, phases, workouts, exerciseNotes,
-    habits, exercises, routines, activeRoutineId, settings,
+    habits, exercises, routines, activeRoutineId, settings, water,
   }
 }
 
@@ -79,4 +79,5 @@ export function applyPayload(data, setters) {
   if (data.routines)        setters.setRoutines(data.routines)
   if (data.activeRoutineId) setters.setActiveRoutineId(data.activeRoutineId)
   if (data.settings)        setters.setSettings(data.settings)
+  if (data.water)           setters.setWater(data.water)
 }

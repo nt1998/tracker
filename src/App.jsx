@@ -33,6 +33,7 @@ export default function App() {
     routines, setRoutines,
     activeRoutineId, setActiveRoutineId,
     settings, setSettings,
+    water, setWater,
     autoHabitsByDate,
   } = store
 
@@ -99,13 +100,13 @@ export default function App() {
   const syncTimeoutRef = useRef(null)
   const firstSyncSkip = useRef(true)
 
-  const setters = { setEntries, setPhases, setWorkouts, setExerciseNotes, setHabits, setExercises, setRoutines, setActiveRoutineId, setSettings }
+  const setters = { setEntries, setPhases, setWorkouts, setExerciseNotes, setHabits, setExercises, setRoutines, setActiveRoutineId, setSettings, setWater }
 
   const doPush = useCallback(async (gh = github) => {
     if (!gh.connected || !gh.token || !gh.owner || !gh.repo) return
     try {
       setSyncStatus('Syncing…')
-      const payload = buildPayload({ entries, phases, workouts, exerciseNotes, habits, exercises, routines, activeRoutineId, settings })
+      const payload = buildPayload({ entries, phases, workouts, exerciseNotes, habits, exercises, routines, activeRoutineId, settings, water })
       await pushToGithub(gh, payload)
       setLastSyncAt(Date.now())
       setNeedsSync(false)
@@ -115,7 +116,7 @@ export default function App() {
       setSyncStatus('Sync failed: ' + e.message)
       setTimeout(() => setSyncStatus(''), 3500)
     }
-  }, [github, entries, phases, workouts, exerciseNotes, habits, exercises, routines, activeRoutineId, settings, setLastSyncAt])
+  }, [github, entries, phases, workouts, exerciseNotes, habits, exercises, routines, activeRoutineId, settings, water, setLastSyncAt])
 
   const doPull = useCallback(async (gh = github) => {
     if (!gh.token || !gh.owner || !gh.repo) { setSyncStatus('Missing credentials'); return { source: 'none' } }
@@ -158,7 +159,7 @@ export default function App() {
   useEffect(() => {
     if (firstSyncSkip.current) { firstSyncSkip.current = false; return }
     if (github.connected) setNeedsSync(true)
-  }, [entries, phases, workouts, exerciseNotes, habits, exercises, routines, activeRoutineId, settings, github.connected])
+  }, [entries, phases, workouts, exerciseNotes, habits, exercises, routines, activeRoutineId, settings, water, github.connected])
 
   // Debounced auto-push 5s after last change
   useEffect(() => {
@@ -185,7 +186,7 @@ export default function App() {
     >
       <main className="content" key={tab}>
         {tab === 'weight' && (
-          <WeightLog entries={entries} setEntries={setEntries} autoHabitsByDate={autoHabitsByDate} habits={habits} settings={settings} />
+          <WeightLog entries={entries} setEntries={setEntries} autoHabitsByDate={autoHabitsByDate} habits={habits} settings={settings} water={water} setWater={setWater} />
         )}
         {tab === 'gym' && (
           <GymLog
@@ -208,6 +209,7 @@ export default function App() {
             habits={habits}
             routines={routines}
             settings={settings}
+            water={water}
           />
         )}
         {tab === 'settings' && (

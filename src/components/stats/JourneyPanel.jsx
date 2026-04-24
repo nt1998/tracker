@@ -8,8 +8,10 @@ import { ensureHabits } from '../../lib/bodyData'
 
 const CANVAS_W = 337
 
-export default function JourneyPanel({ entries, phases, sortedDates: allDates, hideMeasurements, settings }) {
+export default function JourneyPanel({ entries, phases, sortedDates: allDates, hideMeasurements, settings, water }) {
   const visceralEnabled = !!settings?.visceralEnabled
+  const waterEnabled = !!settings?.waterEnabled
+  const waterGoal = Math.max(1, parseInt(settings?.waterGoalML, 10) || 2500)
   const firstPhaseStart = phases.length > 0 ? phases.map(p => p.start).sort()[0] : null
   const sortedDates = firstPhaseStart ? allDates.filter(d => d >= firstPhaseStart) : allDates
   if (sortedDates.length === 0) return <div style={{ color: '#45475a', textAlign: 'center', padding: 40 }}>No data yet</div>
@@ -174,6 +176,61 @@ export default function JourneyPanel({ entries, phases, sortedDates: allDates, h
           />
         </div>
       )}
+
+      {waterEnabled && (() => {
+        const waterVals = sortedDates.map(k => (water && water[k]) || 0)
+        const loggedVals = Object.values(water || {}).map(v => parseFloat(v) || 0).filter(v => v > 0)
+        const overallAvg = loggedVals.length ? Math.round(loggedVals.reduce((a, b) => a + b, 0) / loggedVals.length) : 0
+        // 7-day avg ending today (count days with any log toward sum; divide by 7)
+        const now = new Date()
+        const keyOf = (dt) => `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`
+        let sum7 = 0
+        for (let i = 0; i < 7; i++) {
+          const dt = new Date(now)
+          dt.setDate(now.getDate() - i)
+          sum7 += (water && water[keyOf(dt)]) || 0
+        }
+        const avg7 = Math.round(sum7 / 7)
+        const best = loggedVals.length ? Math.max(...loggedVals) : 0
+        return (
+          <>
+            <div className="stat-section-title">Water</div>
+            <div className="hero-metrics">
+              <div className="hero-card" style={{ '--accent': '#89dceb' }}>
+                <div className="hero-val">{overallAvg}</div>
+                <div className="hero-label">Avg ml/day</div>
+              </div>
+              <div className="hero-card" style={{ '--accent': '#89dceb' }}>
+                <div className="hero-val">{avg7}</div>
+                <div className="hero-label">7-day avg</div>
+              </div>
+              <div className="hero-card" style={{ '--accent': '#89dceb' }}>
+                <div className="hero-val">{best}</div>
+                <div className="hero-label">Best day</div>
+              </div>
+            </div>
+            <div className="chart-card">
+              <ScrubbableLine
+                data={{
+                  labels,
+                  datasets: [
+                    { data: waterVals, borderColor: '#89dceb', backgroundColor: hexToRgba('#89dceb', 0.18), fill: true },
+                    { data: waterVals.map(() => waterGoal), borderColor: '#45475a', borderDash: [4, 4], borderWidth: 1, fill: false, pointRadius: 0 },
+                  ],
+                }}
+                options={journeyOpts()}
+                width={CANVAS_W} height={120}
+                style={{ width: CANVAS_W, height: 120 }}
+                renderHead={(idx) => {
+                  const i = idx ?? pickLast(waterVals)
+                  const v = waterVals[i]
+                  return <div className="card-head">Water <span className="v">{v != null ? v : '--'} ml {idx != null && <span className="d">{sortedDates[i]}</span>}</span></div>
+                }}
+              />
+            </div>
+          </>
+        )
+      })()}
 
       {!hideMeasurements && <MeasurementsTable entries={entries} dates={sortedDates} settings={settings} />}
     </>
