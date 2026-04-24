@@ -15,7 +15,7 @@ export default function Stats({ entries, phases, workouts, exercises, autoHabits
 
   const sortedDates = useMemo(() => Object.keys(entries).sort(), [entries])
   const today = todayKey()
-  const waterEnabled = !!settings?.waterEnabled
+  const waterEnabled = settings?.waterEnabled !== false
   const waterGoal = Math.max(1, parseInt(settings?.waterGoalML, 10) || 2500)
 
   const trailsData = useMemo(() => {

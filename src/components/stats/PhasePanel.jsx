@@ -9,7 +9,7 @@ const CANVAS_W = 337
 
 export default function PhasePanel({ entries, phases, sortedDates, statsPhaseIdx, setStatsPhaseIdx, settings, water }) {
   const visceralEnabled = !!settings?.visceralEnabled
-  const waterEnabled = !!settings?.waterEnabled
+  const waterEnabled = settings?.waterEnabled !== false
   const waterGoal = Math.max(1, parseInt(settings?.waterGoalML, 10) || 2500)
   if (phases.length === 0) return <div style={{ color: '#45475a', textAlign: 'center', padding: 40 }}>No phases yet</div>
 

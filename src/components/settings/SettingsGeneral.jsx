@@ -87,30 +87,32 @@ export default function SettingsGeneral({
           <div className="tr-title">Water</div>
           <div className="tr-sub">Track daily water intake.</div>
         </span>
-        <label className="toggle-switch">
-          <input
-            type="checkbox"
-            checked={settings?.waterEnabled !== false}
-            onChange={(e) => setSettings({ ...settings, waterEnabled: e.target.checked })}
-          />
-          <span className="slider"></span>
-        </label>
-      </div>
-      {settings?.waterEnabled !== false && (
-        <div className="field" style={{ marginTop: 8 }}>
-          <label>Daily goal (ml)</label>
-          <input
-            type="number"
-            inputMode="numeric"
-            value={settings?.waterGoalML ?? 2500}
-            onChange={(e) => {
-              const n = parseInt(e.target.value, 10)
-              setSettings({ ...settings, waterGoalML: isNaN(n) ? 0 : n })
-            }}
-            placeholder="2500"
-          />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {settings?.waterEnabled !== false && (
+            <div className="inline-goal">
+              <input
+                type="number"
+                inputMode="numeric"
+                value={settings?.waterGoalML ?? 2500}
+                onChange={(e) => {
+                  const n = parseInt(e.target.value, 10)
+                  setSettings({ ...settings, waterGoalML: isNaN(n) ? 0 : n })
+                }}
+                placeholder="2500"
+              />
+              <span className="unit">ml</span>
+            </div>
+          )}
+          <label className="toggle-switch">
+            <input
+              type="checkbox"
+              checked={settings?.waterEnabled !== false}
+              onChange={(e) => setSettings({ ...settings, waterEnabled: e.target.checked })}
+            />
+            <span className="slider"></span>
+          </label>
         </div>
-      )}
+      </div>
 
       <div className="settings-section">Sync</div>
       <div className="settings-row" onClick={() => setGhExpanded(!ghExpanded)}>

@@ -16,7 +16,7 @@ export default function WeightLog({ entries, setEntries, autoHabitsByDate, habit
   const waterLongPressRef = useRef(null)
   const waterLongFiredRef = useRef(false)
 
-  const waterEnabled = !!settings?.waterEnabled
+  const waterEnabled = settings?.waterEnabled !== false
   const waterGoal = Math.max(1, parseInt(settings?.waterGoalML, 10) || 2500)
   const waterToday = (water && water[date]) || 0
   const waterPct = Math.round((waterToday / waterGoal) * 100)
@@ -272,6 +272,29 @@ export default function WeightLog({ entries, setEntries, autoHabitsByDate, habit
         </div>
       </div>
 
+      <div className="log-section-title">Measurements</div>
+      <div className="log-metrics">
+        {activeMetrics.map(m => (
+          <div key={m.key} className="log-metric">
+            <div className="lm-label">{m.label} {m.unit && `(${m.unit})`}</div>
+            <div className="lm-row">
+              <button className="lm-btn" onClick={() => adjustValue(m.key, -1)}>-</button>
+              <div className={`lm-val ${isYesterdayValue(m.key) ? 'yesterday' : ''}`} style={{ color: m.color }}>
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  value={getDisplayValue(m.key)}
+                  placeholder="--"
+                  style={{ color: isYesterdayValue(m.key) ? '#6c7086' : m.color }}
+                  onChange={(e) => updateEntry(m.key, e.target.value)}
+                />
+              </div>
+              <button className="lm-btn" onClick={() => adjustValue(m.key, 1)}>+</button>
+            </div>
+          </div>
+        ))}
+      </div>
+
       {waterEnabled && (
         <>
           <div className="log-section-title">Water</div>
@@ -312,29 +335,6 @@ export default function WeightLog({ entries, setEntries, autoHabitsByDate, habit
           </div>
         </>
       )}
-
-      <div className="log-section-title">Measurements</div>
-      <div className="log-metrics">
-        {activeMetrics.map(m => (
-          <div key={m.key} className="log-metric">
-            <div className="lm-label">{m.label} {m.unit && `(${m.unit})`}</div>
-            <div className="lm-row">
-              <button className="lm-btn" onClick={() => adjustValue(m.key, -1)}>-</button>
-              <div className={`lm-val ${isYesterdayValue(m.key) ? 'yesterday' : ''}`} style={{ color: m.color }}>
-                <input
-                  type="text"
-                  inputMode="decimal"
-                  value={getDisplayValue(m.key)}
-                  placeholder="--"
-                  style={{ color: isYesterdayValue(m.key) ? '#6c7086' : m.color }}
-                  onChange={(e) => updateEntry(m.key, e.target.value)}
-                />
-              </div>
-              <button className="lm-btn" onClick={() => adjustValue(m.key, 1)}>+</button>
-            </div>
-          </div>
-        ))}
-      </div>
 
       {habitDetail && (
         <div className="habit-detail" style={{ '--c': habitDetail.color }}>

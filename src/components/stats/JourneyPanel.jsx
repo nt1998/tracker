@@ -10,7 +10,7 @@ const CANVAS_W = 337
 
 export default function JourneyPanel({ entries, phases, sortedDates: allDates, hideMeasurements, settings, water }) {
   const visceralEnabled = !!settings?.visceralEnabled
-  const waterEnabled = !!settings?.waterEnabled
+  const waterEnabled = settings?.waterEnabled !== false
   const waterGoal = Math.max(1, parseInt(settings?.waterGoalML, 10) || 2500)
   const firstPhaseStart = phases.length > 0 ? phases.map(p => p.start).sort()[0] : null
   const sortedDates = firstPhaseStart ? allDates.filter(d => d >= firstPhaseStart) : allDates
