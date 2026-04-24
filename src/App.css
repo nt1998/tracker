@@ -119,7 +119,7 @@ body:has(textarea:focus) .tabbar {
   gap: 16px;
   position: fixed;
   bottom: 0;
-  padding-bottom: 25px;
+  padding-bottom: 8px;
   left: 0;
   right: 0;
   justify-content: center;
