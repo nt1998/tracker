@@ -103,13 +103,15 @@ export function ensureHabits(entry) {
 
 export function weightAvgDeltaSeries(keys, entries) {
   if (!keys || keys.length === 0) return []
-  const firstKey = keys[0]
+  const realKeys = keys.filter(k => k !== '__gap__')
+  if (realKeys.length === 0) return keys.map(() => null)
+  const firstKey = realKeys[0]
   const avgEnding = (endKey, days) => {
     if (endKey < firstKey) return null
     const startKey = addDays(endKey, -(days - 1))
     const winStart = startKey < firstKey ? firstKey : startKey
     const vals = []
-    for (const k of keys) {
+    for (const k of realKeys) {
       if (k < winStart) continue
       if (k > endKey) break
       const w = parseFloat(entries[k]?.weight)
@@ -118,6 +120,7 @@ export function weightAvgDeltaSeries(keys, entries) {
     return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null
   }
   return keys.map(k => {
+    if (k === '__gap__') return null
     let priorEnd = addDays(k, -7)
     if (priorEnd < firstKey) priorEnd = firstKey
     const priorStartNom = addDays(priorEnd, -3)
