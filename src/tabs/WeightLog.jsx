@@ -25,23 +25,18 @@ export default function WeightLog({ entries, setEntries, autoHabitsByDate, habit
   const addWater = (ml) => {
     setWater(prev => {
       const cur = (prev && prev[date]) || 0
-      return { ...(prev || {}), [date]: cur + ml }
+      const next = Math.max(0, cur + ml)
+      return { ...(prev || {}), [date]: next }
     })
   }
-  const resetWater = () => {
-    setWater(prev => {
-      const next = { ...(prev || {}) }
-      delete next[date]
-      return next
-    })
-  }
+  // Long-press (≥500ms): release subtracts the button's amount.
+  // Short tap: release adds the amount.
   const waterBtnDown = () => {
     waterLongFiredRef.current = false
     if (waterLongPressRef.current) clearTimeout(waterLongPressRef.current)
     waterLongPressRef.current = setTimeout(() => {
       waterLongFiredRef.current = true
       waterLongPressRef.current = null
-      if (confirm('Reset today’s water intake to 0?')) resetWater()
     }, 500)
   }
   const waterBtnUp = (ml) => {
@@ -51,6 +46,7 @@ export default function WeightLog({ entries, setEntries, autoHabitsByDate, habit
     }
     if (waterLongFiredRef.current) {
       waterLongFiredRef.current = false
+      addWater(-ml)
       return
     }
     addWater(ml)
@@ -60,6 +56,7 @@ export default function WeightLog({ entries, setEntries, autoHabitsByDate, habit
       clearTimeout(waterLongPressRef.current)
       waterLongPressRef.current = null
     }
+    waterLongFiredRef.current = false
   }
 
   const isToday = date === today
