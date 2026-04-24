@@ -10,7 +10,7 @@ import GymStats from './GymStats'
 
 export default function Stats({ entries, phases, workouts, routines, autoHabitsByDate }) {
   const [view, setView] = useState('body') // 'body' | 'workout'
-  // 'journey' | 'history' | phase id
+  // 'journey' | phase id — history lives inline at the bottom of each view
   const [scope, setScope] = useState('journey')
 
   const sortedDates = useMemo(() => Object.keys(entries).sort(), [entries])
@@ -62,7 +62,7 @@ export default function Stats({ entries, phases, workouts, routines, autoHabitsB
     return [...phases].sort((a, b) => (b.start || '').localeCompare(a.start || ''))
   }, [phases])
 
-  const scopedPhase = (scope === 'journey' || scope === 'history')
+  const scopedPhase = scope === 'journey'
     ? null
     : phases.find(p => String(p.id) === String(scope))
   const scopedPhaseIdx = scopedPhase ? phases.indexOf(scopedPhase) : -1
@@ -81,7 +81,6 @@ export default function Stats({ entries, phases, workouts, routines, autoHabitsB
         <div className="stats-phase-picker">
           <select value={scope} onChange={(e) => setScope(e.target.value)}>
             <option value="journey">Journey</option>
-            <option value="history">History</option>
             {phaseOpts.map(p => (
               <option key={p.id} value={p.id}>
                 {p.name}{!p.end ? ' (current)' : ''}
@@ -94,14 +93,8 @@ export default function Stats({ entries, phases, workouts, routines, autoHabitsB
       {/* BODY VIEW */}
       {view === 'body' && scope === 'journey' && (
         <>
-          <JourneyPanel entries={entries} phases={phases} sortedDates={sortedDates} />
+          <JourneyPanel entries={entries} phases={phases} sortedDates={sortedDates} hideMeasurements />
           <HabitsPanel trailsData={trailsData} habitScores={habitScores} entries={entries} phases={phases} sortedDates={sortedDates} />
-        </>
-      )}
-
-      {view === 'body' && scope === 'history' && (
-        <>
-          <div className="stat-section-title">Measurement history</div>
           <MeasurementsTable entries={entries} dates={sortedDates} />
         </>
       )}
@@ -119,15 +112,14 @@ export default function Stats({ entries, phases, workouts, routines, autoHabitsB
         />
       )}
 
-      {/* WORKOUT VIEW */}
+      {/* WORKOUT VIEW — all sections stacked, history at bottom */}
       {view === 'workout' && (
         <GymStats
           workouts={workouts}
           phases={phases}
           routines={routines}
-          forcedScope={scope === 'journey' || scope === 'history' ? 'all' : scope}
-          forcedSubTab={scope === 'history' ? 'history' : undefined}
-          hideSubTabs={scope === 'history'}
+          forcedScope={scope === 'journey' ? 'all' : scope}
+          flatLayout
         />
       )}
     </>

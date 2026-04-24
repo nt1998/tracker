@@ -1,6 +1,27 @@
 import { useMemo } from 'react'
 import useLocalStorage from './useLocalStorage'
 
+// One-shot migration from body-tracker + gym-tracker localStorage keys.
+// Runs before useLocalStorage reads, so fresh tracker installs pick up the
+// existing data if the user already has either legacy app installed on the
+// same origin (nt1998.github.io).
+function migrateLegacyDataOnce() {
+  if (typeof localStorage === 'undefined') return
+  if (localStorage.getItem('tracker_migrated')) return
+  const copy = (fromKey, toKey) => {
+    if (localStorage.getItem(toKey) != null) return
+    const v = localStorage.getItem(fromKey)
+    if (v != null) localStorage.setItem(toKey, v)
+  }
+  copy('bodytracker_entries', 'tracker_entries')
+  copy('bodytracker_phases', 'tracker_phases')
+  copy('gymtracker_workouts', 'tracker_workouts')
+  copy('gymtracker_routines', 'tracker_routines')
+  copy('gymtracker_notes', 'tracker_notes')
+  localStorage.setItem('tracker_migrated', '1')
+}
+migrateLegacyDataOnce()
+
 const defaultRoutines = {
   push: {
     name: 'Push', schedule: '', warmups: [],

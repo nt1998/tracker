@@ -8,7 +8,7 @@ import { ensureHabits } from '../../lib/bodyData'
 
 const CANVAS_W = 337
 
-export default function JourneyPanel({ entries, phases, sortedDates: allDates }) {
+export default function JourneyPanel({ entries, phases, sortedDates: allDates, hideMeasurements }) {
   const firstPhaseStart = phases.length > 0 ? phases.map(p => p.start).sort()[0] : null
   const sortedDates = firstPhaseStart ? allDates.filter(d => d >= firstPhaseStart) : allDates
   if (sortedDates.length === 0) return <div style={{ color: '#45475a', textAlign: 'center', padding: 40 }}>No data yet</div>
@@ -172,7 +172,7 @@ export default function JourneyPanel({ entries, phases, sortedDates: allDates })
         />
       </div>
 
-      <MeasurementsTable entries={entries} dates={sortedDates} />
+      {!hideMeasurements && <MeasurementsTable entries={entries} dates={sortedDates} />}
     </>
   )
 }

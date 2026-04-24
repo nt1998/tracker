@@ -229,7 +229,7 @@ function detectPRsInRange(routines, workouts, phases, statsFilter) {
   return prs
 }
 
-export default function GymStats({ workouts, phases, routines, forcedScope, forcedSubTab, hideSubTabs }) {
+export default function GymStats({ workouts, phases, routines, forcedScope, forcedSubTab, hideSubTabs, flatLayout }) {
   const [ownFilter, setOwnFilter] = useState('current')
   const statsFilter = forcedScope !== undefined ? forcedScope : ownFilter
   const setStatsFilter = forcedScope !== undefined ? () => {} : setOwnFilter
@@ -302,7 +302,7 @@ export default function GymStats({ workouts, phases, routines, forcedScope, forc
         </div>
       )}
 
-      {!hideSubTabs && (
+      {!hideSubTabs && !flatLayout && (
         <div className="stats-subtabs">
           <button className={statsTab === 'overview' ? 'active' : ''} onClick={() => setStatsTab('overview')}>Overview</button>
           <button className={statsTab === 'exercises' ? 'active' : ''} onClick={() => setStatsTab('exercises')}>Exercises</button>
@@ -310,7 +310,7 @@ export default function GymStats({ workouts, phases, routines, forcedScope, forc
         </div>
       )}
 
-      {statsTab === 'overview' && (
+      {(flatLayout || statsTab === 'overview') && (
         <>
           <div className="hero-quad">
             <div className="hero-card"><div className="v">{workSessions.length}</div><div className="l">Sessions</div></div>
@@ -471,8 +471,9 @@ export default function GymStats({ workouts, phases, routines, forcedScope, forc
         </>
       )}
 
-      {statsTab === 'exercises' && (
+      {(flatLayout || statsTab === 'exercises') && (
         <>
+          {flatLayout && <div className="stat-section-title">Exercises</div>}
           <div className="ex-sort-bar">
             <select value={exSort} onChange={(e) => setExSort(e.target.value)}>
               <option value="recent">Sort: Recent</option>
@@ -539,8 +540,9 @@ export default function GymStats({ workouts, phases, routines, forcedScope, forc
         </>
       )}
 
-      {statsTab === 'history' && (
+      {(flatLayout || statsTab === 'history') && (
         <>
+          {flatLayout && <div className="stat-section-title">History</div>}
           <div className="hist-filter">
             {['all', 'push', 'pull', 'rest'].map(r => (
               <button key={r} className={histFilter === r ? 'active' : ''} onClick={() => setHistFilter(r)}>
