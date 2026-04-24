@@ -41,10 +41,12 @@ export default function SettingsRoutines({
     setEditRoutineId(id)
   }
   const deleteRoutine = (id) => {
-    if (routines.length <= 1) { alert('Keep at least one routine'); return }
     if (!confirm('Delete this routine?')) return
     setRoutines(prev => prev.filter(r => r.id !== id))
-    if (activeRoutineId === id) setActiveRoutineId(routines.find(r => r.id !== id).id)
+    if (activeRoutineId === id) {
+      const fallback = routines.find(r => r.id !== id)
+      setActiveRoutineId(fallback ? fallback.id : null)
+    }
   }
   const updateRoutine = (id, patch) => {
     setRoutines(prev => prev.map(r => r.id === id ? { ...r, ...patch } : r))
