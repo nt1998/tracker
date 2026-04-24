@@ -2948,16 +2948,21 @@ body:has(textarea:focus) .tabbar {
   margin-top: 8px;
 }
 .phase-card .pc-actions button {
-  padding: 4px 10px;
+  padding: 8px 16px;
   border: 0;
-  border-radius: 8px;
-  font-size: 11px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
   cursor: pointer;
-  background: linear-gradient(145deg, rgba(49,50,68,.5), rgba(30,30,46,.7));
-  box-shadow: 2px 2px 4px rgba(17,17,27,.4),
-              -1px -1px 3px rgba(69,71,90,.15);
-  color: #a6adc8;
+  background: linear-gradient(145deg, rgba(49,50,68,.6), rgba(30,30,46,.8));
+  box-shadow: 2px 2px 5px rgba(17,17,27,.45),
+              -1px -1px 3px rgba(69,71,90,.18);
+  color: #cdd6f4;
   transition: all .2s;
+}
+.phase-card .pc-actions button.del {
+  min-width: 36px;
 }
 .phase-card .pc-actions button:active {
   transform: scale(0.95);
@@ -3623,3 +3628,39 @@ body:has(textarea:focus) .tabbar {
   background: rgba(137,180,250,.1);
 }
 .day-picker .dp-option:active { transform: scale(0.97); }
+
+/* Gym tab icon — circles with day initials */
+.tabbar .glyph.day-dots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1px;
+  justify-content: center;
+  align-items: center;
+  max-width: 36px;
+  line-height: 1;
+}
+.tabbar .glyph.day-dots .day-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  font-size: 6.5px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(137,180,250,.15);
+  color: currentColor;
+  border: 1px solid currentColor;
+}
+.tabbar .glyph.day-dots .day-dot.rest {
+  background: transparent;
+  opacity: 0.5;
+}
+.tabbar .glyph.day-dots .day-dot.today {
+  background: currentColor;
+  color: #1e1e2e;
+}
+.tabbar .glyph.day-dots .day-dot.empty {
+  border: 1px dashed currentColor;
+  opacity: 0.5;
+}

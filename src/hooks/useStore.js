@@ -6,6 +6,45 @@ import {
 } from '../lib/seedData'
 import { DEFAULT_HABITS } from '../lib/bodyData'
 
+// Backfill legacy routine shapes so older saves don't crash the editor.
+// Runs once at module load before useLocalStorage reads.
+function migrateRoutinesShape() {
+  if (typeof localStorage === 'undefined') return
+  const raw = localStorage.getItem('tracker_routines')
+  if (!raw) return
+  try {
+    let parsed = JSON.parse(raw)
+    let changed = false
+    // Older shape: routines was an object keyed by push/pull/rest (no list).
+    if (parsed && !Array.isArray(parsed) && typeof parsed === 'object') {
+      parsed = [{
+        id: 'r_legacy',
+        name: 'PPL',
+        schedule: { mode: 'weekday', weekdayMap: {}, cycle: [] },
+        workouts: parsed,
+      }]
+      changed = true
+    }
+    // Even older shape: routines list missing .workouts (templates were separate store).
+    const oldTemplates = localStorage.getItem('tracker_workout_templates')
+    const tmpls = oldTemplates ? JSON.parse(oldTemplates) : null
+    parsed = parsed.map(r => {
+      const next = { ...r }
+      if (!next.workouts || typeof next.workouts !== 'object') {
+        next.workouts = tmpls || {}
+        changed = true
+      }
+      if (!next.schedule) { next.schedule = { mode: 'weekday', weekdayMap: {}, cycle: [] }; changed = true }
+      if (!next.schedule.weekdayMap) { next.schedule.weekdayMap = {}; changed = true }
+      if (!Array.isArray(next.schedule.cycle)) { next.schedule.cycle = []; changed = true }
+      return next
+    })
+    if (changed) localStorage.setItem('tracker_routines', JSON.stringify(parsed))
+    if (oldTemplates) localStorage.removeItem('tracker_workout_templates')
+  } catch { /* ignore, seed will kick in if value is unparseable */ }
+}
+migrateRoutinesShape()
+
 export default function useStore() {
   const [entries, setEntries] = useLocalStorage('tracker_entries', seedEntries)
   const [phases, setPhases] = useLocalStorage('tracker_phases', seedPhases)

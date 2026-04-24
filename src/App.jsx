@@ -8,7 +8,9 @@ import WeightLog from './tabs/WeightLog'
 import GymLog from './tabs/GymLog'
 import Stats from './tabs/Stats'
 import Settings from './tabs/Settings'
-import { SunIcon, DumbbellIcon, ChartIcon, GearIcon } from './components/icons'
+import { SunIcon, ChartIcon, GearIcon } from './components/icons'
+import { templateKeyForDate } from './lib/routine'
+import { todayKey } from './lib/dates'
 
 const TABS = ['weight', 'gym', 'stats', 'settings']
 
@@ -33,6 +35,10 @@ export default function App() {
   const { isSwiping, tabCls, tabStl, onClickCapture } = useSwipeNav({
     appRef, tabs: TABS, tab, setTab,
   })
+
+  const activeRoutine = (routines || []).find(r => r.id === activeRoutineId) || routines?.[0]
+  const todaysDayKey = activeRoutine ? templateKeyForDate(activeRoutine, todayKey()) : null
+  const dayEntries = Object.entries(activeRoutine?.workouts || {}).slice(0, 6)
 
   return (
     <div
@@ -81,7 +87,19 @@ export default function App() {
           <span className="glyph"><SunIcon /></span>
         </button>
         <button className={tabCls('gym')} style={tabStl('gym')} onClick={() => setTab('gym')}>
-          <span className="glyph"><DumbbellIcon /></span>
+          <span className="glyph day-dots">
+            {dayEntries.length === 0 ? (
+              <span className="day-dot empty">·</span>
+            ) : dayEntries.map(([k, w]) => {
+              const letter = (w.name || k).trim().charAt(0).toUpperCase() || '•'
+              const isToday = k === todaysDayKey
+              return (
+                <span key={k} className={`day-dot ${isToday ? 'today' : ''} ${w.isRest ? 'rest' : ''}`}>
+                  {letter}
+                </span>
+              )
+            })}
+          </span>
         </button>
         <button className={tabCls('stats')} style={tabStl('stats')} onClick={() => setTab('stats')}>
           <span className="glyph"><ChartIcon /></span>
