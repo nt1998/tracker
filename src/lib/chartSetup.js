@@ -79,7 +79,7 @@ export function buildPhaseBands(sortedDates, phases) {
     let endIdx = p.end ? sortedDates.findIndex(d => d > p.end) : sortedDates.length
     if (endIdx === -1) endIdx = sortedDates.length
     endIdx = Math.max(endIdx - 1, startIdx)
-    const color = getPhaseColor(p.name)
+    const color = getPhaseColor(p)
     bands.push({ startIdx, endIdx, color: hexToRgba(color, 0.13) })
   })
   return bands

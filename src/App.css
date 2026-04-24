@@ -3362,3 +3362,29 @@ body:has(textarea:focus) .tabbar {
   color: #89b4fa;
   box-shadow: inset 2px 2px 4px rgba(17,17,27,.35), inset -1px -1px 3px rgba(69,71,90,.12);
 }
+
+/* Phase type pills (in phase modal) */
+.phase-type-pills {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+}
+.phase-type-pills button {
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--pc, #45475a);
+  color: var(--pc, #a6adc8);
+  background: transparent;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .15s;
+  opacity: 0.5;
+}
+.phase-type-pills button.active {
+  opacity: 1;
+  background: color-mix(in srgb, var(--pc) 18%, transparent);
+  box-shadow: inset 0 0 0 1px var(--pc);
+}

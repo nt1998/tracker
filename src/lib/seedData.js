@@ -93,7 +93,8 @@ function buildPhases() {
   return [
     {
       id: 1708700000000,
-      name: 'Cut',
+      name: 'Spring Cut',
+      type: 'cut',
       start: START,
       end: CUT_END,
       goals: { weight: '73', bodyFat: '14', musclePct: '41' },
@@ -101,6 +102,7 @@ function buildPhases() {
     {
       id: 1711000000000,
       name: 'Lean Bulk',
+      type: 'bulk',
       start: BULK_START,
       end: '',
       goals: { weight: '78', bodyFat: '16.5', musclePct: '40' },

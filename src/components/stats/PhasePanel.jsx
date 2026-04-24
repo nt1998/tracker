@@ -79,7 +79,7 @@ export default function PhasePanel({ entries, phases, sortedDates, statsPhaseIdx
   }
 
   const { grade, cls: gradeCls } = gradePhase()
-  const phaseColor = getPhaseColor(p.name)
+  const phaseColor = getPhaseColor(p)
 
   function goalProgress(startVal, currentVal, goalVal) {
     const target = goalVal - startVal

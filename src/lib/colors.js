@@ -5,9 +5,20 @@ export function hexToRgba(hex, a) {
   return `rgba(${r},${g},${b},${a})`
 }
 
-export function getPhaseColor(name) {
-  const n = (name || '').toLowerCase()
-  if (n.includes('cut')) return '#f38ba8'
-  if (n.includes('bulk')) return '#a6e3a1'
-  return '#f9e2af'
+export const PHASE_TYPES = [
+  { id: 'cut',      label: 'Cut',      color: '#f38ba8' },
+  { id: 'maintain', label: 'Maintain', color: '#f9e2af' },
+  { id: 'bulk',     label: 'Bulk',     color: '#a6e3a1' },
+]
+
+export function getPhaseColor(phaseOrName) {
+  // Accept a phase object or a legacy name string
+  if (phaseOrName && typeof phaseOrName === 'object') {
+    const t = PHASE_TYPES.find(x => x.id === phaseOrName.type)
+    if (t) return t.color
+    return getPhaseColor(phaseOrName.name || '')
+  }
+  const n = (phaseOrName || '').toLowerCase()
+  const t = PHASE_TYPES.find(x => n === x.id || n.includes(x.id))
+  return t ? t.color : '#f9e2af'
 }
