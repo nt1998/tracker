@@ -1,0 +1,10 @@
+{
+  "name": "Tracker",
+  "short_name": "Tracker",
+  "start_url": "/tracker/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1e1e2e",
+  "theme_color": "#1e1e2e",
+  "icons": []
+}
