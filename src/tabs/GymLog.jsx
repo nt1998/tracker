@@ -9,6 +9,7 @@ const defaultGetWorkoutFromTemplate = (templateKey, template, exercises, exercis
     const flat = (template.blocks || []).flatMap(b => b.exercises)
     return {
       routineType: templateKey,
+      isRest: true,
       exercises: [],
       restChecks: flat.map(ex => Array(ex.sets || 1).fill(false)),
       warmupChecks: [],
@@ -17,35 +18,47 @@ const defaultGetWorkoutFromTemplate = (templateKey, template, exercises, exercis
   }
   return {
     routineType: templateKey,
+    isRest: false,
     exercises: (template?.items || []).map(item => {
       const ex = exercises[item.exerciseId]
-      if (!ex) return null
       return {
-        id: ex.id,
-        name: ex.name,
+        id: ex?.id ?? item.exerciseId,
+        name: ex?.name ?? '(missing exercise)',
         warmupSets: Array(item.warmupSets).fill().map(() => ({ weight: '', reps: '', committed: false })),
         workSets: Array(item.workSets).fill().map(() => ({ weight: '', reps: '', committed: false })),
-        notes: exerciseNotes[ex.name] || '',
+        notes: exerciseNotes[ex?.name || ''] || '',
       }
-    }).filter(Boolean),
+    }),
     warmupChecks: (template?.warmups || []).map(() => false),
     committed: false,
   }
 }
 
 export default function GymLog({ workouts, setWorkouts, exercises, routines, activeRoutineId, exerciseNotes, setExerciseNotes }) {
-  const [date] = useState(todayKey())
+  const [date, setDate] = useState(todayKey())
   const [currentExerciseIdx, setCurrentExerciseIdx] = useState(0)
   const [activeSetIdx, setActiveSetIdx] = useState({ type: 'work', idx: 0 })
-  const [dayPickerOpen, setDayPickerOpen] = useState(false)
   const lastCommitRef = useRef({})
-  const longPressRef = useRef(null)
   const [, forceTick] = useState(0)
   const markCommit = (exId) => { if (exId) { lastCommitRef.current[exId] = Date.now(); forceTick(n => n + 1) } }
 
   useEffect(() => {
     const iv = setInterval(() => forceTick(n => (n + 1) % 1000000), 1000)
     return () => clearInterval(iv)
+  }, [])
+
+  // Keep date fresh across midnight + on tab focus
+  useEffect(() => {
+    const refresh = () => { const t = todayKey(); setDate(prev => prev === t ? prev : t) }
+    const onVis = () => { if (document.visibilityState === 'visible') refresh() }
+    document.addEventListener('visibilitychange', onVis)
+    window.addEventListener('focus', refresh)
+    const iv = setInterval(refresh, 60000)
+    return () => {
+      document.removeEventListener('visibilitychange', onVis)
+      window.removeEventListener('focus', refresh)
+      clearInterval(iv)
+    }
   }, [])
 
   const activeRoutine = (routines || []).find(r => r.id === activeRoutineId) || routines?.[0]
@@ -292,25 +305,6 @@ export default function GymLog({ workouts, setWorkouts, exercises, routines, act
     writeWorkout(next => { next.committed = true })
   }
 
-  // Long-press on the header to switch today's day (push/pull/rest...)
-  const switchDay = (newKey) => {
-    const newTemplate = routineWorkouts[newKey]
-    const fresh = defaultGetWorkoutFromTemplate(newKey, newTemplate, exercises, exerciseNotes)
-    setWorkouts(prev => ({ ...prev, [date]: fresh }))
-    setCurrentExerciseIdx(0)
-    setDayPickerOpen(false)
-  }
-  const startHeaderLongPress = () => {
-    if (longPressRef.current) clearTimeout(longPressRef.current)
-    longPressRef.current = setTimeout(() => {
-      setDayPickerOpen(true)
-      longPressRef.current = null
-    }, 500)
-  }
-  const cancelHeaderLongPress = () => {
-    if (longPressRef.current) { clearTimeout(longPressRef.current); longPressRef.current = null }
-  }
-
   const toggleWarmupCheck = (warmupIdx) => {
     writeWorkout(next => {
       if (!Array.isArray(next.warmupChecks) || next.warmupChecks.some(v => Array.isArray(v))) {
@@ -380,6 +374,17 @@ export default function GymLog({ workouts, setWorkouts, exercises, routines, act
     )
   }
 
+  // Empty routine / no workouts at all
+  if (!activeRoutine || Object.keys(routineWorkouts).length === 0) {
+    return (
+      <div style={{ padding: '60px 20px', textAlign: 'center', color: '#888' }}>
+        <div style={{ fontSize: 64, marginBottom: 12 }}>🗓️</div>
+        <p style={{ marginBottom: 8 }}>No routine set up yet.</p>
+        <p style={{ fontSize: 12, color: '#6c7086' }}>Open Settings → Routines to add one.</p>
+      </div>
+    )
+  }
+
   if (currentRoutine?.isRest && restExercises.length > 0) {
     const ex = restExercises[currentExerciseIdx] || restExercises[0]
     const flatChecks = (Array.isArray(workout.restChecks?.[0]) || workout.restChecks?.length === 0)
@@ -390,7 +395,7 @@ export default function GymLog({ workouts, setWorkouts, exercises, routines, act
       <div className="log-page rest-log-page">
         <div className="exercise-nav">
           <button onClick={prevExercise} disabled={currentExerciseIdx === 0}>&lt;</button>
-          <div className="exercise-info-center no-swipe" onPointerDown={startHeaderLongPress} onPointerUp={cancelHeaderLongPress} onPointerLeave={cancelHeaderLongPress} onPointerCancel={cancelHeaderLongPress}>
+          <div className="exercise-info-center">
             <h2 className="exercise-name">{ex.name}</h2>
             <span className="exercise-count">
               {currentExerciseIdx + 1} / {restExercises.length}
@@ -470,7 +475,7 @@ export default function GymLog({ workouts, setWorkouts, exercises, routines, act
     <div className="log-page">
       <div className="exercise-nav">
         <button onClick={prevExercise} disabled={currentExerciseIdx === 0}>&lt;</button>
-        <div className="exercise-info-center no-swipe" onPointerDown={startHeaderLongPress} onPointerUp={cancelHeaderLongPress} onPointerLeave={cancelHeaderLongPress} onPointerCancel={cancelHeaderLongPress}>
+        <div className="exercise-info-center">
           <h2 className="exercise-name">{isOnWarmup ? 'Warm-up' : currentExercise.name}</h2>
           <span className="exercise-count">
             {isOnWarmup ? '' : `${exerciseIdx + 1} / ${workout.exercises.length}`}
@@ -580,22 +585,6 @@ export default function GymLog({ workouts, setWorkouts, exercises, routines, act
         </>
       )}
 
-      {dayPickerOpen && (
-        <div className="modal-overlay" onClick={() => setDayPickerOpen(false)}>
-          <div className="day-picker" onClick={e => e.stopPropagation()}>
-            <div className="dp-title">Switch day</div>
-            {Object.entries(routineWorkouts).map(([k, w]) => (
-              <button
-                key={k}
-                className={`dp-option ${k === currentRoutineType ? 'active' : ''}`}
-                onClick={() => switchDay(k)}
-              >
-                {w.name}{w.isRest ? ' · rest' : ''}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   )
 }

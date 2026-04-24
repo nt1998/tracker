@@ -7,7 +7,8 @@ import { ensureHabits, ORBIT_HABITS } from '../../lib/bodyData'
 
 const CANVAS_W = 337
 
-export default function PhasePanel({ entries, phases, sortedDates, statsPhaseIdx, setStatsPhaseIdx }) {
+export default function PhasePanel({ entries, phases, sortedDates, statsPhaseIdx, setStatsPhaseIdx, settings }) {
+  const visceralEnabled = !!settings?.visceralEnabled
   if (phases.length === 0) return <div style={{ color: '#45475a', textAlign: 'center', padding: 40 }}>No phases yet</div>
 
   const currentIdx = phases.findIndex(p => !p.end)
@@ -280,26 +281,28 @@ export default function PhasePanel({ entries, phases, sortedDates, statsPhaseIdx
           }}
         />
       </div>
-      <div className="chart-card">
-        <ScrubbableLine
-          data={{ labels, datasets: [{ data: pViVals, borderColor: '#cba6f7', backgroundColor: hexToRgba('#cba6f7', 0.2), fill: true }] }}
-          options={{ ...phaseOpts(), scales: { x: { ticks: { color: '#6c7086', font: { size: 9 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 6 }, grid: { display: false } }, y: { ticks: { color: '#6c7086', font: { size: 9 }, stepSize: 1 }, grid: { color: '#313244' }, suggestedMin: 0, suggestedMax: 8 } } }}
-          width={CANVAS_W} height={90}
-          style={{ width: CANVAS_W, height: 90 }}
-          renderHead={(idx) => {
-            const i = idx ?? pickLast(pViVals)
-            const v = pViVals[i]
-            return <div className="card-head">Visceral Fat <span className="v">{v ?? '--'} {idx != null && <span className="d">{phaseKeys[i]}</span>}</span></div>
-          }}
-        />
-      </div>
+      {visceralEnabled && (
+        <div className="chart-card">
+          <ScrubbableLine
+            data={{ labels, datasets: [{ data: pViVals, borderColor: '#cba6f7', backgroundColor: hexToRgba('#cba6f7', 0.2), fill: true }] }}
+            options={{ ...phaseOpts(), scales: { x: { ticks: { color: '#6c7086', font: { size: 9 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 6 }, grid: { display: false } }, y: { ticks: { color: '#6c7086', font: { size: 9 }, stepSize: 1 }, grid: { color: '#313244' }, suggestedMin: 0, suggestedMax: 8 } } }}
+            width={CANVAS_W} height={90}
+            style={{ width: CANVAS_W, height: 90 }}
+            renderHead={(idx) => {
+              const i = idx ?? pickLast(pViVals)
+              const v = pViVals[i]
+              return <div className="card-head">Visceral Fat <span className="v">{v ?? '--'} {idx != null && <span className="d">{phaseKeys[i]}</span>}</span></div>
+            }}
+          />
+        </div>
+      )}
 
       <div className="stat-section-title">Deltas this phase</div>
       {[
         ['Weight', fW, lW, 'kg', '#f38ba8'],
         ['Body Fat', fBf, lBf, '%', '#fab387'],
         ['Muscle', fMu, lMu, '%', '#a6e3a1'],
-        ['Visceral', fVi, lVi, '', '#cba6f7'],
+        ...(visceralEnabled ? [['Visceral', fVi, lVi, '', '#cba6f7']] : []),
       ].map(([lbl, fv, lv, unit, color]) => {
         const d = lv - fv
         return (
@@ -358,7 +361,7 @@ export default function PhasePanel({ entries, phases, sortedDates, statsPhaseIdx
           </div>
         ))}
       </div>
-      <MeasurementsTable entries={entries} dates={phaseKeys} />
+      <MeasurementsTable entries={entries} dates={phaseKeys} settings={settings} />
     </>
   )
 }

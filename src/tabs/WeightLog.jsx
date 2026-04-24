@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { addDays, formatDateLabel, todayKey } from '../lib/dates'
-import { METRICS, ensureHabits, habitApplies, makeEmptyEntry } from '../lib/bodyData'
+import { METRICS, getActiveMetrics, ensureHabits, habitApplies, makeEmptyEntry } from '../lib/bodyData'
 import { BlackHoleIcon } from '../components/icons'
 
-export default function WeightLog({ entries, setEntries, autoHabitsByDate, habits }) {
+export default function WeightLog({ entries, setEntries, autoHabitsByDate, habits, settings }) {
+  const activeMetrics = getActiveMetrics(settings)
   const today = todayKey()
   const [date, setDate] = useState(today)
   const [habitDetail, setHabitDetail] = useState(null)
@@ -225,7 +226,7 @@ export default function WeightLog({ entries, setEntries, autoHabitsByDate, habit
 
       <div className="log-section-title">Measurements</div>
       <div className="log-metrics">
-        {METRICS.map(m => (
+        {activeMetrics.map(m => (
           <div key={m.key} className="log-metric">
             <div className="lm-label">{m.label} {m.unit && `(${m.unit})`}</div>
             <div className="lm-row">

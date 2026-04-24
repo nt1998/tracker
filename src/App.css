@@ -2945,8 +2945,13 @@ body:has(textarea:focus) .tabbar {
 .phase-card .pc-actions {
   display: flex;
   gap: 6px;
-  margin-top: 8px;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  margin-top: 0;
 }
+.phase-card { padding-right: 110px; }
+.phase-card .pc-badge { right: 10px; }
 .phase-card .pc-actions button {
   padding: 8px 16px;
   border: 0;
@@ -3664,3 +3669,31 @@ body:has(textarea:focus) .tabbar {
   border: 1px dashed currentColor;
   opacity: 0.5;
 }
+
+/* Generic toggle row */
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  background: rgba(30,30,46,0.85);
+  border: 1px solid rgba(137,180,250,.08);
+  border-radius: 10px;
+  margin-bottom: 8px;
+}
+.toggle-row .tr-title { font-size: 13px; font-weight: 600; color: #cdd6f4; }
+.toggle-row .tr-sub { font-size: 11px; color: #6c7086; margin-top: 2px; }
+.toggle-row input[type="checkbox"] {
+  width: 22px;
+  height: 22px;
+  accent-color: #89b4fa;
+}
+
+/* Generic gym day (custom day names without push/pull CSS) */
+.calendar-day.gym { background: rgba(137,180,250,.22); border: 1px solid #89b4fa; color: #cdd6f4; cursor: pointer; }
+.heatmap-cell.gym.l1 { background: rgba(137,180,250,.20); }
+.heatmap-cell.gym.l2 { background: rgba(137,180,250,.40); }
+.heatmap-cell.gym.l3 { background: rgba(137,180,250,.65); }
+.heatmap-cell.gym.l4 { background: rgba(137,180,250,.95); }
+.badge.gym { background: rgba(137,180,250,.15); color: #89b4fa; border: 1px solid rgba(137,180,250,.4); }

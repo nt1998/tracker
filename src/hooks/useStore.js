@@ -54,6 +54,7 @@ export default function useStore() {
   const [exercises, setExercises] = useLocalStorage('tracker_exercises', seedExercises)
   const [routines, setRoutines] = useLocalStorage('tracker_routines', seedRoutines)
   const [activeRoutineId, setActiveRoutineId] = useLocalStorage('tracker_active_routine', seedActiveRoutineId)
+  const [settings, setSettings] = useLocalStorage('tracker_settings', { visceralEnabled: false })
 
   const autoHabitsByDate = useMemo(() => {
     const out = {}
@@ -77,6 +78,7 @@ export default function useStore() {
     exercises, setExercises,
     routines, setRoutines,
     activeRoutineId, setActiveRoutineId,
+    settings, setSettings,
     autoHabitsByDate,
   }
 }

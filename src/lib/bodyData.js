@@ -4,8 +4,11 @@ export const METRICS = [
   { key: 'weight', label: 'Weight', unit: 'kg', color: '#f38ba8', step: 0.1 },
   { key: 'bodyFat', label: 'Body Fat', unit: '%', color: '#fab387', step: 0.1 },
   { key: 'musclePct', label: 'Muscle', unit: '%', color: '#a6e3a1', step: 0.1 },
-  { key: 'visceralFat', label: 'Visceral', unit: '', color: '#cba6f7', step: 1 },
+  { key: 'visceralFat', label: 'Visceral', unit: '', color: '#cba6f7', step: 1, optional: true },
 ]
+
+export const getActiveMetrics = (settings) =>
+  METRICS.filter(m => !m.optional || (m.key === 'visceralFat' && settings?.visceralEnabled))
 
 // Default habits used as seed when tracker_habits storage is empty.
 // Schedule spec:

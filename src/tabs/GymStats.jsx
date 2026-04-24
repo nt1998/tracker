@@ -38,32 +38,30 @@ function filterByPhase(workouts, phases, statsFilter) {
   )
 }
 
+const isRestWorkout = (w) => w?.isRest === true || w?.routineType === 'rest'
+
 function getWeeklyStreak(workouts, phases, filterByCurrentPhase) {
   const phase = phases.find(p => !p.end)
   const committed = Object.entries(workouts)
-    .filter(([d, w]) => w.committed && (!filterByCurrentPhase || !phase || d >= phase.start))
-    .map(([d, w]) => ({ date: d, type: w.routineType }))
+    .filter(([d, w]) => w.committed && !isRestWorkout(w) && (!filterByCurrentPhase || !phase || d >= phase.start))
+    .map(([d]) => d)
   const getWeekNumber = (d) => {
     const dt = new Date(d)
     const soy = new Date(dt.getFullYear(), 0, 1)
     const days = Math.floor((dt - soy) / 86400000)
     return Math.ceil((days + soy.getDay() + 1) / 7)
   }
-  const weekly = {}
-  committed.forEach(({ date, type }) => {
+  const weekHas = new Set()
+  committed.forEach(date => {
     const y = date.slice(0, 4)
-    const wk = `${y}-W${getWeekNumber(date)}`
-    if (!weekly[wk]) weekly[wk] = { push: false, pull: false }
-    if (type === 'push') weekly[wk].push = true
-    if (type === 'pull') weekly[wk].pull = true
+    weekHas.add(`${y}-W${getWeekNumber(date)}`)
   })
-  const sorted = Object.keys(weekly).sort().reverse()
+  const sorted = [...weekHas].sort().reverse()
   let streak = 0
   const now = new Date()
   const curWk = `${now.getFullYear()}-W${getWeekNumber(now.toISOString().slice(0, 10))}`
   for (const wk of sorted) {
-    const d = weekly[wk]
-    if (d.push && d.pull) streak++
+    if (weekHas.has(wk)) streak++
     else if (wk !== curWk) break
   }
   return streak
@@ -73,15 +71,14 @@ function getWeeklyVolume(exercises, workouts, phases, statsFilter) {
   const filtered = filterByPhase(workouts, phases, statsFilter)
   const map = {}
   Object.entries(filtered).forEach(([date, w]) => {
-    if (w.routineType === 'rest') return
+    if (isRestWorkout(w)) return
     const d = new Date(date)
     const day = (d.getDay() + 6) % 7
     d.setDate(d.getDate() - day)
     const wk = d.toISOString().slice(0, 10)
-    if (!map[wk]) map[wk] = { week: wk, push: 0, pull: 0 }
+    if (!map[wk]) map[wk] = { week: wk, volume: 0 }
     const { volume } = getSessionVolume(exercises, w)
-    if (w.routineType === 'push') map[wk].push += volume
-    else if (w.routineType === 'pull') map[wk].pull += volume
+    map[wk].volume += volume
   })
   return Object.values(map).sort((a, b) => a.week.localeCompare(b.week))
 }
@@ -95,7 +92,7 @@ function getCadenceCells(exercises, workouts, today) {
   const cols = []
   let maxVol = 1
   Object.entries(workouts).forEach(([, w]) => {
-    if (w.committed && w.routineType !== 'rest') maxVol = Math.max(maxVol, getSessionVolume(exercises, w).volume)
+    if (w.committed && !isRestWorkout(w)) maxVol = Math.max(maxVol, getSessionVolume(exercises, w).volume)
   })
   let lastMonth = -1
   for (let w = 0; w < 12; w++) {
@@ -111,11 +108,11 @@ function getCadenceCells(exercises, workouts, today) {
       const ds = day.toISOString().slice(0, 10)
       const wk = workouts[ds]
       if (wk?.committed) {
-        if (wk.routineType === 'rest') days.push({ ds, type: 'rest', level: 0 })
+        if (isRestWorkout(wk)) days.push({ ds, type: 'rest', level: 0 })
         else {
           const vol = getSessionVolume(exercises, wk).volume
           const lvl = Math.min(4, Math.max(1, Math.ceil((vol / maxVol) * 4)))
-          days.push({ ds, type: wk.routineType, level: lvl, volume: vol })
+          days.push({ ds, type: 'gym', level: lvl, volume: vol })
         }
       } else {
         days.push({ ds, type: null, level: 0 })
@@ -136,11 +133,12 @@ function getCalendarDays(workouts, calendarMonth) {
   for (let i = 0; i < startDay; i++) days.push(null)
   for (let d = 1; d <= lastDay.getDate(); d++) {
     const ds = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+    const w = workouts[ds]
     days.push({
       day: d,
       date: ds,
-      hasWorkout: workouts[ds]?.committed,
-      routineType: workouts[ds]?.routineType,
+      hasWorkout: w?.committed,
+      kind: w?.committed ? (isRestWorkout(w) ? 'rest' : 'gym') : '',
     })
   }
   return days
@@ -150,7 +148,7 @@ function buildExerciseIndex(exercises, workouts, phases, statsFilter) {
   const filtered = filterByPhase(workouts, phases, statsFilter)
   const idx = {}
   Object.entries(filtered).sort(([a], [b]) => a.localeCompare(b)).forEach(([date, w]) => {
-    if (w.routineType === 'rest') return
+    if (isRestWorkout(w)) return
     w.exercises?.forEach(ex => {
       const cfg = getExerciseConfig(exercises, ex.name)
       const workSets = (ex.workSets || []).filter(s => s.committed !== false).map(s => {
@@ -201,7 +199,7 @@ function detectPRsInRange(exercises, workouts, phases, statsFilter) {
   const best = {}
   const prs = []
   sorted.forEach(([date, w]) => {
-    if (w.routineType === 'rest') return
+    if (isRestWorkout(w)) return
     w.exercises?.forEach(ex => {
       const cfg = getExerciseConfig(exercises, ex.name)
       let topW = 0, topR = 0, e1RM = 0
@@ -243,7 +241,7 @@ export default function GymStats({ workouts, phases, exercises, forcedScope, for
 
   const filtered = useMemo(() => filterByPhase(workouts, phases, statsFilter), [workouts, phases, statsFilter])
   const filteredEntries = Object.entries(filtered)
-  const workSessions = filteredEntries.filter(([, w]) => w.routineType !== 'rest')
+  const workSessions = filteredEntries.filter(([, w]) => !isRestWorkout(w))
   const totalVolume = workSessions.reduce((s, [, w]) => s + getSessionVolume(exercises, w).volume, 0)
   const weekly = useMemo(() => getWeeklyVolume(exercises, workouts, phases, statsFilter), [exercises, workouts, phases, statsFilter])
   const cadence = useMemo(() => getCadenceCells(exercises, filtered, today), [exercises, filtered, today])
@@ -259,7 +257,11 @@ export default function GymStats({ workouts, phases, exercises, forcedScope, for
   else if (exSort === 'volume') sortedExList.sort((a, b) => b.totalVolume - a.totalVolume)
 
   const histSessions = filteredEntries
-    .filter(([, w]) => histFilter === 'all' || w.routineType === histFilter)
+    .filter(([, w]) => {
+      if (histFilter === 'all') return true
+      const rest = isRestWorkout(w)
+      return (histFilter === 'rest') ? rest : !rest
+    })
     .sort(([a], [b]) => b.localeCompare(a))
   const histGroups = {}
   histSessions.forEach(([d, w]) => {
@@ -310,16 +312,15 @@ export default function GymStats({ workouts, phases, exercises, forcedScope, for
                   data={{
                     labels: weekly.map(w => fmtMD(w.week)),
                     datasets: [
-                      { label: 'Push', data: weekly.map(w => Math.round(w.push)), backgroundColor: '#89b4fa', stack: 'v', borderRadius: 4 },
-                      { label: 'Pull', data: weekly.map(w => Math.round(w.pull)), backgroundColor: '#cba6f7', stack: 'v', borderRadius: 4 },
+                      { label: 'Volume', data: weekly.map(w => Math.round(w.volume || 0)), backgroundColor: '#89b4fa', borderRadius: 4 },
                     ],
                   }}
                   options={{
                     responsive: true, maintainAspectRatio: false,
-                    plugins: { legend: { position: 'bottom', labels: { color: '#a6adc8', boxWidth: 10, font: { size: 10 } } } },
+                    plugins: { legend: { display: false } },
                     scales: {
-                      x: { stacked: true, ticks: { color: '#6c7086', font: { size: 9 } }, grid: { display: false } },
-                      y: { stacked: true, ticks: { color: '#6c7086', font: { size: 9 }, callback: v => fmtKgVal(v) }, grid: { color: '#313244' } },
+                      x: { ticks: { color: '#6c7086', font: { size: 9 } }, grid: { display: false } },
+                      y: { ticks: { color: '#6c7086', font: { size: 9 }, callback: v => fmtKgVal(v) }, grid: { color: '#313244' } },
                     },
                   }}
                 />
@@ -380,7 +381,7 @@ export default function GymStats({ workouts, phases, exercises, forcedScope, for
               {getCalendarDays(filtered, calendarMonth).map((day, i) => (
                 <div
                   key={i}
-                  className={`calendar-day ${day?.hasWorkout ? 'workout' : ''} ${day?.routineType || ''} ${day?.date === today ? 'today' : ''}`}
+                  className={`calendar-day ${day?.hasWorkout ? 'workout' : ''} ${day?.kind || ''} ${day?.date === today ? 'today' : ''}`}
                 >
                   {day?.day}
                 </div>
@@ -469,9 +470,9 @@ export default function GymStats({ workouts, phases, exercises, forcedScope, for
         <>
           {flatLayout && <div className="stat-section-title">History</div>}
           <div className="hist-filter">
-            {['all', 'push', 'pull', 'rest'].map(r => (
+            {['all', 'gym', 'rest'].map(r => (
               <button key={r} className={histFilter === r ? 'active' : ''} onClick={() => setHistFilter(r)}>
-                {r === 'rest' ? 'Rehab' : r.charAt(0).toUpperCase() + r.slice(1)}
+                {r === 'rest' ? 'Rest' : r === 'gym' ? 'Gym' : 'All'}
               </button>
             ))}
           </div>
@@ -480,7 +481,7 @@ export default function GymStats({ workouts, phases, exercises, forcedScope, for
             <div key={wk}>
               <div className="hist-week">Week of {fmtMD(wk)}</div>
               {histGroups[wk].map(([d, w]) => {
-                const isRest = w.routineType === 'rest'
+                const isRest = isRestWorkout(w)
                 const { volume, sets } = isRest ? { volume: 0, sets: 0 } : getSessionVolume(exercises, w)
                 const open = openHistDates.has(d)
                 const exPRs = isRest ? 0 : (w.exercises || []).filter(ex => prSet.has(d + '|' + ex.name)).length
@@ -492,7 +493,7 @@ export default function GymStats({ workouts, phases, exercises, forcedScope, for
                       setOpenHistDates(next)
                     }}>
                       <div className="left">
-                        <span className={`badge ${w.routineType}`}>{w.routineType}</span>
+                        <span className={`badge ${isRest ? 'rest' : 'gym'}`}>{w.routineType}</span>
                         <span className="date">{fmtMD(d)}</span>
                       </div>
                       <div className="meta">

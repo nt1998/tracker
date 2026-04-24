@@ -1,5 +1,6 @@
-export default function MeasurementsTable({ entries, dates }) {
+export default function MeasurementsTable({ entries, dates, settings }) {
   if (!dates || dates.length === 0) return null
+  const visceralEnabled = !!settings?.visceralEnabled
   const rows = [...dates].reverse()
   return (
     <div className="measurements-table">
@@ -9,7 +10,7 @@ export default function MeasurementsTable({ entries, dates }) {
         <span className="mt-val" style={{ color: '#f38ba8' }}>Wt</span>
         <span className="mt-val" style={{ color: '#fab387' }}>BF%</span>
         <span className="mt-val" style={{ color: '#a6e3a1' }}>Mu%</span>
-        <span className="mt-val" style={{ color: '#cba6f7' }}>Vi</span>
+        {visceralEnabled && <span className="mt-val" style={{ color: '#cba6f7' }}>Vi</span>}
       </div>
       <div className="mt-body">
         {rows.map(d => {
@@ -22,7 +23,7 @@ export default function MeasurementsTable({ entries, dates }) {
               <span className="mt-val">{e.weight || '—'}</span>
               <span className="mt-val">{e.bodyFat || '—'}</span>
               <span className="mt-val">{e.musclePct || '—'}</span>
-              <span className="mt-val">{e.visceralFat || '—'}</span>
+              {visceralEnabled && <span className="mt-val">{e.visceralFat || '—'}</span>}
             </div>
           )
         })}

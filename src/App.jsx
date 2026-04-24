@@ -1,9 +1,11 @@
-import { useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import './App.css'
 import './lib/chartSetup'
 import useStore from './hooks/useStore'
 import useOrientationLock from './hooks/useOrientationLock'
 import useSwipeNav from './hooks/useSwipeNav'
+import useLocalStorage from './hooks/useLocalStorage'
+import { pullFromGithub, pushToGithub, buildPayload, applyPayload, verifyCredentials } from './lib/github'
 import WeightLog from './tabs/WeightLog'
 import GymLog from './tabs/GymLog'
 import Stats from './tabs/Stats'
@@ -20,6 +22,7 @@ export default function App() {
 
   useOrientationLock()
 
+  const store = useStore()
   const {
     entries, setEntries,
     phases, setPhases,
@@ -29,8 +32,9 @@ export default function App() {
     exercises, setExercises,
     routines, setRoutines,
     activeRoutineId, setActiveRoutineId,
+    settings, setSettings,
     autoHabitsByDate,
-  } = useStore()
+  } = store
 
   const { isSwiping, tabCls, tabStl, onClickCapture } = useSwipeNav({
     appRef, tabs: TABS, tab, setTab,
@@ -40,6 +44,136 @@ export default function App() {
   const todaysDayKey = activeRoutine ? templateKeyForDate(activeRoutine, todayKey()) : null
   const dayEntries = Object.entries(activeRoutine?.workouts || {}).slice(0, 6)
 
+  // Day picker (long-press on gym tab)
+  const [dayPickerOpen, setDayPickerOpen] = useState(false)
+  const gymLongPressRef = useRef(null)
+  const startGymLongPress = () => {
+    if (gymLongPressRef.current) clearTimeout(gymLongPressRef.current)
+    gymLongPressRef.current = setTimeout(() => {
+      setDayPickerOpen(true)
+      gymLongPressRef.current = null
+    }, 500)
+  }
+  const cancelGymLongPress = () => {
+    if (gymLongPressRef.current) { clearTimeout(gymLongPressRef.current); gymLongPressRef.current = null }
+  }
+  const switchTodayDay = (key) => {
+    const tmpl = activeRoutine?.workouts?.[key]
+    if (!tmpl) return
+    const today = todayKey()
+    const makeFresh = () => {
+      if (tmpl.isRest) {
+        const flat = (tmpl.blocks || []).flatMap(b => b.exercises)
+        return { routineType: key, isRest: true, exercises: [], restChecks: flat.map(e => Array(e.sets || 1).fill(false)), warmupChecks: [], committed: false }
+      }
+      return {
+        routineType: key,
+        isRest: false,
+        exercises: (tmpl.items || []).map(it => {
+          const ex = exercises[it.exerciseId]
+          return {
+            id: ex?.id ?? it.exerciseId,
+            name: ex?.name ?? '(missing)',
+            warmupSets: Array(it.warmupSets).fill().map(() => ({ weight: '', reps: '', committed: false })),
+            workSets: Array(it.workSets).fill().map(() => ({ weight: '', reps: '', committed: false })),
+            notes: exerciseNotes[ex?.name || ''] || '',
+          }
+        }),
+        warmupChecks: (tmpl.warmups || []).map(() => false),
+        committed: false,
+      }
+    }
+    setWorkouts(prev => ({ ...prev, [today]: makeFresh() }))
+    setTab('gym')
+    setDayPickerOpen(false)
+  }
+
+  // -------- GitHub sync --------
+  const [github, setGithub] = useLocalStorage('tracker_github', { token: '', owner: '', repo: '', connected: false })
+  const [syncStatus, setSyncStatus] = useState('') // idle message
+  const [lastSyncAt, setLastSyncAt] = useLocalStorage('tracker_lastsync', 0)
+  const [needsSync, setNeedsSync] = useState(false)
+  const syncTimeoutRef = useRef(null)
+  const firstSyncSkip = useRef(true)
+
+  const setters = { setEntries, setPhases, setWorkouts, setExerciseNotes, setHabits, setExercises, setRoutines, setActiveRoutineId, setSettings }
+
+  const doPush = useCallback(async (gh = github) => {
+    if (!gh.connected || !gh.token || !gh.owner || !gh.repo) return
+    try {
+      setSyncStatus('Syncing…')
+      const payload = buildPayload({ entries, phases, workouts, exerciseNotes, habits, exercises, routines, activeRoutineId, settings })
+      await pushToGithub(gh, payload)
+      setLastSyncAt(Date.now())
+      setNeedsSync(false)
+      setSyncStatus('Synced')
+      setTimeout(() => setSyncStatus(''), 1500)
+    } catch (e) {
+      setSyncStatus('Sync failed: ' + e.message)
+      setTimeout(() => setSyncStatus(''), 3500)
+    }
+  }, [github, entries, phases, workouts, exerciseNotes, habits, exercises, routines, activeRoutineId, settings, setLastSyncAt])
+
+  const doPull = useCallback(async (gh = github) => {
+    if (!gh.token || !gh.owner || !gh.repo) { setSyncStatus('Missing credentials'); return { source: 'none' } }
+    try {
+      setSyncStatus('Pulling…')
+      const { source, data } = await pullFromGithub(gh)
+      if (!data) { setSyncStatus('Nothing on remote'); setTimeout(() => setSyncStatus(''), 2000); return { source } }
+      applyPayload(data, setters)
+      setLastSyncAt(Date.now())
+      setSyncStatus(source === 'legacy' ? 'Pulled (migrated from body + gym tracker)' : 'Pulled from remote')
+      setTimeout(() => setSyncStatus(''), 2500)
+      return { source }
+    } catch (e) {
+      setSyncStatus('Pull failed: ' + e.message)
+      setTimeout(() => setSyncStatus(''), 3500)
+      return { source: 'error' }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [github, setLastSyncAt])
+
+  const connectGithub = useCallback(async (creds) => {
+    try {
+      setSyncStatus('Verifying…')
+      await verifyCredentials(creds)
+      const gh = { ...creds, connected: true }
+      setGithub(gh)
+      setSyncStatus('Connected. Pulling…')
+      await doPull(gh)
+    } catch (e) {
+      setSyncStatus('Connect failed: ' + e.message)
+      setTimeout(() => setSyncStatus(''), 3500)
+    }
+  }, [doPull, setGithub])
+
+  const disconnectGithub = useCallback(() => {
+    setGithub({ token: '', owner: '', repo: '', connected: false })
+  }, [setGithub])
+
+  // Mark needsSync on any store change (skip the very first render which hydrates from localStorage)
+  useEffect(() => {
+    if (firstSyncSkip.current) { firstSyncSkip.current = false; return }
+    if (github.connected) setNeedsSync(true)
+  }, [entries, phases, workouts, exerciseNotes, habits, exercises, routines, activeRoutineId, settings, github.connected])
+
+  // Debounced auto-push 5s after last change
+  useEffect(() => {
+    if (!needsSync || !github.connected) return
+    if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current)
+    syncTimeoutRef.current = setTimeout(() => { doPush() }, 5000)
+    return () => { if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current) }
+  }, [needsSync, github.connected, doPush])
+
+  // Push on background
+  useEffect(() => {
+    const onVis = () => {
+      if (document.visibilityState === 'hidden' && needsSync && github.connected) doPush()
+    }
+    document.addEventListener('visibilitychange', onVis)
+    return () => document.removeEventListener('visibilitychange', onVis)
+  }, [needsSync, github.connected, doPush])
+
   return (
     <div
       ref={appRef}
@@ -48,7 +182,7 @@ export default function App() {
     >
       <main className="content" key={tab}>
         {tab === 'weight' && (
-          <WeightLog entries={entries} setEntries={setEntries} autoHabitsByDate={autoHabitsByDate} habits={habits} />
+          <WeightLog entries={entries} setEntries={setEntries} autoHabitsByDate={autoHabitsByDate} habits={habits} settings={settings} />
         )}
         {tab === 'gym' && (
           <GymLog
@@ -69,6 +203,8 @@ export default function App() {
             exercises={exercises}
             autoHabitsByDate={autoHabitsByDate}
             habits={habits}
+            routines={routines}
+            settings={settings}
           />
         )}
         {tab === 'settings' && (
@@ -78,6 +214,10 @@ export default function App() {
             exercises={exercises} setExercises={setExercises}
             routines={routines} setRoutines={setRoutines}
             activeRoutineId={activeRoutineId} setActiveRoutineId={setActiveRoutineId}
+            settings={settings} setSettings={setSettings}
+            github={github} onConnectGithub={connectGithub} onDisconnectGithub={disconnectGithub}
+            onSyncNow={() => doPush()} onPull={() => doPull()}
+            syncStatus={syncStatus} lastSyncAt={lastSyncAt} needsSync={needsSync}
           />
         )}
       </main>
@@ -86,7 +226,15 @@ export default function App() {
         <button className={tabCls('weight')} style={tabStl('weight')} onClick={() => setTab('weight')}>
           <span className="glyph"><SunIcon /></span>
         </button>
-        <button className={tabCls('gym')} style={tabStl('gym')} onClick={() => setTab('gym')}>
+        <button
+          className={tabCls('gym')}
+          style={tabStl('gym')}
+          onClick={() => { if (!gymLongPressRef.current) setTab('gym') }}
+          onPointerDown={startGymLongPress}
+          onPointerUp={cancelGymLongPress}
+          onPointerLeave={cancelGymLongPress}
+          onPointerCancel={cancelGymLongPress}
+        >
           <span className="glyph day-dots">
             {dayEntries.length === 0 ? (
               <span className="day-dot empty">·</span>
@@ -108,6 +256,23 @@ export default function App() {
           <span className="glyph"><GearIcon /></span>
         </button>
       </nav>
+
+      {dayPickerOpen && (
+        <div className="modal-overlay" onClick={() => setDayPickerOpen(false)}>
+          <div className="day-picker" onClick={e => e.stopPropagation()}>
+            <div className="dp-title">Switch day</div>
+            {Object.entries(activeRoutine?.workouts || {}).map(([k, w]) => (
+              <button
+                key={k}
+                className={`dp-option ${k === todaysDayKey ? 'active' : ''}`}
+                onClick={() => switchTodayDay(k)}
+              >
+                {w.name}{w.isRest ? ' · rest' : ''}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

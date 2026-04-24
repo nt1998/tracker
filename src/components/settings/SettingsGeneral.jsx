@@ -1,64 +1,54 @@
 import { useState } from 'react'
 import { todayKey, addDays } from '../../lib/dates'
 import { PHASE_TYPES, getPhaseColor } from '../../lib/colors'
-import useLocalStorage from '../../hooks/useLocalStorage'
 
-export default function SettingsGeneral({ phases, setPhases }) {
+export default function SettingsGeneral({
+  phases, setPhases,
+  settings, setSettings,
+  github, onConnectGithub, onDisconnectGithub,
+  onSyncNow, onPull, syncStatus, lastSyncAt, needsSync,
+}) {
   const [phaseModal, setPhaseModal] = useState(null)
-  const [github, setGithub] = useLocalStorage('tracker_github', { token: '', repo: '', owner: '', connected: false })
   const [ghExpanded, setGhExpanded] = useState(false)
+  const [ghForm, setGhForm] = useState({ token: github?.token || '', owner: github?.owner || '', repo: github?.repo || '' })
 
   const openNewPhase = () => {
-    setPhaseModal({
-      name: '',
-      type: 'cut',
-      goals: { weight: '', bodyFat: '', musclePct: '' },
-    })
+    setPhaseModal({ name: '', type: 'cut', goals: { weight: '', bodyFat: '', musclePct: '' } })
   }
-
   const savePhaseModal = () => {
     const { name, type, goals } = phaseModal
     if (!name.trim()) { alert('Name required'); return }
     const today = todayKey()
     setPhases(prev => {
-      // auto-end any currently-ongoing phase the day before new phase starts
       const withEnded = prev.map(p => p.end ? p : { ...p, end: addDays(today, -1) })
-      return [
-        ...withEnded,
-        { id: Date.now(), name: name.trim(), type, start: today, end: '', goals },
-      ]
+      return [...withEnded, { id: Date.now(), name: name.trim(), type, start: today, end: '', goals }]
     })
     setPhaseModal(null)
   }
-
   const deletePhase = (id) => {
     if (!confirm('Delete this phase?')) return
     setPhases(prev => prev.filter(p => p.id !== id))
   }
 
-  const sortedPhases = [...phases].sort((a, b) => (b.start || '').localeCompare(a.start || ''))
-  const isMaintain = phaseModal?.type === 'maintain'
-
-  const connectGithub = () => setGithub({ ...github, connected: true })
-  const disconnectGithub = () => setGithub({ token: '', repo: '', owner: '', connected: false })
-
   const resetToSeed = () => {
     if (!confirm('Wipe tracker storage and reload? Seed test data will re-populate on refresh.')) return
     ;['tracker_entries', 'tracker_phases', 'tracker_workouts', 'tracker_notes',
       'tracker_habits', 'tracker_exercises',
-      'tracker_routines', 'tracker_active_routine']
+      'tracker_routines', 'tracker_active_routine',
+      'tracker_settings']
       .forEach(k => localStorage.removeItem(k))
     window.location.reload()
   }
 
+  const sortedPhases = [...phases].sort((a, b) => (b.start || '').localeCompare(a.start || ''))
+  const isMaintain = phaseModal?.type === 'maintain'
+
   return (
     <>
       <div className="settings-section">Phases</div>
-      <button className="primary-btn" onClick={openNewPhase}>
-        Start new phase
-      </button>
+      <button className="primary-btn" onClick={openNewPhase}>Start new phase</button>
       <p style={{ fontSize: 11, color: '#6c7086', margin: '6px 0 12px' }}>
-        Starting a new phase automatically ends the current one.
+        Starting a new phase auto-ends the current one.
       </p>
 
       {sortedPhases.map(p => {
@@ -70,7 +60,7 @@ export default function SettingsGeneral({ phases, setPhases }) {
             <div className="pc-name" style={{ color }}>
               {p.name}{typeLabel && <span style={{ fontSize: 10, color: '#6c7086', fontWeight: 500, marginLeft: 8 }}>· {typeLabel}</span>}
             </div>
-            <div className="pc-dates">{p.start} {'→'} {p.end || 'ongoing'}</div>
+            <div className="pc-dates">{p.start} → {p.end || 'ongoing'}</div>
             {p.goals && (
               <div className="pc-goals">
                 Goal: {p.goals.weight && `${p.goals.weight}kg `}{p.goals.bodyFat && `${p.goals.bodyFat}% BF `}{p.goals.musclePct && `${p.goals.musclePct}% Mu`}
@@ -85,42 +75,66 @@ export default function SettingsGeneral({ phases, setPhases }) {
       })}
       {phases.length === 0 && <div style={{ color: '#45475a', fontSize: 12, padding: '8px 0' }}>No phases yet</div>}
 
+      <div className="settings-section">Tracking</div>
+      <label className="toggle-row">
+        <span>
+          <div className="tr-title">Visceral fat</div>
+          <div className="tr-sub">Record and chart the 4th measurement.</div>
+        </span>
+        <input
+          type="checkbox"
+          checked={!!settings?.visceralEnabled}
+          onChange={(e) => setSettings({ ...settings, visceralEnabled: e.target.checked })}
+        />
+      </label>
+
       <div className="settings-section">Sync</div>
       <div className="settings-row" onClick={() => setGhExpanded(!ghExpanded)}>
         <div className="sr-left">
-          <span className="sr-icon">{'\u{E0A0}'}</span>
-          <span className="sr-label">GitHub Sync</span>
+          <span className="sr-icon">☁︎</span>
+          <span className="sr-label">GitHub Sync {github?.connected ? '· connected' : ''}</span>
         </div>
         <span className="sr-arrow">{ghExpanded ? '‹' : '›'}</span>
       </div>
 
       {ghExpanded && (
         <div className="gh-form">
-          {!github.connected ? (
+          {!github?.connected ? (
             <>
               <div className="field">
                 <label>Token</label>
-                <input type="password" value={github.token} onChange={(e) => setGithub({ ...github, token: e.target.value })} placeholder="ghp_..." />
+                <input type="password" value={ghForm.token} onChange={(e) => setGhForm({ ...ghForm, token: e.target.value })} placeholder="ghp_..." />
               </div>
               <div className="field">
                 <label>Owner</label>
-                <input value={github.owner} onChange={(e) => setGithub({ ...github, owner: e.target.value })} placeholder="username" />
+                <input value={ghForm.owner} onChange={(e) => setGhForm({ ...ghForm, owner: e.target.value })} placeholder="username" />
               </div>
               <div className="field">
                 <label>Repo</label>
-                <input value={github.repo} onChange={(e) => setGithub({ ...github, repo: e.target.value })} placeholder="repo-name" />
+                <input value={ghForm.repo} onChange={(e) => setGhForm({ ...ghForm, repo: e.target.value })} placeholder="repo-name (private)" />
               </div>
-              <button className="primary-btn" onClick={connectGithub}>Save credentials</button>
-              <p style={{ fontSize: 11, color: '#6c7086', marginTop: 8 }}>
-                Credential storage only for now — push/pull not wired yet.
+              <button className="primary-btn" onClick={() => onConnectGithub(ghForm)}>Connect &amp; Pull</button>
+              <p style={{ fontSize: 10, color: '#6c7086', marginTop: 6 }}>
+                Reads tracker.json; if missing, migrates from data.json (body) + gym.json (gym).
               </p>
             </>
           ) : (
             <>
-              <div className="connected-info">Saved: {github.owner}/{github.repo}</div>
-              <button className="danger-btn" onClick={disconnectGithub}>Clear credentials</button>
+              <div className="connected-info">Connected to {github.owner}/{github.repo}</div>
+              <div className="sync-stats">
+                {lastSyncAt > 0 && <p className="sync-note">Last sync: {new Date(lastSyncAt).toLocaleString()}</p>}
+                <p className="sync-note">{needsSync ? 'Changes pending…' : 'Up to date'}</p>
+              </div>
+              <button className="primary-btn" onClick={onSyncNow}>Sync now</button>
+              <button className="primary-btn" style={{ marginTop: 6 }} onClick={() => {
+                if (confirm('Pull remote state and overwrite local?')) onPull()
+              }}>Pull from remote</button>
+              <button className="danger-btn" style={{ marginTop: 6 }} onClick={() => {
+                if (confirm('Disconnect? Local data stays.')) onDisconnectGithub()
+              }}>Disconnect</button>
             </>
           )}
+          {syncStatus && <div className="sync-status" style={{ marginTop: 8 }}>{syncStatus}</div>}
         </div>
       )}
 
@@ -130,7 +144,7 @@ export default function SettingsGeneral({ phases, setPhases }) {
 
       {phaseModal && (
         <div className="modal-overlay" onClick={() => setPhaseModal(null)}>
-          <div className="modal" onClick={e => e.stopPropagation()}>
+          <div className="modal modal-tall" onClick={e => e.stopPropagation()}>
             <h3>Start new phase</h3>
 
             <div className="field">
@@ -147,59 +161,39 @@ export default function SettingsGeneral({ phases, setPhases }) {
                       setPhaseModal({
                         ...phaseModal,
                         type: t.id,
-                        goals: isNowMaintain
-                          ? { ...phaseModal.goals, weight: '' }
-                          : phaseModal.goals,
+                        goals: isNowMaintain ? { ...phaseModal.goals, weight: '' } : phaseModal.goals,
                       })
                     }}
-                  >
-                    {t.label}
-                  </button>
+                  >{t.label}</button>
                 ))}
               </div>
             </div>
 
             <div className="field">
               <label>Name</label>
-              <input
-                value={phaseModal.name}
-                onChange={(e) => setPhaseModal({ ...phaseModal, name: e.target.value })}
-                placeholder="e.g. Spring Cut"
-              />
+              <input value={phaseModal.name} onChange={(e) => setPhaseModal({ ...phaseModal, name: e.target.value })} placeholder="e.g. Spring Cut" />
             </div>
 
             <div className="field">
               <label>Goal Weight (kg){isMaintain && ' — disabled on Maintain'}</label>
-              <input
-                type="text"
-                inputMode="decimal"
-                disabled={isMaintain}
+              <input type="text" inputMode="decimal" disabled={isMaintain}
                 value={isMaintain ? '' : phaseModal.goals.weight}
                 onChange={(e) => setPhaseModal({ ...phaseModal, goals: { ...phaseModal.goals, weight: e.target.value } })}
-                placeholder={isMaintain ? '—' : '75'}
-              />
+                placeholder={isMaintain ? '—' : '75'} />
             </div>
 
             <div className="field">
               <label>Goal Body Fat %</label>
-              <input
-                type="text"
-                inputMode="decimal"
-                value={phaseModal.goals.bodyFat}
+              <input type="text" inputMode="decimal" value={phaseModal.goals.bodyFat}
                 onChange={(e) => setPhaseModal({ ...phaseModal, goals: { ...phaseModal.goals, bodyFat: e.target.value } })}
-                placeholder="15"
-              />
+                placeholder="15" />
             </div>
 
             <div className="field">
               <label>Goal Muscle %</label>
-              <input
-                type="text"
-                inputMode="decimal"
-                value={phaseModal.goals.musclePct}
+              <input type="text" inputMode="decimal" value={phaseModal.goals.musclePct}
                 onChange={(e) => setPhaseModal({ ...phaseModal, goals: { ...phaseModal.goals, musclePct: e.target.value } })}
-                placeholder="40"
-              />
+                placeholder="40" />
             </div>
 
             <div className="modal-actions">

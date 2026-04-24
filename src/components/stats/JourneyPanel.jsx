@@ -8,7 +8,8 @@ import { ensureHabits } from '../../lib/bodyData'
 
 const CANVAS_W = 337
 
-export default function JourneyPanel({ entries, phases, sortedDates: allDates, hideMeasurements }) {
+export default function JourneyPanel({ entries, phases, sortedDates: allDates, hideMeasurements, settings }) {
+  const visceralEnabled = !!settings?.visceralEnabled
   const firstPhaseStart = phases.length > 0 ? phases.map(p => p.start).sort()[0] : null
   const sortedDates = firstPhaseStart ? allDates.filter(d => d >= firstPhaseStart) : allDates
   if (sortedDates.length === 0) return <div style={{ color: '#45475a', textAlign: 'center', padding: 40 }}>No data yet</div>
@@ -155,24 +156,26 @@ export default function JourneyPanel({ entries, phases, sortedDates: allDates, h
         />
       </div>
 
-      <div className="chart-card">
-        <ScrubbableLine
-          data={makeData(vis, '#cba6f7')}
-          options={{
-            ...journeyOpts(),
-            scales: { x: { display: false }, y: { ticks: { color: '#6c7086', font: { size: 9 }, stepSize: 1 }, grid: { color: '#313244' }, suggestedMin: 0, suggestedMax: 8 } },
-          }}
-          width={CANVAS_W} height={90}
-          style={{ width: CANVAS_W, height: 90 }}
-          renderHead={(idx) => {
-            const i = idx ?? pickLast(vis)
-            const v = vis[i]
-            return <div className="card-head">Visceral Fat <span className="v">{v ?? '--'} {idx != null && <span className="d">{sortedDates[i]}</span>}</span></div>
-          }}
-        />
-      </div>
+      {visceralEnabled && (
+        <div className="chart-card">
+          <ScrubbableLine
+            data={makeData(vis, '#cba6f7')}
+            options={{
+              ...journeyOpts(),
+              scales: { x: { display: false }, y: { ticks: { color: '#6c7086', font: { size: 9 }, stepSize: 1 }, grid: { color: '#313244' }, suggestedMin: 0, suggestedMax: 8 } },
+            }}
+            width={CANVAS_W} height={90}
+            style={{ width: CANVAS_W, height: 90 }}
+            renderHead={(idx) => {
+              const i = idx ?? pickLast(vis)
+              const v = vis[i]
+              return <div className="card-head">Visceral Fat <span className="v">{v ?? '--'} {idx != null && <span className="d">{sortedDates[i]}</span>}</span></div>
+            }}
+          />
+        </div>
+      )}
 
-      {!hideMeasurements && <MeasurementsTable entries={entries} dates={sortedDates} />}
+      {!hideMeasurements && <MeasurementsTable entries={entries} dates={sortedDates} settings={settings} />}
     </>
   )
 }
