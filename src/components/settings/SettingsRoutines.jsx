@@ -107,6 +107,27 @@ export default function SettingsRoutines({
     updateWorkout(key, { items: (w.items || []).filter((_, i) => i !== idx) })
   }
 
+  // ---------- Warmup CRUD ----------
+  const addWarmup = (key) => {
+    if (!editRoutine) return
+    const w = editRoutine.workouts[key]
+    updateWorkout(key, {
+      warmups: [...(w.warmups || []), { id: Date.now(), name: '', reps: '', notes: '' }],
+    })
+  }
+  const updateWarmup = (key, idx, patch) => {
+    if (!editRoutine) return
+    const w = editRoutine.workouts[key]
+    const list = [...(w.warmups || [])]
+    list[idx] = { ...list[idx], ...patch }
+    updateWorkout(key, { warmups: list })
+  }
+  const removeWarmup = (key, idx) => {
+    if (!editRoutine) return
+    const w = editRoutine.workouts[key]
+    updateWorkout(key, { warmups: (w.warmups || []).filter((_, i) => i !== idx) })
+  }
+
   // ---------- Schedule: weekday ----------
   const toggleWeekday = (dayKey, weekdayIdx) => {
     if (!editRoutine) return
@@ -319,8 +340,50 @@ export default function SettingsRoutines({
                 Rest-day block editor coming later. {(editWorkout.blocks || []).length} blocks currently defined.
               </p>
             ) : (
-              <div className="field">
-                <label>Exercises</label>
+              <>
+                <div className="field">
+                  <label>Warmups</label>
+                  {(editWorkout.warmups || []).length === 0 && (
+                    <div style={{ color: '#45475a', fontSize: 12, padding: '4px 0' }}>None</div>
+                  )}
+                  {(editWorkout.warmups || []).map((wu, idx) => (
+                    <div key={wu.id ?? idx} className="ex-item">
+                      <div className="ei-head">
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <input
+                            value={wu.name}
+                            placeholder="Band pull-aparts"
+                            onChange={(e) => updateWarmup(editWorkoutKey, idx, { name: e.target.value })}
+                            style={{ width: '100%' }}
+                          />
+                        </div>
+                        <button className="x-btn" onClick={() => removeWarmup(editWorkoutKey, idx)}>{'×'}</button>
+                      </div>
+                      <div className="ei-grid" style={{ gridTemplateColumns: '1fr 2fr' }}>
+                        <label>
+                          Reps
+                          <input
+                            value={wu.reps}
+                            placeholder="2×15"
+                            onChange={(e) => updateWarmup(editWorkoutKey, idx, { reps: e.target.value })}
+                          />
+                        </label>
+                        <label>
+                          Notes
+                          <input
+                            value={wu.notes || ''}
+                            placeholder="optional"
+                            onChange={(e) => updateWarmup(editWorkoutKey, idx, { notes: e.target.value })}
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  ))}
+                  <button className="add-btn-wide" onClick={() => addWarmup(editWorkoutKey)}>+ Add warmup</button>
+                </div>
+
+                <div className="field">
+                  <label>Exercises</label>
                 {(editWorkout.items || []).length === 0 && (
                   <div style={{ color: '#45475a', fontSize: 12, padding: '4px 0' }}>None yet</div>
                 )}
@@ -359,7 +422,8 @@ export default function SettingsRoutines({
                   )
                 })}
                 <button className="add-btn-wide" onClick={() => setAddExerciseToKey(editWorkoutKey)}>+ Add exercise</button>
-              </div>
+                </div>
+              </>
             )}
 
             <div className="modal-actions">

@@ -1,10 +1,5 @@
 import { useMemo } from 'react'
 import useLocalStorage from './useLocalStorage'
-import {
-  seedEntries, seedPhases, seedWorkouts, seedNotes,
-  seedExercises, seedRoutines, seedActiveRoutineId,
-} from '../lib/seedData'
-import { DEFAULT_HABITS } from '../lib/bodyData'
 
 // Backfill legacy routine shapes so older saves don't crash the editor.
 // Runs once at module load before useLocalStorage reads.
@@ -15,7 +10,6 @@ function migrateRoutinesShape() {
   try {
     let parsed = JSON.parse(raw)
     let changed = false
-    // Older shape: routines was an object keyed by push/pull/rest (no list).
     if (parsed && !Array.isArray(parsed) && typeof parsed === 'object') {
       parsed = [{
         id: 'r_legacy',
@@ -25,7 +19,6 @@ function migrateRoutinesShape() {
       }]
       changed = true
     }
-    // Even older shape: routines list missing .workouts (templates were separate store).
     const oldTemplates = localStorage.getItem('tracker_workout_templates')
     const tmpls = oldTemplates ? JSON.parse(oldTemplates) : null
     parsed = parsed.map(r => {
@@ -41,19 +34,19 @@ function migrateRoutinesShape() {
     })
     if (changed) localStorage.setItem('tracker_routines', JSON.stringify(parsed))
     if (oldTemplates) localStorage.removeItem('tracker_workout_templates')
-  } catch { /* ignore, seed will kick in if value is unparseable */ }
+  } catch { /* ignore */ }
 }
 migrateRoutinesShape()
 
 export default function useStore() {
-  const [entries, setEntries] = useLocalStorage('tracker_entries', seedEntries)
-  const [phases, setPhases] = useLocalStorage('tracker_phases', seedPhases)
-  const [workouts, setWorkouts] = useLocalStorage('tracker_workouts', seedWorkouts)
-  const [exerciseNotes, setExerciseNotes] = useLocalStorage('tracker_notes', seedNotes)
-  const [habits, setHabits] = useLocalStorage('tracker_habits', DEFAULT_HABITS)
-  const [exercises, setExercises] = useLocalStorage('tracker_exercises', seedExercises)
-  const [routines, setRoutines] = useLocalStorage('tracker_routines', seedRoutines)
-  const [activeRoutineId, setActiveRoutineId] = useLocalStorage('tracker_active_routine', seedActiveRoutineId)
+  const [entries, setEntries] = useLocalStorage('tracker_entries', {})
+  const [phases, setPhases] = useLocalStorage('tracker_phases', [])
+  const [workouts, setWorkouts] = useLocalStorage('tracker_workouts', {})
+  const [exerciseNotes, setExerciseNotes] = useLocalStorage('tracker_notes', {})
+  const [habits, setHabits] = useLocalStorage('tracker_habits', [])
+  const [exercises, setExercises] = useLocalStorage('tracker_exercises', {})
+  const [routines, setRoutines] = useLocalStorage('tracker_routines', [])
+  const [activeRoutineId, setActiveRoutineId] = useLocalStorage('tracker_active_routine', null)
   const [settings, setSettings] = useLocalStorage('tracker_settings', { visceralEnabled: false })
 
   const autoHabitsByDate = useMemo(() => {
@@ -63,7 +56,7 @@ export default function useStore() {
       const h = {}
       if (w.routineType === 'push') h.gymPush = true
       if (w.routineType === 'pull') h.gymPull = true
-      if (w.routineType === 'rest') h.rehab = true
+      if (w.routineType === 'rest' || w.isRest) h.rehab = true
       out[d] = h
     })
     return out

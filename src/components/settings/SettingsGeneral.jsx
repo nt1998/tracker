@@ -30,16 +30,6 @@ export default function SettingsGeneral({
     setPhases(prev => prev.filter(p => p.id !== id))
   }
 
-  const resetToSeed = () => {
-    if (!confirm('Wipe tracker storage and reload? Seed test data will re-populate on refresh.')) return
-    ;['tracker_entries', 'tracker_phases', 'tracker_workouts', 'tracker_notes',
-      'tracker_habits', 'tracker_exercises',
-      'tracker_routines', 'tracker_active_routine',
-      'tracker_settings']
-      .forEach(k => localStorage.removeItem(k))
-    window.location.reload()
-  }
-
   const sortedPhases = [...phases].sort((a, b) => (b.start || '').localeCompare(a.start || ''))
   const isMaintain = phaseModal?.type === 'maintain'
 
@@ -143,7 +133,6 @@ export default function SettingsGeneral({
 
       <div className="settings-section">App</div>
       <button className="primary-btn" onClick={() => window.location.reload()}>Reload App</button>
-      <button className="primary-btn" style={{ marginTop: 8 }} onClick={resetToSeed}>Reset to seed data</button>
 
       {phaseModal && (
         <div className="modal-overlay" onClick={() => setPhaseModal(null)}>
