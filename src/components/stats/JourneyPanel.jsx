@@ -1,13 +1,37 @@
+import { useState, useMemo } from 'react'
 import ScrubbableLine from '../ScrubbableLine'
 import DeltaBadge from '../DeltaBadge'
 import MeasurementsTable from './MeasurementsTable'
 import WeightTrendChart from './WeightTrendChart'
 import { hexToRgba } from '../../lib/colors'
-import { buildPhaseBands, baseChartOpts } from '../../lib/chartSetup'
+import { buildPhaseBands, baseChartOpts, withZoomOpts } from '../../lib/chartSetup'
 import { ensureHabits } from '../../lib/bodyData'
 import { buildTimeSeries } from '../../lib/dates'
 
 const CANVAS_W = 337
+
+// Default x-axis window: last ~3 months of data. Returns { min, max } as
+// integer indices into the passed sortedDates (which may include '__gap__'
+// sentinels). If the series is shorter than 3 months, returns null so the
+// chart shows its full range.
+function defaultLast3Months(keys) {
+  if (!keys || keys.length === 0) return null
+  let lastIdx = keys.length - 1
+  while (lastIdx >= 0 && keys[lastIdx] === '__gap__') lastIdx--
+  if (lastIdx < 0) return null
+  const lastDate = new Date(keys[lastIdx] + 'T12:00:00')
+  const cutoff = new Date(lastDate)
+  cutoff.setMonth(cutoff.getMonth() - 3)
+  let minIdx = lastIdx
+  for (let i = lastIdx; i >= 0; i--) {
+    if (keys[i] === '__gap__') continue
+    const d = new Date(keys[i] + 'T12:00:00')
+    if (d >= cutoff) minIdx = i
+    else break
+  }
+  if (minIdx === 0 && lastIdx === keys.length - 1) return null
+  return { min: minIdx, max: lastIdx }
+}
 
 export default function JourneyPanel({ entries, phases, sortedDates: allDates, hideMeasurements, settings, water }) {
   const visceralEnabled = !!settings?.visceralEnabled
@@ -15,13 +39,24 @@ export default function JourneyPanel({ entries, phases, sortedDates: allDates, h
   const waterGoal = Math.max(1, parseInt(settings?.waterGoalML, 10) || 2500)
   const firstPhaseStart = phases.length > 0 ? phases.map(p => p.start).sort()[0] : null
   const loggedDates = firstPhaseStart ? allDates.filter(d => d >= firstPhaseStart) : allDates
-  if (loggedDates.length === 0) return <div style={{ color: '#45475a', textAlign: 'center', padding: 40 }}>No data yet</div>
 
   const firstKey = loggedDates[0]
   const lastKey = loggedDates[loggedDates.length - 1]
   // Time-spaced x-axis: one slot per day, runs of ≥14 missing days collapse
   // to a single zigzag gap slot.
-  const { keys: sortedDates, dates: dateMarkers, isGap } = buildTimeSeries(firstKey, lastKey, entries, 14)
+  const { keys: sortedDates, dates: dateMarkers, isGap } = useMemo(
+    () => (loggedDates.length === 0
+      ? { keys: [], dates: [], isGap: [] }
+      : buildTimeSeries(firstKey, lastKey, entries, 14)),
+    [firstKey, lastKey, entries, loggedDates.length],
+  )
+  // Shared zoom window across every chart on this panel. Initialized once on
+  // mount to the last 3 months — Stats re-mounts JourneyPanel on tab switch
+  // (see <main key={tab}> in App.jsx), so this naturally resets.
+  const [xRange, setXRange] = useState(() => defaultLast3Months(sortedDates))
+
+  if (loggedDates.length === 0) return <div style={{ color: '#45475a', textAlign: 'center', padding: 40 }}>No data yet</div>
+
   const firstE = ensureHabits(entries[firstKey])
   const lastE = ensureHabits(entries[lastKey])
   const totalDays = loggedDates.length
@@ -59,7 +94,11 @@ export default function JourneyPanel({ entries, phases, sortedDates: allDates, h
     labels,
     datasets: [{ data: vals, borderColor: color, backgroundColor: hexToRgba(color, 0.12), fill: true }],
   })
-  const journeyOpts = (extraScales) => baseChartOpts(extraScales, phaseBands, dateMarkers, isGap)
+  const maxIdx = sortedDates.length - 1
+  const journeyOpts = (extraScales) => withZoomOpts(
+    baseChartOpts(extraScales, phaseBands, dateMarkers, isGap),
+    { range: xRange, onChange: setXRange, maxIndex: maxIdx },
+  )
   const pickLast = (arr) => { for (let j = arr.length - 1; j >= 0; j--) if (arr[j] != null) return j; return arr.length - 1 }
 
   return (
@@ -169,24 +208,31 @@ export default function JourneyPanel({ entries, phases, sortedDates: allDates, h
         />
       </div>
 
-      {visceralEnabled && (
-        <div className="chart-card">
-          <ScrubbableLine
-            data={makeData(vis, '#cba6f7')}
-            options={{
-              ...journeyOpts(),
-              scales: { x: { display: false }, y: { ticks: { color: '#6c7086', font: { size: 9 }, stepSize: 1 }, grid: { color: '#313244' }, suggestedMin: 0, suggestedMax: 8 } },
-            }}
-            width={CANVAS_W} height={90}
-            style={{ width: CANVAS_W, height: 90 }}
-            renderHead={(idx) => {
-              const i = idx ?? pickLast(vis)
-              const v = vis[i]
-              return <div className="card-head">Visceral Fat <span className="v">{v ?? '--'} {idx != null && <span className="d">{sortedDates[i]}</span>}</span></div>
-            }}
-          />
-        </div>
-      )}
+      {visceralEnabled && (() => {
+        const vo = journeyOpts()
+        const visOpts = {
+          ...vo,
+          scales: {
+            x: { ...(vo.scales?.x || {}), display: false },
+            y: { ticks: { color: '#6c7086', font: { size: 9 }, stepSize: 1 }, grid: { color: '#313244' }, suggestedMin: 0, suggestedMax: 8 },
+          },
+        }
+        return (
+          <div className="chart-card">
+            <ScrubbableLine
+              data={makeData(vis, '#cba6f7')}
+              options={visOpts}
+              width={CANVAS_W} height={90}
+              style={{ width: CANVAS_W, height: 90 }}
+              renderHead={(idx) => {
+                const i = idx ?? pickLast(vis)
+                const v = vis[i]
+                return <div className="card-head">Visceral Fat <span className="v">{v ?? '--'} {idx != null && <span className="d">{sortedDates[i]}</span>}</span></div>
+              }}
+            />
+          </div>
+        )
+      })()}
 
       {waterEnabled && (() => {
         const waterVals = sortedDates.map(k => (water && water[k]) || 0)

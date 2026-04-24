@@ -52,8 +52,20 @@ export default function ScrubbableLine({ data, options, width, height, style, re
     chartRef.current?.update('none')
   }
 
-  const onTouchStart = (e) => { const t = e.touches?.[0]; if (t) updateSel(pickIdx(t.clientX)) }
-  const onTouchMove = (e) => { const t = e.touches?.[0]; if (!t) return; e.preventDefault(); updateSel(pickIdx(t.clientX)) }
+  // Multi-finger touches are reserved for the chart's pinch-zoom + 2-finger-pan
+  // plugin. Only scrub on single-finger touches.
+  const onTouchStart = (e) => {
+    if ((e.touches?.length ?? 0) > 1) { clearSel(); return }
+    const t = e.touches?.[0]
+    if (t) updateSel(pickIdx(t.clientX))
+  }
+  const onTouchMove = (e) => {
+    if ((e.touches?.length ?? 0) > 1) return
+    const t = e.touches?.[0]
+    if (!t) return
+    e.preventDefault()
+    updateSel(pickIdx(t.clientX))
+  }
 
   const scrubPlugin = useMemo(() => ({
     id: 'scrub',

@@ -11,6 +11,7 @@ import {
   Filler,
 } from 'chart.js'
 import annotationPlugin from 'chartjs-plugin-annotation'
+import zoomPlugin from 'chartjs-plugin-zoom'
 import { parseDate } from './dates'
 import { getPhaseColor, hexToRgba } from './colors'
 
@@ -25,6 +26,7 @@ ChartJS.register(
   Legend,
   Filler,
   annotationPlugin,
+  zoomPlugin,
 )
 
 const phaseBandsPlugin = {
@@ -183,5 +185,67 @@ export function baseChartOpts(extraScales, phaseBands, dates, isGap) {
       ...extraScales,
     },
     elements: { point: { radius: 0 }, line: { tension: 0.35, borderWidth: 2 } },
+  }
+}
+
+// Merge pinch-zoom + two-finger-pan config into a chart options object.
+// `range` is { min, max } x-axis indices (or null for full range). `onChange`
+// is called with the new { min, max } whenever the user zooms or pans.
+export function withZoomOpts(opts, { range, onChange, maxIndex }) {
+  if (!onChange) return opts
+  const emit = (chart) => {
+    const xs = chart.scales?.x
+    if (!xs) return
+    let lo = Math.round(xs.min)
+    let hi = Math.round(xs.max)
+    if (maxIndex != null) {
+      lo = Math.max(0, Math.min(lo, maxIndex))
+      hi = Math.max(0, Math.min(hi, maxIndex))
+    }
+    if (hi <= lo) hi = lo + 1
+    onChange({ min: lo, max: hi })
+  }
+  return {
+    ...opts,
+    scales: {
+      ...(opts.scales || {}),
+      x: {
+        ...((opts.scales && opts.scales.x) || {}),
+        ...(range ? { min: range.min, max: range.max } : {}),
+      },
+    },
+    plugins: {
+      ...(opts.plugins || {}),
+      zoom: {
+        limits: {
+          x: { min: 0, max: maxIndex != null ? maxIndex : 'original', minRange: 2 },
+        },
+        zoom: {
+          pinch: { enabled: true },
+          drag: { enabled: false },
+          wheel: { enabled: false },
+          mode: 'x',
+          onZoom: ({ chart }) => emit(chart),
+        },
+        pan: {
+          enabled: true,
+          mode: 'x',
+          threshold: 10,
+          modifierKey: 'shift',
+          // Gate single-finger touch so ScrubbableLine's scrub gesture still
+          // works. Only permit pan when two or more fingers are down (or mouse
+          // with shift held).
+          onPanStart: ({ event }) => {
+            const pointerType = event?.pointerType
+            if (pointerType === 'touch') {
+              const n = event?.pointers?.length ?? 0
+              if (n < 2) return false
+            }
+            return true
+          },
+          onPan: ({ chart }) => emit(chart),
+        },
+      },
+    },
   }
 }

@@ -11,6 +11,9 @@ export default function WeightTrendChart({ keys, entries, opts }) {
   const labels = keys.map(k => k.slice(5))
   const pickLast = (arr) => { for (let j = arr.length - 1; j >= 0; j--) if (arr[j] != null) return j; return arr.length - 1 }
   const absMax = Math.max(1, ...series.filter(v => v != null).map(v => Math.abs(v)))
+  // `opts` already carries zoom config when wired from JourneyPanel; we only
+  // override the y-scale bounds and preserve everything else (including x min/max
+  // and the zoom plugin block).
   const boundedOpts = {
     ...opts,
     scales: {
