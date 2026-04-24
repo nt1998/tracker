@@ -48,7 +48,9 @@ export default function SettingsGeneral({
         return (
           <div key={p.id} className={`phase-card ${isCurrent ? 'current' : ''}`} style={{ borderColor: color + '40' }}>
             <div className="pc-name" style={{ color }}>
-              {p.name}{typeLabel && <span style={{ fontSize: 10, color: '#6c7086', fontWeight: 500, marginLeft: 8 }}>· {typeLabel}</span>}
+              {p.name}
+              {typeLabel && <span style={{ fontSize: 10, color: '#6c7086', fontWeight: 500, marginLeft: 8 }}>· {typeLabel}</span>}
+              {isCurrent && <span style={{ fontSize: 10, color: '#89b4fa', fontWeight: 600, marginLeft: 8 }}>· current</span>}
             </div>
             <div className="pc-dates">{p.start} → {p.end || 'ongoing'}</div>
             {p.goals && (
@@ -56,7 +58,6 @@ export default function SettingsGeneral({
                 Goal: {p.goals.weight && `${p.goals.weight}kg `}{p.goals.bodyFat && `${p.goals.bodyFat}% BF `}{p.goals.musclePct && `${p.goals.musclePct}% Mu`}
               </div>
             )}
-            {isCurrent && <div className="pc-badge">Current</div>}
             <div className="pc-actions">
               <button className="del" onClick={() => deletePhase(p.id)}>{'×'}</button>
             </div>
