@@ -1,10 +1,11 @@
-import { ORBIT_HABITS, ensureHabits } from '../../lib/bodyData'
+import { ensureHabits, ORBIT_HABITS } from '../../lib/bodyData'
 
-export default function HabitsPanel({ trailsData, habitScores, entries, phases, sortedDates }) {
+export default function HabitsPanel({ trailsData, habitScores, entries, phases, sortedDates, habits }) {
+  const list = habits || ORBIT_HABITS
   const curPhase = phases.find(p => !p.end)
   const phaseKeys = curPhase ? sortedDates.filter(k => k >= curPhase.start && (!curPhase.end || k <= curPhase.end)) : sortedDates
 
-  const streaks = ORBIT_HABITS.map(h => {
+  const streaks = list.map(h => {
     let streak = 0
     for (let i = phaseKeys.length - 1; i >= 0; i--) {
       const e = ensureHabits(entries[phaseKeys[i]])

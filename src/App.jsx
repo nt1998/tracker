@@ -24,6 +24,7 @@ export default function App() {
     workouts, setWorkouts,
     routines, setRoutines,
     exerciseNotes, setExerciseNotes,
+    habits, setHabits,
     autoHabitsByDate,
   } = useStore()
 
@@ -39,7 +40,7 @@ export default function App() {
     >
       <main className="content" key={tab}>
         {tab === 'weight' && (
-          <WeightLog entries={entries} setEntries={setEntries} autoHabitsByDate={autoHabitsByDate} />
+          <WeightLog entries={entries} setEntries={setEntries} autoHabitsByDate={autoHabitsByDate} habits={habits} />
         )}
         {tab === 'gym' && (
           <GymLog
@@ -57,12 +58,14 @@ export default function App() {
             workouts={workouts}
             routines={routines}
             autoHabitsByDate={autoHabitsByDate}
+            habits={habits}
           />
         )}
         {tab === 'settings' && (
           <Settings
             phases={phases} setPhases={setPhases}
             routines={routines} setRoutines={setRoutines}
+            habits={habits} setHabits={setHabits}
           />
         )}
       </main>

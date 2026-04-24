@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import useLocalStorage from './useLocalStorage'
 import { seedEntries, seedPhases, seedWorkouts, seedRoutines, seedNotes } from '../lib/seedData'
+import { DEFAULT_HABITS } from '../lib/bodyData'
 
 export default function useStore() {
   const [entries, setEntries] = useLocalStorage('tracker_entries', seedEntries)
@@ -8,6 +9,7 @@ export default function useStore() {
   const [workouts, setWorkouts] = useLocalStorage('tracker_workouts', seedWorkouts)
   const [routines, setRoutines] = useLocalStorage('tracker_routines', seedRoutines)
   const [exerciseNotes, setExerciseNotes] = useLocalStorage('tracker_notes', seedNotes)
+  const [habits, setHabits] = useLocalStorage('tracker_habits', DEFAULT_HABITS)
 
   const autoHabitsByDate = useMemo(() => {
     const out = {}
@@ -28,6 +30,7 @@ export default function useStore() {
     workouts, setWorkouts,
     routines, setRoutines,
     exerciseNotes, setExerciseNotes,
+    habits, setHabits,
     autoHabitsByDate,
   }
 }

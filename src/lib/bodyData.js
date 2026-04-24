@@ -7,47 +7,43 @@ export const METRICS = [
   { key: 'visceralFat', label: 'Visceral', unit: '', color: '#cba6f7', step: 1 },
 ]
 
-export const ORBIT_HABITS = [
-  {
-    key: 'morning', icon: '🧘', name: 'Morning', color: '#f9e2af',
-    applies: () => true,
-    details: [
-      'Ankle Circles (Ankle CARs)',
-      'Hip Circles (Hip CARs)',
-      'Arch Squeeze (Short Foot, 30s each foot)',
-      'Deep Squat Sit (Deep Squat Hold, 60s)',
-    ],
-  },
-  {
-    key: 'supsAM', icon: '☀️', name: 'Sups AM', color: '#cba6f7',
-    applies: () => true,
-    details: ['Creatine', '1x Base Powder', '2x Omega 3'],
-  },
-  {
-    key: 'd3k2', icon: '💊', name: 'D3+K2', color: '#f5c2e7',
-    applies: (_d, dateStr, entries) => {
-      if (!entries) return true
-      const yKey = addDays(dateStr, -1)
-      const yEntry = entries[yKey]
-      if (!yEntry) return true
-      return !yEntry.habits?.d3k2
-    },
-    details: ['1x D3+K2'],
-  },
-  {
-    key: 'supsPM', icon: '🌙', name: 'Sups PM', color: '#b4befe',
-    applies: () => true,
-    details: ['1x Magnesium', '2x Omega 3'],
-  },
-  {
-    key: 'hiit', icon: '🫀', name: 'HIIT', color: '#89dceb',
-    applies: d => [3, 0].includes(d.getDay()),
-  },
+// Default habits used as seed when tracker_habits storage is empty.
+// Schedule spec:
+//   { mode: 'daily' }
+//   { mode: 'weekdays', weekdays: [0..6] }   // Sun=0 ... Sat=6
+//   { mode: 'everyN',   everyN: number }     // epoch-day % N === 0
+export const DEFAULT_HABITS = [
+  { key: 'morning', icon: '🧘', name: 'Morning',  color: '#f9e2af',
+    description: 'Ankle Circles · Hip Circles · Arch Squeeze (30s/side) · Deep Squat Hold (60s)',
+    schedule: { mode: 'daily' } },
+  { key: 'supsAM',  icon: '☀️', name: 'Sups AM',  color: '#cba6f7',
+    description: 'Creatine · 1× Base Powder · 2× Omega 3',
+    schedule: { mode: 'daily' } },
+  { key: 'd3k2',    icon: '💊', name: 'D3+K2',    color: '#f5c2e7',
+    description: '1× D3+K2 (every other day)',
+    schedule: { mode: 'everyN', everyN: 2 } },
+  { key: 'supsPM',  icon: '🌙', name: 'Sups PM',  color: '#b4befe',
+    description: '1× Magnesium · 2× Omega 3',
+    schedule: { mode: 'daily' } },
+  { key: 'hiit',    icon: '🫀', name: 'HIIT',     color: '#89dceb',
+    description: 'Zone-5 interval session',
+    schedule: { mode: 'weekdays', weekdays: [3, 0] } },
 ]
 
-export function habitApplies(h, dateStr, entries) {
+// Back-compat alias — some tabs still import ORBIT_HABITS. Treat it as
+// the default list when no persisted habits exist yet.
+export const ORBIT_HABITS = DEFAULT_HABITS
+
+export function habitApplies(h, dateStr) {
   const d = new Date(dateStr + 'T12:00:00')
-  return h.applies(d, dateStr, entries)
+  const sched = h.schedule || { mode: 'daily' }
+  if (sched.mode === 'weekdays') return (sched.weekdays || []).includes(d.getDay())
+  if (sched.mode === 'everyN') {
+    const n = Math.max(1, sched.everyN || 1)
+    const epochDay = Math.floor(d.getTime() / 86400000)
+    return epochDay % n === 0
+  }
+  return true // daily or unknown → always applies
 }
 
 export function makeEmptyHabits() {

@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { addDays, formatDateLabel, todayKey } from '../lib/dates'
-import { METRICS, ORBIT_HABITS, ensureHabits, habitApplies, makeEmptyEntry } from '../lib/bodyData'
+import { METRICS, ensureHabits, habitApplies, makeEmptyEntry } from '../lib/bodyData'
 import { BlackHoleIcon } from '../components/icons'
 
-export default function WeightLog({ entries, setEntries, autoHabitsByDate }) {
+export default function WeightLog({ entries, setEntries, autoHabitsByDate, habits }) {
   const today = todayKey()
   const [date, setDate] = useState(today)
   const [habitDetail, setHabitDetail] = useState(null)
@@ -57,15 +57,15 @@ export default function WeightLog({ entries, setEntries, autoHabitsByDate }) {
   const entryRecorded = !!entries[date]
 
   const readHabit = useCallback((d, key) => {
-    const isAuto = ORBIT_HABITS.find(h => h.key === key)?.auto
-    if (isAuto) return !!autoHabitsByDate[d]?.[key]
+    const h = habits.find(x => x.key === key)
+    if (h?.auto) return !!autoHabitsByDate[d]?.[key]
     const ent = entries[d] ? ensureHabits(entries[d]) : null
     return !!ent?.habits?.[key]
-  }, [entries, autoHabitsByDate])
+  }, [entries, autoHabitsByDate, habits])
 
   const applicable = useMemo(
-    () => ORBIT_HABITS.filter(h => !h.auto && habitApplies(h, date, entries)),
-    [date, entries],
+    () => habits.filter(h => !h.auto && habitApplies(h, date)),
+    [date, habits],
   )
 
   const orbitFraction = useMemo(() => {
@@ -252,9 +252,9 @@ export default function WeightLog({ entries, setEntries, autoHabitsByDate }) {
             <span className="hd-icon">{habitDetail.icon}</span>
             <span>{habitDetail.name}</span>
           </div>
-          {(habitDetail.details || []).map((line, i) => (
-            <div key={i} className="hd-line">{line}</div>
-          ))}
+          {habitDetail.description && (
+            <div className="hd-line">{habitDetail.description}</div>
+          )}
         </div>
       )}
     </>
