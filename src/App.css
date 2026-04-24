@@ -3303,14 +3303,17 @@ body:has(textarea:focus) .tabbar {
   border: 0;
   background: transparent;
   color: #6c7086;
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 0;
   font-family: inherit;
-  padding: 6px 12px;
+  padding: 6px 10px;
   border-radius: 7px;
   cursor: pointer;
   transition: all .15s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
+.stats-view-toggle button svg { display: block; }
 .stats-view-toggle button.active {
   background: linear-gradient(145deg, rgba(49,50,68,.9), rgba(30,30,46,.95));
   color: #89b4fa;

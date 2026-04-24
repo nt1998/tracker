@@ -229,11 +229,13 @@ function detectPRsInRange(routines, workouts, phases, statsFilter) {
   return prs
 }
 
-export default function GymStats({ workouts, phases, routines, forcedScope }) {
+export default function GymStats({ workouts, phases, routines, forcedScope, forcedSubTab, hideSubTabs }) {
   const [ownFilter, setOwnFilter] = useState('current')
   const statsFilter = forcedScope !== undefined ? forcedScope : ownFilter
   const setStatsFilter = forcedScope !== undefined ? () => {} : setOwnFilter
-  const [statsTab, setStatsTab] = useState('overview')
+  const [ownSubTab, setOwnSubTab] = useState('overview')
+  const statsTab = forcedSubTab !== undefined ? forcedSubTab : ownSubTab
+  const setStatsTab = forcedSubTab !== undefined ? () => {} : setOwnSubTab
   const [exSort, setExSort] = useState('recent')
   const [histFilter, setHistFilter] = useState('all')
   const [balanceMode, setBalanceMode] = useState('volume')
@@ -300,11 +302,13 @@ export default function GymStats({ workouts, phases, routines, forcedScope }) {
         </div>
       )}
 
-      <div className="stats-subtabs">
-        <button className={statsTab === 'overview' ? 'active' : ''} onClick={() => setStatsTab('overview')}>Overview</button>
-        <button className={statsTab === 'exercises' ? 'active' : ''} onClick={() => setStatsTab('exercises')}>Exercises</button>
-        <button className={statsTab === 'history' ? 'active' : ''} onClick={() => setStatsTab('history')}>History</button>
-      </div>
+      {!hideSubTabs && (
+        <div className="stats-subtabs">
+          <button className={statsTab === 'overview' ? 'active' : ''} onClick={() => setStatsTab('overview')}>Overview</button>
+          <button className={statsTab === 'exercises' ? 'active' : ''} onClick={() => setStatsTab('exercises')}>Exercises</button>
+          <button className={statsTab === 'history' ? 'active' : ''} onClick={() => setStatsTab('history')}>History</button>
+        </div>
+      )}
 
       {statsTab === 'overview' && (
         <>
