@@ -5,6 +5,7 @@ import WeightTrendChart from './WeightTrendChart'
 import { hexToRgba } from '../../lib/colors'
 import { buildPhaseBands, baseChartOpts } from '../../lib/chartSetup'
 import { ensureHabits } from '../../lib/bodyData'
+import { buildTimeSeries } from '../../lib/dates'
 
 const CANVAS_W = 337
 
@@ -13,14 +14,17 @@ export default function JourneyPanel({ entries, phases, sortedDates: allDates, h
   const waterEnabled = settings?.waterEnabled !== false
   const waterGoal = Math.max(1, parseInt(settings?.waterGoalML, 10) || 2500)
   const firstPhaseStart = phases.length > 0 ? phases.map(p => p.start).sort()[0] : null
-  const sortedDates = firstPhaseStart ? allDates.filter(d => d >= firstPhaseStart) : allDates
-  if (sortedDates.length === 0) return <div style={{ color: '#45475a', textAlign: 'center', padding: 40 }}>No data yet</div>
+  const loggedDates = firstPhaseStart ? allDates.filter(d => d >= firstPhaseStart) : allDates
+  if (loggedDates.length === 0) return <div style={{ color: '#45475a', textAlign: 'center', padding: 40 }}>No data yet</div>
 
-  const firstKey = sortedDates[0]
-  const lastKey = sortedDates[sortedDates.length - 1]
+  const firstKey = loggedDates[0]
+  const lastKey = loggedDates[loggedDates.length - 1]
+  // Time-spaced x-axis: one slot per day, runs of ≥14 missing days collapse
+  // to a single zigzag gap slot.
+  const { keys: sortedDates, dates: dateMarkers, isGap } = buildTimeSeries(firstKey, lastKey, entries, 14)
   const firstE = ensureHabits(entries[firstKey])
   const lastE = ensureHabits(entries[lastKey])
-  const totalDays = sortedDates.length
+  const totalDays = loggedDates.length
 
   const firstW = parseFloat(firstE.weight) || 0
   const lastW = parseFloat(lastE.weight) || 0
@@ -29,17 +33,24 @@ export default function JourneyPanel({ entries, phases, sortedDates: allDates, h
   const firstMu = parseFloat(firstE.musclePct) || 0
   const lastMu = parseFloat(lastE.musclePct) || 0
 
-  const phaseBands = buildPhaseBands(sortedDates, phases)
-  const labels = sortedDates.map(k => k.slice(5))
-  const wts = sortedDates.map(k => parseFloat(entries[k]?.weight) || null)
-  const bfs = sortedDates.map(k => parseFloat(entries[k]?.bodyFat) || null)
-  const mus = sortedDates.map(k => parseFloat(entries[k]?.musclePct) || null)
-  const vis = sortedDates.map(k => parseFloat(entries[k]?.visceralFat) || null)
+  const phaseBands = buildPhaseBands(sortedDates, phases, isGap)
+  const labels = sortedDates.map(k => k === '__gap__' ? '' : k.slice(5))
+  const pickNum = (k, field) => {
+    if (k === '__gap__') return null
+    const v = parseFloat(entries[k]?.[field])
+    return isNaN(v) ? null : v
+  }
+  const wts = sortedDates.map(k => pickNum(k, 'weight'))
+  const bfs = sortedDates.map(k => pickNum(k, 'bodyFat'))
+  const mus = sortedDates.map(k => pickNum(k, 'musclePct'))
+  const vis = sortedDates.map(k => pickNum(k, 'visceralFat'))
   const fatMass = sortedDates.map(k => {
+    if (k === '__gap__') return null
     const w = parseFloat(entries[k]?.weight), bf = parseFloat(entries[k]?.bodyFat)
     return (!isNaN(w) && !isNaN(bf)) ? +(w * bf / 100).toFixed(2) : null
   })
   const muMass = sortedDates.map(k => {
+    if (k === '__gap__') return null
     const w = parseFloat(entries[k]?.weight), mu = parseFloat(entries[k]?.musclePct)
     return (!isNaN(w) && !isNaN(mu)) ? +(w * mu / 100).toFixed(2) : null
   })
@@ -48,7 +59,7 @@ export default function JourneyPanel({ entries, phases, sortedDates: allDates, h
     labels,
     datasets: [{ data: vals, borderColor: color, backgroundColor: hexToRgba(color, 0.12), fill: true }],
   })
-  const journeyOpts = (extraScales) => baseChartOpts(extraScales, phaseBands, sortedDates)
+  const journeyOpts = (extraScales) => baseChartOpts(extraScales, phaseBands, dateMarkers, isGap)
   const pickLast = (arr) => { for (let j = arr.length - 1; j >= 0; j--) if (arr[j] != null) return j; return arr.length - 1 }
 
   return (

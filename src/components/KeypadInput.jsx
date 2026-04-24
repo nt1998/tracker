@@ -145,7 +145,10 @@ export default function KeypadInput({
   const showValue = buf === '' ? (placeholder || '0') : buf
   const showPlaceholder = buf === ''
 
-  const displayText = current === '' ? placeholder : current + (unit ? ` ${unit}` : '')
+  // Trigger shows just the raw value so tight containers (e.g., 56px
+   // measurement slots) don't wrap unit text onto a second line. Unit
+   // still appears inside the keypad sheet header.
+  const displayText = current === '' ? placeholder : current
 
   const triggerHandler = (e) => {
     // preventDefault so iOS doesn't try to focus / open its keyboard
