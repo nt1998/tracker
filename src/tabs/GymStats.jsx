@@ -229,8 +229,10 @@ function detectPRsInRange(routines, workouts, phases, statsFilter) {
   return prs
 }
 
-export default function GymStats({ workouts, phases, routines }) {
-  const [statsFilter, setStatsFilter] = useState('current')
+export default function GymStats({ workouts, phases, routines, forcedScope }) {
+  const [ownFilter, setOwnFilter] = useState('current')
+  const statsFilter = forcedScope !== undefined ? forcedScope : ownFilter
+  const setStatsFilter = forcedScope !== undefined ? () => {} : setOwnFilter
   const [statsTab, setStatsTab] = useState('overview')
   const [exSort, setExSort] = useState('recent')
   const [histFilter, setHistFilter] = useState('all')
@@ -239,6 +241,7 @@ export default function GymStats({ workouts, phases, routines }) {
   const [calendarMonth, setCalendarMonth] = useState(new Date())
   const today = todayKey()
   const curPhase = phases.find(p => !p.end)
+  const showOwnFilter = forcedScope === undefined
 
   const filtered = useMemo(() => filterByPhase(workouts, phases, statsFilter), [workouts, phases, statsFilter])
   const filteredEntries = Object.entries(filtered)
@@ -285,15 +288,17 @@ export default function GymStats({ workouts, phases, routines }) {
 
   return (
     <div className="stats-page">
-      <div className="stats-filter">
-        <select value={statsFilter} onChange={(e) => setStatsFilter(e.target.value)}>
-          {curPhase && <option value="current">{curPhase.name} (current)</option>}
-          {phases.filter(p => p.end).map(p => (
-            <option key={p.id} value={p.id}>{p.name}</option>
-          ))}
-          <option value="all">All Time</option>
-        </select>
-      </div>
+      {showOwnFilter && (
+        <div className="stats-filter">
+          <select value={statsFilter} onChange={(e) => setStatsFilter(e.target.value)}>
+            {curPhase && <option value="current">{curPhase.name} (current)</option>}
+            {phases.filter(p => p.end).map(p => (
+              <option key={p.id} value={p.id}>{p.name}</option>
+            ))}
+            <option value="all">All Time</option>
+          </select>
+        </div>
+      )}
 
       <div className="stats-subtabs">
         <button className={statsTab === 'overview' ? 'active' : ''} onClick={() => setStatsTab('overview')}>Overview</button>

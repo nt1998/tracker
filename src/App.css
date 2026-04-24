@@ -3281,3 +3281,49 @@ body:has(textarea:focus) .tabbar {
   width: 18px;
   height: 18px;
 }
+
+/* ============================================
+   STATS TOOLBAR (Body/Workout toggle + phase picker)
+   ============================================ */
+.stats-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 0 8px;
+}
+.stats-view-toggle {
+  display: flex;
+  background: #181825;
+  border-radius: 10px;
+  padding: 3px;
+  gap: 2px;
+}
+.stats-view-toggle button {
+  border: 0;
+  background: transparent;
+  color: #6c7086;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: inherit;
+  padding: 6px 12px;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: all .15s;
+}
+.stats-view-toggle button.active {
+  background: linear-gradient(145deg, rgba(49,50,68,.9), rgba(30,30,46,.95));
+  color: #89b4fa;
+  box-shadow: inset 2px 2px 4px rgba(17,17,27,.35), inset -1px -1px 3px rgba(69,71,90,.12);
+}
+.stats-phase-picker select {
+  background: #181825;
+  color: #cdd6f4;
+  border: 1px solid rgba(137,180,250,.08);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
