@@ -85,25 +85,32 @@ export default function ScrubbableLine({
       if (!chart) return
       const { x0, x1, rect } = snapshotTouches(chart, e)
       const span = (range ? (range.max - range.min) : maxIndex) || 1
+      // Preserve locked mode across transient finger loss. Only start a fresh
+      // mode-detection cycle if no prior gesture exists.
+      const prior = gestureRef.current
+      if (prior?.holdTimer) clearTimeout(prior.holdTimer)
+      const keepMode = prior && prior.mode !== 'none' ? prior.mode : 'none'
       gestureRef.current = {
-        mode: 'none',
+        mode: keepMode,
         startDist: Math.abs(x1 - x0),
         startCenterPx: (x0 + x1) / 2,
         startMin: range ? range.min : 0,
         startMax: range ? range.max : maxIndex,
         startSpan: span,
         chartWidth: rect.width,
-        holdTimer: setTimeout(() => {
+        holdTimer: keepMode === 'none' ? setTimeout(() => {
           if (gestureRef.current && gestureRef.current.mode === 'none') {
             gestureRef.current.mode = 'pan'
           }
-        }, PAN_HOLD_MS),
+        }, PAN_HOLD_MS) : null,
       }
       clearSel()
       e.preventDefault()
       return
     }
     if (e.touches.length > 1) { clearSel(); return }
+    // Ignore single-finger scrub while a 2-finger gesture is still alive.
+    if (gestureRef.current) return
     const t = e.touches?.[0]
     if (t) updateSel(pickIdx(t.clientX))
   }
@@ -170,7 +177,10 @@ export default function ScrubbableLine({
   }
 
   const onTouchEnd = (e) => {
-    if (e.touches.length < 2) {
+    // Clear gesture only on full release. One finger lifting mid-gesture must
+    // not reset the locked mode — otherwise re-contacting 2 fingers would start
+    // fresh detection and could flip pan→zoom.
+    if (e.touches.length === 0) {
       const g = gestureRef.current
       if (g?.holdTimer) clearTimeout(g.holdTimer)
       gestureRef.current = null
