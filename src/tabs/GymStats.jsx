@@ -34,7 +34,7 @@ function filterByPhase(workouts, phases, statsFilter) {
   }
   let phase
   if (statsFilter === 'current') phase = phases.find(p => !p.end)
-  else phase = phases.find(p => p.id === statsFilter)
+  else phase = phases.find(p => String(p.id) === String(statsFilter))
   if (!phase) return Object.fromEntries(Object.entries(workouts).filter(([, w]) => w.committed))
   return Object.fromEntries(
     Object.entries(workouts).filter(([d, w]) => d >= phase.start && (!phase.end || d <= phase.end) && w.committed),
