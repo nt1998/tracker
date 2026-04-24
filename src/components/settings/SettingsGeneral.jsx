@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { todayKey, addDays } from '../../lib/dates'
 import { PHASE_TYPES, getPhaseColor } from '../../lib/colors'
+import KeypadInput from '../KeypadInput'
 
 export default function SettingsGeneral({
   phases, setPhases,
@@ -90,15 +91,17 @@ export default function SettingsGeneral({
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {settings?.waterEnabled !== false && (
             <div className="inline-goal">
-              <input
-                type="number"
-                inputMode="numeric"
+              <KeypadInput
+                mode="integer"
                 value={settings?.waterGoalML ?? 2500}
-                onChange={(e) => {
-                  const n = parseInt(e.target.value, 10)
+                onChange={(next) => {
+                  const n = parseInt(next, 10)
                   setSettings({ ...settings, waterGoalML: isNaN(n) ? 0 : n })
                 }}
                 placeholder="2500"
+                label="Daily water goal"
+                unit="ml"
+                min={0}
               />
               <span className="unit">ml</span>
             </div>
@@ -201,24 +204,44 @@ export default function SettingsGeneral({
 
             <div className="field">
               <label>Goal Weight (kg){isMaintain && ' — disabled on Maintain'}</label>
-              <input type="text" inputMode="decimal" disabled={isMaintain}
+              <KeypadInput
+                mode="decimal"
+                disabled={isMaintain}
                 value={isMaintain ? '' : phaseModal.goals.weight}
-                onChange={(e) => setPhaseModal({ ...phaseModal, goals: { ...phaseModal.goals, weight: e.target.value } })}
-                placeholder={isMaintain ? '—' : '75'} />
+                onChange={(next) => setPhaseModal({ ...phaseModal, goals: { ...phaseModal.goals, weight: next } })}
+                placeholder={isMaintain ? '—' : '75'}
+                label="Goal weight"
+                unit="kg"
+                min={0}
+              />
             </div>
 
             <div className="field">
               <label>Goal Body Fat %</label>
-              <input type="text" inputMode="decimal" value={phaseModal.goals.bodyFat}
-                onChange={(e) => setPhaseModal({ ...phaseModal, goals: { ...phaseModal.goals, bodyFat: e.target.value } })}
-                placeholder="15" />
+              <KeypadInput
+                mode="decimal"
+                value={phaseModal.goals.bodyFat}
+                onChange={(next) => setPhaseModal({ ...phaseModal, goals: { ...phaseModal.goals, bodyFat: next } })}
+                placeholder="15"
+                label="Goal body fat"
+                unit="%"
+                min={0}
+                max={100}
+              />
             </div>
 
             <div className="field">
               <label>Goal Muscle %</label>
-              <input type="text" inputMode="decimal" value={phaseModal.goals.musclePct}
-                onChange={(e) => setPhaseModal({ ...phaseModal, goals: { ...phaseModal.goals, musclePct: e.target.value } })}
-                placeholder="40" />
+              <KeypadInput
+                mode="decimal"
+                value={phaseModal.goals.musclePct}
+                onChange={(next) => setPhaseModal({ ...phaseModal, goals: { ...phaseModal.goals, musclePct: next } })}
+                placeholder="40"
+                label="Goal muscle"
+                unit="%"
+                min={0}
+                max={100}
+              />
             </div>
 
             <div className="modal-actions">

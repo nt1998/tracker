@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { addDays, formatDateLabel, todayKey } from '../lib/dates'
 import { METRICS, getActiveMetrics, ensureHabits, habitApplies, makeEmptyEntry } from '../lib/bodyData'
 import { BlackHoleIcon } from '../components/icons'
+import KeypadInput from '../components/KeypadInput'
 
 export default function WeightLog({ entries, setEntries, autoHabitsByDate, habits, settings, water, setWater }) {
   const activeMetrics = getActiveMetrics(settings)
@@ -277,13 +278,15 @@ export default function WeightLog({ entries, setEntries, autoHabitsByDate, habit
             <div className="lm-row">
               <button className="lm-btn" onClick={() => adjustValue(m.key, -1)}>-</button>
               <div className={`lm-val ${isYesterdayValue(m.key) ? 'yesterday' : ''}`} style={{ color: m.color }}>
-                <input
-                  type="text"
-                  inputMode="decimal"
+                <KeypadInput
+                  mode="decimal"
                   value={getDisplayValue(m.key)}
                   placeholder="--"
+                  label={`${m.label}${m.unit ? ` (${m.unit})` : ''}`}
+                  unit={m.unit || ''}
+                  min={0}
                   style={{ color: isYesterdayValue(m.key) ? '#6c7086' : m.color }}
-                  onChange={(e) => updateEntry(m.key, e.target.value)}
+                  onChange={(next) => updateEntry(m.key, next)}
                 />
               </div>
               <button className="lm-btn" onClick={() => adjustValue(m.key, 1)}>+</button>

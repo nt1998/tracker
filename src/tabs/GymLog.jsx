@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { todayKey } from '../lib/dates'
 import { fmtSec, formatPlates, generateWeightSteps, getPlatesPerSide, toKg } from '../lib/weights'
 import RestSetRow from '../components/RestSetRow'
+import KeypadInput from '../components/KeypadInput'
 import { templateKeyForDate } from '../lib/routine'
 
 const defaultGetWorkoutFromTemplate = (templateKey, template, exercises, exerciseNotes) => {
@@ -346,12 +347,14 @@ export default function GymLog({ workouts, setWorkouts, exercises, routines, act
         <div className="set-controls">
           <div className="set-field">
             <button className="adj-btn" onClick={() => adjustWeight(type, idx, -1)}>−</button>
-            <input
-              type="text"
-              inputMode="decimal"
+            <KeypadInput
+              mode="decimal"
               value={set.weight}
               placeholder={prevWeight || unit}
-              onChange={(e) => updateSet(type, idx, 'weight', e.target.value)}
+              label={`${type === 'warmup' ? 'Warm-up' : 'Set'} ${idx + 1} weight`}
+              unit={unit}
+              min={0}
+              onChange={(next) => updateSet(type, idx, 'weight', next)}
             />
             <button className="adj-btn" onClick={() => adjustWeight(type, idx, 1)}>+</button>
           </div>
@@ -360,12 +363,13 @@ export default function GymLog({ workouts, setWorkouts, exercises, routines, act
           </span>
           <div className="set-field reps">
             <button className="adj-btn" onClick={() => adjustReps(type, idx, -1)}>−</button>
-            <input
-              type="text"
-              inputMode="numeric"
+            <KeypadInput
+              mode="integer"
               value={set.reps}
               placeholder={prevReps || goalReps || '-'}
-              onChange={(e) => updateSet(type, idx, 'reps', e.target.value)}
+              label={`${type === 'warmup' ? 'Warm-up' : 'Set'} ${idx + 1} reps`}
+              min={0}
+              onChange={(next) => updateSet(type, idx, 'reps', next)}
             />
             <button className="adj-btn" onClick={() => adjustReps(type, idx, 1)}>+</button>
           </div>

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import KeypadInput from '../KeypadInput'
 
 const WEEKDAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'] // Mon-first display
 const WEEKDAY_ORDER = [1, 2, 3, 4, 5, 6, 0] // index into weekdayMap (JS Sun=0)
@@ -431,21 +432,37 @@ export default function SettingsRoutines({
                           </label>
                           <label>
                             Sets
-                            <input type="number" min={1} value={ex.sets || 1}
-                              onChange={(e) => updateRehabItem(editWorkoutKey, bIdx, exIdx, { sets: +e.target.value })} />
+                            <KeypadInput
+                              mode="integer"
+                              min={1}
+                              value={ex.sets || 1}
+                              onChange={(next) => updateRehabItem(editWorkoutKey, bIdx, exIdx, { sets: parseInt(next, 10) || 1 })}
+                              label="Sets"
+                            />
                           </label>
                           {ex.type === 'time' ? (
                             <label>
                               Seconds
-                              <input type="number" min={1} value={ex.duration || 30}
-                                onChange={(e) => updateRehabItem(editWorkoutKey, bIdx, exIdx, { duration: +e.target.value })} />
+                              <KeypadInput
+                                mode="integer"
+                                min={1}
+                                value={ex.duration || 30}
+                                onChange={(next) => updateRehabItem(editWorkoutKey, bIdx, exIdx, { duration: parseInt(next, 10) || 1 })}
+                                label="Duration"
+                                unit="s"
+                              />
                             </label>
                           ) : (
                             <label>
                               Reps
-                              <input value={ex.reps || ''}
-                                onChange={(e) => updateRehabItem(editWorkoutKey, bIdx, exIdx, { reps: e.target.value })}
-                                placeholder="10" />
+                              <KeypadInput
+                                mode="integer"
+                                min={1}
+                                value={ex.reps || ''}
+                                onChange={(next) => updateRehabItem(editWorkoutKey, bIdx, exIdx, { reps: next })}
+                                placeholder="10"
+                                label="Reps"
+                              />
                             </label>
                           )}
                         </div>
@@ -461,9 +478,15 @@ export default function SettingsRoutines({
                           {ex.type === 'rep' && (
                             <label>
                               Hold (s, opt)
-                              <input type="number" min={0} value={ex.holdSec || ''}
-                                onChange={(e) => updateRehabItem(editWorkoutKey, bIdx, exIdx, { holdSec: e.target.value ? +e.target.value : undefined })}
-                                placeholder="0" />
+                              <KeypadInput
+                                mode="integer"
+                                min={0}
+                                value={ex.holdSec || ''}
+                                onChange={(next) => updateRehabItem(editWorkoutKey, bIdx, exIdx, { holdSec: next ? parseInt(next, 10) : undefined })}
+                                placeholder="0"
+                                label="Hold"
+                                unit="s"
+                              />
                             </label>
                           )}
                         </div>
@@ -534,23 +557,43 @@ export default function SettingsRoutines({
                       <div className="ei-grid">
                         <label>
                           Warmup
-                          <input type="number" min={0} value={item.warmupSets}
-                            onChange={(e) => updateItem(editWorkoutKey, idx, { warmupSets: +e.target.value })} />
+                          <KeypadInput
+                            mode="integer"
+                            min={0}
+                            value={item.warmupSets}
+                            onChange={(next) => updateItem(editWorkoutKey, idx, { warmupSets: parseInt(next, 10) || 0 })}
+                            label="Warmup sets"
+                          />
                         </label>
                         <label>
                           Work
-                          <input type="number" min={1} value={item.workSets}
-                            onChange={(e) => updateItem(editWorkoutKey, idx, { workSets: +e.target.value })} />
+                          <KeypadInput
+                            mode="integer"
+                            min={1}
+                            value={item.workSets}
+                            onChange={(next) => updateItem(editWorkoutKey, idx, { workSets: parseInt(next, 10) || 1 })}
+                            label="Work sets"
+                          />
                         </label>
                         <label>
                           Rep min
-                          <input type="number" min={1} value={min}
-                            onChange={(e) => updateItem(editWorkoutKey, idx, { reps: joinReps(e.target.value, max) })} />
+                          <KeypadInput
+                            mode="integer"
+                            min={1}
+                            value={min}
+                            onChange={(next) => updateItem(editWorkoutKey, idx, { reps: joinReps(next, max) })}
+                            label="Rep min"
+                          />
                         </label>
                         <label>
                           Rep max
-                          <input type="number" min={1} value={max}
-                            onChange={(e) => updateItem(editWorkoutKey, idx, { reps: joinReps(min, e.target.value) })} />
+                          <KeypadInput
+                            mode="integer"
+                            min={1}
+                            value={max}
+                            onChange={(next) => updateItem(editWorkoutKey, idx, { reps: joinReps(min, next) })}
+                            label="Rep max"
+                          />
                         </label>
                       </div>
                     </div>

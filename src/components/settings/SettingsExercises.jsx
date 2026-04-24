@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import KeypadInput from '../KeypadInput'
 
 const EMPTY = () => ({
   id: Date.now(),
@@ -84,18 +85,39 @@ export default function SettingsExercises({ exercises, setExercises }) {
 
             <div className="field">
               <label>Start weight</label>
-              <input type="number" value={editing.startWeight} onChange={(e) => update({ startWeight: +e.target.value })} />
+              <KeypadInput
+                mode="decimal"
+                min={0}
+                value={editing.startWeight}
+                onChange={(next) => update({ startWeight: parseFloat(next) || 0 })}
+                label="Start weight"
+                unit={editing.unit}
+              />
             </div>
 
             <div className="field">
               <label>Increment</label>
-              <input type="number" step="0.5" value={editing.increment} onChange={(e) => update({ increment: +e.target.value })} />
+              <KeypadInput
+                mode="decimal"
+                min={0}
+                value={editing.increment}
+                onChange={(next) => update({ increment: parseFloat(next) || 0 })}
+                label="Increment"
+                unit={editing.unit}
+              />
             </div>
 
             {editing.equipmentType === 'plates' && (
               <div className="field">
                 <label>Bar weight</label>
-                <input type="number" value={editing.barWeight ?? 20} onChange={(e) => update({ barWeight: +e.target.value })} />
+                <KeypadInput
+                  mode="decimal"
+                  min={0}
+                  value={editing.barWeight ?? 20}
+                  onChange={(next) => update({ barWeight: parseFloat(next) || 0 })}
+                  label="Bar weight"
+                  unit={editing.unit}
+                />
               </div>
             )}
 
