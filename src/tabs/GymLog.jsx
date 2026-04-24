@@ -37,7 +37,9 @@ export default function GymLog({ workouts, setWorkouts, exercises, routines, act
   const [date] = useState(todayKey())
   const [currentExerciseIdx, setCurrentExerciseIdx] = useState(0)
   const [activeSetIdx, setActiveSetIdx] = useState({ type: 'work', idx: 0 })
+  const [dayPickerOpen, setDayPickerOpen] = useState(false)
   const lastCommitRef = useRef({})
+  const longPressRef = useRef(null)
   const [, forceTick] = useState(0)
   const markCommit = (exId) => { if (exId) { lastCommitRef.current[exId] = Date.now(); forceTick(n => n + 1) } }
 
@@ -290,6 +292,25 @@ export default function GymLog({ workouts, setWorkouts, exercises, routines, act
     writeWorkout(next => { next.committed = true })
   }
 
+  // Long-press on the header to switch today's day (push/pull/rest...)
+  const switchDay = (newKey) => {
+    const newTemplate = routineWorkouts[newKey]
+    const fresh = defaultGetWorkoutFromTemplate(newKey, newTemplate, exercises, exerciseNotes)
+    setWorkouts(prev => ({ ...prev, [date]: fresh }))
+    setCurrentExerciseIdx(0)
+    setDayPickerOpen(false)
+  }
+  const startHeaderLongPress = () => {
+    if (longPressRef.current) clearTimeout(longPressRef.current)
+    longPressRef.current = setTimeout(() => {
+      setDayPickerOpen(true)
+      longPressRef.current = null
+    }, 500)
+  }
+  const cancelHeaderLongPress = () => {
+    if (longPressRef.current) { clearTimeout(longPressRef.current); longPressRef.current = null }
+  }
+
   const toggleWarmupCheck = (warmupIdx) => {
     writeWorkout(next => {
       if (!Array.isArray(next.warmupChecks) || next.warmupChecks.some(v => Array.isArray(v))) {
@@ -369,7 +390,7 @@ export default function GymLog({ workouts, setWorkouts, exercises, routines, act
       <div className="log-page rest-log-page">
         <div className="exercise-nav">
           <button onClick={prevExercise} disabled={currentExerciseIdx === 0}>&lt;</button>
-          <div className="exercise-info-center">
+          <div className="exercise-info-center no-swipe" onPointerDown={startHeaderLongPress} onPointerUp={cancelHeaderLongPress} onPointerLeave={cancelHeaderLongPress} onPointerCancel={cancelHeaderLongPress}>
             <h2 className="exercise-name">{ex.name}</h2>
             <span className="exercise-count">
               {currentExerciseIdx + 1} / {restExercises.length}
@@ -449,7 +470,7 @@ export default function GymLog({ workouts, setWorkouts, exercises, routines, act
     <div className="log-page">
       <div className="exercise-nav">
         <button onClick={prevExercise} disabled={currentExerciseIdx === 0}>&lt;</button>
-        <div className="exercise-info-center">
+        <div className="exercise-info-center no-swipe" onPointerDown={startHeaderLongPress} onPointerUp={cancelHeaderLongPress} onPointerLeave={cancelHeaderLongPress} onPointerCancel={cancelHeaderLongPress}>
           <h2 className="exercise-name">{isOnWarmup ? 'Warm-up' : currentExercise.name}</h2>
           <span className="exercise-count">
             {isOnWarmup ? '' : `${exerciseIdx + 1} / ${workout.exercises.length}`}
@@ -557,6 +578,23 @@ export default function GymLog({ workouts, setWorkouts, exercises, routines, act
             </div>
           </div>
         </>
+      )}
+
+      {dayPickerOpen && (
+        <div className="modal-overlay" onClick={() => setDayPickerOpen(false)}>
+          <div className="day-picker" onClick={e => e.stopPropagation()}>
+            <div className="dp-title">Switch day</div>
+            {Object.entries(routineWorkouts).map(([k, w]) => (
+              <button
+                key={k}
+                className={`dp-option ${k === currentRoutineType ? 'active' : ''}`}
+                onClick={() => switchDay(k)}
+              >
+                {w.name}{w.isRest ? ' · rest' : ''}
+              </button>
+            ))}
+          </div>
+        </div>
       )}
     </div>
   )

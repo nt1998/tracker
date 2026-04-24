@@ -1,6 +1,7 @@
 import { useState } from 'react'
 
-const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+const WEEKDAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'] // Mon-first display
+const WEEKDAY_ORDER = [1, 2, 3, 4, 5, 6, 0] // index into weekdayMap (JS Sun=0)
 
 function splitReps(raw) {
   const s = String(raw || '').trim()
@@ -9,19 +10,10 @@ function splitReps(raw) {
   return { min: parts[0] || '', max: parts[1] || '' }
 }
 function joinReps(min, max) {
-  const a = String(min).trim()
-  const b = String(max).trim()
+  const a = String(min).trim(), b = String(max).trim()
   if (a && b) return `${a}-${b}`
-  if (a) return a
-  if (b) return b
-  return ''
+  return a || b || ''
 }
-
-const EMPTY_WORKOUTS = () => ({
-  push: { name: 'Push', warmups: [], items: [] },
-  pull: { name: 'Pull', warmups: [], items: [] },
-  rest: { name: 'Rest', isRest: true, warmups: [], items: [], blocks: [] },
-})
 
 export default function SettingsRoutines({
   routines, setRoutines,
@@ -33,21 +25,17 @@ export default function SettingsRoutines({
   const [addExerciseToKey, setAddExerciseToKey] = useState(null)
 
   const editRoutine = routines.find(r => r.id === editRoutineId)
-  const wKeys = editRoutine ? Object.keys(editRoutine.workouts || {}) : []
   const editWorkout = editWorkoutKey && editRoutine ? editRoutine.workouts[editWorkoutKey] : null
+  const dayKeys = editRoutine ? Object.keys(editRoutine.workouts || {}) : []
 
-  // --- Routine CRUD ---
+  // ---------- Routine CRUD ----------
   const addRoutine = () => {
     const id = 'r_' + Date.now()
     const newR = {
       id,
       name: 'New routine',
-      schedule: {
-        mode: 'weekday',
-        weekdayMap: { 0: 'rest', 1: 'push', 2: 'pull', 3: 'rest', 4: 'push', 5: 'pull', 6: 'rest' },
-        cycle: ['push', 'pull', 'rest'],
-      },
-      workouts: EMPTY_WORKOUTS(),
+      schedule: { mode: 'weekday', weekdayMap: {}, cycle: [] },
+      workouts: {},
     }
     setRoutines(prev => [...prev, newR])
     setEditRoutineId(id)
@@ -64,21 +52,41 @@ export default function SettingsRoutines({
   const updateSchedule = (id, patch) => {
     setRoutines(prev => prev.map(r => r.id === id ? { ...r, schedule: { ...r.schedule, ...patch } } : r))
   }
-  const setWeekdayMap = (id, day, key) => {
-    const r = routines.find(x => x.id === id)
-    const map = { ...(r.schedule.weekdayMap || {}) }
-    map[day] = key
-    updateSchedule(id, { weekdayMap: map })
-  }
 
-  // --- Workout item editing (scoped to current editRoutine) ---
-  const updateWorkout = (key, patch) => {
+  // ---------- Day (workout) CRUD ----------
+  const addDay = () => {
     if (!editRoutine) return
+    const key = 'd_' + Date.now()
+    const n = Object.keys(editRoutine.workouts || {}).length + 1
+    const newDay = { name: `Day ${n}`, isRest: false, warmups: [], items: [] }
+    setRoutines(prev => prev.map(r => r.id === editRoutine.id
+      ? { ...r, workouts: { ...r.workouts, [key]: newDay } }
+      : r))
+    setEditWorkoutKey(key)
+  }
+  const deleteDay = (key) => {
+    if (!editRoutine) return
+    if (!confirm(`Delete day "${editRoutine.workouts[key].name}"?`)) return
     setRoutines(prev => prev.map(r => {
       if (r.id !== editRoutine.id) return r
-      return { ...r, workouts: { ...r.workouts, [key]: { ...r.workouts[key], ...patch } } }
+      const next = { ...r.workouts }
+      delete next[key]
+      // scrub schedule references
+      const wm = { ...(r.schedule.weekdayMap || {}) }
+      Object.keys(wm).forEach(k => { if (wm[k] === key) delete wm[k] })
+      const cyc = (r.schedule.cycle || []).filter(c => c !== key)
+      return { ...r, workouts: next, schedule: { ...r.schedule, weekdayMap: wm, cycle: cyc } }
     }))
   }
+  const updateWorkout = (key, patch) => {
+    if (!editRoutine) return
+    setRoutines(prev => prev.map(r => r.id !== editRoutine.id
+      ? r
+      : { ...r, workouts: { ...r.workouts, [key]: { ...r.workouts[key], ...patch } } }
+    ))
+  }
+
+  // ---------- Exercise items inside a day ----------
   const addItem = (key, exerciseId) => {
     if (!editRoutine) return
     const w = editRoutine.workouts[key]
@@ -99,20 +107,32 @@ export default function SettingsRoutines({
     updateWorkout(key, { items: (w.items || []).filter((_, i) => i !== idx) })
   }
 
-  // --- Cycle editing ---
-  const addCycleDay = () => {
+  // ---------- Schedule: weekday ----------
+  const toggleWeekday = (dayKey, weekdayIdx) => {
     if (!editRoutine) return
-    updateSchedule(editRoutine.id, { cycle: [...(editRoutine.schedule.cycle || []), 'rest'] })
+    const cur = editRoutine.schedule.weekdayMap?.[weekdayIdx]
+    const wm = { ...(editRoutine.schedule.weekdayMap || {}) }
+    if (cur === dayKey) delete wm[weekdayIdx]
+    else wm[weekdayIdx] = dayKey
+    updateSchedule(editRoutine.id, { weekdayMap: wm })
   }
-  const setCycleDay = (idx, key) => {
+
+  // ---------- Schedule: cycle ----------
+  const addToCycle = (key) => {
     if (!editRoutine) return
-    const cycle = [...(editRoutine.schedule.cycle || [])]
-    cycle[idx] = key
-    updateSchedule(editRoutine.id, { cycle })
+    updateSchedule(editRoutine.id, { cycle: [...(editRoutine.schedule.cycle || []), key] })
   }
-  const removeCycleDay = (idx) => {
+  const removeCycleAt = (idx) => {
     if (!editRoutine) return
     const cycle = (editRoutine.schedule.cycle || []).filter((_, i) => i !== idx)
+    updateSchedule(editRoutine.id, { cycle })
+  }
+  const moveCycleItem = (idx, dir) => {
+    if (!editRoutine) return
+    const cycle = [...(editRoutine.schedule.cycle || [])]
+    const j = idx + dir
+    if (j < 0 || j >= cycle.length) return
+    ;[cycle[idx], cycle[j]] = [cycle[j], cycle[idx]]
     updateSchedule(editRoutine.id, { cycle })
   }
 
@@ -128,9 +148,11 @@ export default function SettingsRoutines({
               {r.name}{isActive && <span style={{ fontSize: 10, color: '#89b4fa', marginLeft: 8 }}>· active</span>}
             </div>
             <div className="pc-dates">
-              {r.schedule.mode === 'weekday'
-                ? `Weekday · ${Object.values(r.schedule.weekdayMap || {}).filter(v => v && v !== 'rest').length} gym days`
-                : `Cycle · ${(r.schedule.cycle || []).length} day rotation`}
+              {Object.keys(r.workouts || {}).length} day{Object.keys(r.workouts || {}).length !== 1 ? 's' : ''}
+              {' · '}
+              {r.schedule.mode === 'cycle'
+                ? `cycle of ${(r.schedule.cycle || []).length}`
+                : `${Object.keys(r.schedule.weekdayMap || {}).length}/7 weekdays scheduled`}
             </div>
             <div className="pc-actions" style={{ gap: 6, flexWrap: 'wrap' }}>
               {!isActive && <button onClick={() => setActiveRoutineId(r.id)}>Set active</button>}
@@ -143,10 +165,12 @@ export default function SettingsRoutines({
 
       <button className="primary-btn" style={{ marginTop: 12 }} onClick={addRoutine}>+ Add routine</button>
 
-      {/* --- Routine edit modal --- */}
+      {/* ============================================================
+          EDIT ROUTINE
+          ============================================================ */}
       {editRoutine && (
         <div className="modal-overlay" onClick={() => setEditRoutineId(null)}>
-          <div className="modal" onClick={e => e.stopPropagation()} style={{ maxHeight: '85vh', overflowY: 'auto' }}>
+          <div className="modal modal-tall" onClick={e => e.stopPropagation()}>
             <h3>Edit routine</h3>
 
             <div className="field">
@@ -154,8 +178,34 @@ export default function SettingsRoutines({
               <input value={editRoutine.name} onChange={(e) => updateRoutine(editRoutine.id, { name: e.target.value })} />
             </div>
 
+            {/* ---- Days (workouts inside this routine) ---- */}
             <div className="field">
-              <label>Schedule mode</label>
+              <label>Days</label>
+              {dayKeys.length === 0 && (
+                <div style={{ color: '#45475a', fontSize: 12, padding: '4px 0' }}>No days yet — add one below</div>
+              )}
+              {dayKeys.map(k => {
+                const w = editRoutine.workouts[k]
+                return (
+                  <div key={k} className="phase-card" style={{ marginBottom: 6 }}>
+                    <div className="pc-name" style={{ fontSize: 13, cursor: 'pointer' }} onClick={() => setEditWorkoutKey(k)}>
+                      {w.name}{w.isRest ? ' · rest' : ''}
+                    </div>
+                    <div className="pc-dates" style={{ cursor: 'pointer' }} onClick={() => setEditWorkoutKey(k)}>
+                      {w.isRest ? `${(w.blocks || []).length} blocks` : `${(w.items || []).length} exercises`}
+                    </div>
+                    <div className="pc-actions">
+                      <button className="del" onClick={() => deleteDay(k)}>{'×'}</button>
+                    </div>
+                  </div>
+                )
+              })}
+              <button className="add-phase-btn" onClick={addDay}>+ Add day</button>
+            </div>
+
+            {/* ---- Schedule ---- */}
+            <div className="field">
+              <label>Schedule</label>
               <div className="phase-type-pills">
                 <button type="button" className={editRoutine.schedule.mode === 'weekday' ? 'active' : ''} style={{ '--pc': '#89b4fa' }}
                   onClick={() => updateSchedule(editRoutine.id, { mode: 'weekday' })}>Weekday</button>
@@ -164,57 +214,70 @@ export default function SettingsRoutines({
               </div>
             </div>
 
-            <div className="schedule-details" style={{ minHeight: 240 }}>
+            <div className="schedule-details" style={{ minHeight: 220 }}>
               {editRoutine.schedule.mode === 'weekday' && (
-                <div className="field" style={{ margin: 0 }}>
-                  <label>Weekday → workout</label>
-                  {WEEKDAY_LABELS.map((lbl, day) => (
-                    <div key={day} style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '4px 0' }}>
-                      <span style={{ width: 36, fontSize: 11, color: '#a6adc8' }}>{lbl}</span>
-                      <select
-                        value={editRoutine.schedule.weekdayMap?.[day] || ''}
-                        onChange={(e) => setWeekdayMap(editRoutine.id, day, e.target.value)}
-                        style={{ flex: 1 }}
-                      >
-                        <option value="">— none —</option>
-                        {wKeys.map(k => <option key={k} value={k}>{editRoutine.workouts[k].name || k}</option>)}
-                      </select>
+                <>
+                  {dayKeys.length === 0 && (
+                    <div style={{ color: '#6c7086', fontSize: 12, padding: '4px 0' }}>
+                      Add a day first, then pick weekdays for it.
                     </div>
-                  ))}
-                </div>
+                  )}
+                  {dayKeys.map(k => {
+                    const w = editRoutine.workouts[k]
+                    const wm = editRoutine.schedule.weekdayMap || {}
+                    return (
+                      <div key={k} className="weekday-row">
+                        <span className="wr-name">{w.name}</span>
+                        <div className="wr-circles">
+                          {WEEKDAY_ORDER.map((jsDay, i) => (
+                            <button
+                              key={jsDay}
+                              type="button"
+                              className={wm[jsDay] === k ? 'active' : (wm[jsDay] ? 'taken' : '')}
+                              onClick={() => toggleWeekday(k, jsDay)}
+                              title={wm[jsDay] ? `Currently: ${editRoutine.workouts[wm[jsDay]]?.name || wm[jsDay]}` : ''}
+                            >{WEEKDAY_LABELS[i]}</button>
+                          ))}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </>
               )}
-              {editRoutine.schedule.mode === 'cycle' && (
-                <div className="field" style={{ margin: 0 }}>
-                  <label>Cycle sequence (repeats)</label>
-                  {(editRoutine.schedule.cycle || []).map((k, i) => (
-                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, margin: '4px 0' }}>
-                      <span style={{ width: 24, fontSize: 11, color: '#6c7086' }}>{i + 1}</span>
-                      <select value={k} onChange={(e) => setCycleDay(i, e.target.value)} style={{ flex: 1 }}>
-                        {wKeys.map(tk => <option key={tk} value={tk}>{editRoutine.workouts[tk].name || tk}</option>)}
-                      </select>
-                      <button className="x-btn" onClick={() => removeCycleDay(i)}>{'×'}</button>
-                    </div>
-                  ))}
-                  <button className="add-phase-btn" onClick={addCycleDay}>+ Add day to cycle</button>
-                </div>
-              )}
-            </div>
 
-            <div className="field">
-              <label>Workouts</label>
-              {wKeys.map(k => {
-                const w = editRoutine.workouts[k]
-                return (
-                  <div key={k} className="phase-card" style={{ cursor: 'pointer', marginBottom: 6 }} onClick={() => setEditWorkoutKey(k)}>
-                    <div className="pc-name" style={{ fontSize: 13 }}>{w.name || k}</div>
-                    <div className="pc-dates">
-                      {w.isRest
-                        ? `${(w.blocks || []).length} blocks · rest day`
-                        : `${(w.items || []).length} exercises`}
+              {editRoutine.schedule.mode === 'cycle' && (
+                <>
+                  {(editRoutine.schedule.cycle || []).length === 0 && (
+                    <div style={{ color: '#6c7086', fontSize: 12, padding: '4px 0' }}>
+                      Cycle is empty. Add days below.
+                    </div>
+                  )}
+                  {(editRoutine.schedule.cycle || []).map((k, i) => {
+                    const w = editRoutine.workouts[k]
+                    return (
+                      <div key={i} className="cycle-row">
+                        <span className="cr-idx">{i + 1}</span>
+                        <span className="cr-name">{w?.name || '(missing)'}</span>
+                        <div className="cr-actions">
+                          <button className="x-btn" onClick={() => moveCycleItem(i, -1)} disabled={i === 0}>↑</button>
+                          <button className="x-btn" onClick={() => moveCycleItem(i, 1)} disabled={i === (editRoutine.schedule.cycle.length - 1)}>↓</button>
+                          <button className="x-btn" onClick={() => removeCycleAt(i)}>{'×'}</button>
+                        </div>
+                      </div>
+                    )
+                  })}
+                  <div className="field" style={{ margin: '10px 0 0' }}>
+                    <label>Append a day</label>
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                      {dayKeys.map(k => (
+                        <button key={k} className="day-chip" onClick={() => addToCycle(k)}>
+                          {editRoutine.workouts[k].name}
+                        </button>
+                      ))}
                     </div>
                   </div>
-                )
-              })}
+                </>
+              )}
             </div>
 
             <div className="modal-actions">
@@ -224,64 +287,77 @@ export default function SettingsRoutines({
         </div>
       )}
 
-      {/* --- Per-workout item editor (child modal) --- */}
+      {/* ============================================================
+          EDIT WORKOUT (day)
+          ============================================================ */}
       {editWorkout && (
         <div className="modal-overlay" onClick={() => setEditWorkoutKey(null)}>
-          <div className="modal" onClick={e => e.stopPropagation()} style={{ maxHeight: '85vh', overflowY: 'auto' }}>
-            <h3>{editWorkout.name || editWorkoutKey}</h3>
+          <div className="modal modal-tall" onClick={e => e.stopPropagation()}>
+            <h3>Edit day</h3>
+
+            <div className="field">
+              <label>Name</label>
+              <input value={editWorkout.name || ''} onChange={(e) => updateWorkout(editWorkoutKey, { name: e.target.value })} />
+            </div>
+
+            <div className="field">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={!!editWorkout.isRest}
+                  onChange={(e) => updateWorkout(editWorkoutKey, { isRest: e.target.checked })}
+                  style={{ marginRight: 8 }}
+                />
+                Rest day
+              </label>
+            </div>
 
             {editWorkout.isRest ? (
               <p style={{ fontSize: 12, color: '#a6adc8' }}>
                 Rest-day block editor coming later. {(editWorkout.blocks || []).length} blocks currently defined.
               </p>
             ) : (
-              <>
-                <div className="field">
-                  <label>Exercises</label>
-                  {(editWorkout.items || []).length === 0 && (
-                    <div style={{ color: '#45475a', fontSize: 12, padding: '4px 0' }}>None yet</div>
-                  )}
-                  {(editWorkout.items || []).map((item, idx) => {
-                    const ex = exercises[item.exerciseId]
-                    return (
-                      <div key={idx} className="phase-card" style={{ marginBottom: 8 }}>
-                        <div className="pc-name" style={{ fontSize: 13 }}>
-                          {ex?.name || `(missing exerciseId ${item.exerciseId})`}
-                        </div>
-                        {(() => {
-                          const { min, max } = splitReps(item.reps)
-                          return (
-                            <div style={{ display: 'flex', gap: 6, marginTop: 6, alignItems: 'flex-end' }}>
-                              <label style={{ fontSize: 10, color: '#a6adc8', display: 'flex', flexDirection: 'column', flex: 1 }}>
-                                Warmup
-                                <input type="number" min={0} value={item.warmupSets}
-                                  onChange={(e) => updateItem(editWorkoutKey, idx, { warmupSets: +e.target.value })} />
-                              </label>
-                              <label style={{ fontSize: 10, color: '#a6adc8', display: 'flex', flexDirection: 'column', flex: 1 }}>
-                                Work
-                                <input type="number" min={1} value={item.workSets}
-                                  onChange={(e) => updateItem(editWorkoutKey, idx, { workSets: +e.target.value })} />
-                              </label>
-                              <label style={{ fontSize: 10, color: '#a6adc8', display: 'flex', flexDirection: 'column', flex: 1 }}>
-                                Reps min
-                                <input type="number" min={1} value={min}
-                                  onChange={(e) => updateItem(editWorkoutKey, idx, { reps: joinReps(e.target.value, max) })} />
-                              </label>
-                              <label style={{ fontSize: 10, color: '#a6adc8', display: 'flex', flexDirection: 'column', flex: 1 }}>
-                                Reps max
-                                <input type="number" min={1} value={max}
-                                  onChange={(e) => updateItem(editWorkoutKey, idx, { reps: joinReps(min, e.target.value) })} />
-                              </label>
-                              <button className="x-btn" style={{ marginBottom: 2 }} onClick={() => removeItem(editWorkoutKey, idx)}>{'×'}</button>
-                            </div>
-                          )
-                        })()}
+              <div className="field">
+                <label>Exercises</label>
+                {(editWorkout.items || []).length === 0 && (
+                  <div style={{ color: '#45475a', fontSize: 12, padding: '4px 0' }}>None yet</div>
+                )}
+                {(editWorkout.items || []).map((item, idx) => {
+                  const ex = exercises[item.exerciseId]
+                  const { min, max } = splitReps(item.reps)
+                  return (
+                    <div key={idx} className="phase-card" style={{ marginBottom: 8 }}>
+                      <div className="pc-name" style={{ fontSize: 13 }}>
+                        {ex?.name || `(missing exerciseId ${item.exerciseId})`}
                       </div>
-                    )
-                  })}
-                  <button className="add-phase-btn" onClick={() => setAddExerciseToKey(editWorkoutKey)}>+ Add exercise</button>
-                </div>
-              </>
+                      <div style={{ display: 'flex', gap: 6, marginTop: 6, alignItems: 'flex-end' }}>
+                        <label style={{ fontSize: 10, color: '#a6adc8', display: 'flex', flexDirection: 'column', flex: 1 }}>
+                          Warmup
+                          <input type="number" min={0} value={item.warmupSets}
+                            onChange={(e) => updateItem(editWorkoutKey, idx, { warmupSets: +e.target.value })} />
+                        </label>
+                        <label style={{ fontSize: 10, color: '#a6adc8', display: 'flex', flexDirection: 'column', flex: 1 }}>
+                          Work
+                          <input type="number" min={1} value={item.workSets}
+                            onChange={(e) => updateItem(editWorkoutKey, idx, { workSets: +e.target.value })} />
+                        </label>
+                        <label style={{ fontSize: 10, color: '#a6adc8', display: 'flex', flexDirection: 'column', flex: 1 }}>
+                          Rep min
+                          <input type="number" min={1} value={min}
+                            onChange={(e) => updateItem(editWorkoutKey, idx, { reps: joinReps(e.target.value, max) })} />
+                        </label>
+                        <label style={{ fontSize: 10, color: '#a6adc8', display: 'flex', flexDirection: 'column', flex: 1 }}>
+                          Rep max
+                          <input type="number" min={1} value={max}
+                            onChange={(e) => updateItem(editWorkoutKey, idx, { reps: joinReps(min, e.target.value) })} />
+                        </label>
+                        <button className="x-btn" style={{ marginBottom: 2 }} onClick={() => removeItem(editWorkoutKey, idx)}>{'×'}</button>
+                      </div>
+                    </div>
+                  )
+                })}
+                <button className="add-phase-btn" onClick={() => setAddExerciseToKey(editWorkoutKey)}>+ Add exercise</button>
+              </div>
             )}
 
             <div className="modal-actions">
@@ -291,10 +367,12 @@ export default function SettingsRoutines({
         </div>
       )}
 
-      {/* --- Pick exercise from library --- */}
+      {/* ============================================================
+          EXERCISE PICKER
+          ============================================================ */}
       {addExerciseToKey && editRoutine && (
         <div className="modal-overlay" onClick={() => setAddExerciseToKey(null)}>
-          <div className="modal" onClick={e => e.stopPropagation()} style={{ maxHeight: '85vh', overflowY: 'auto' }}>
+          <div className="modal modal-tall" onClick={e => e.stopPropagation()}>
             <h3>Add exercise</h3>
             {Object.values(exercises).sort((a, b) => a.name.localeCompare(b.name)).map(ex => (
               <div

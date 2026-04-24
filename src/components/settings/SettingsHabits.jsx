@@ -68,7 +68,7 @@ export default function SettingsHabits({ habits, setHabits }) {
 
       {editing && (
         <div className="modal-overlay" onClick={close}>
-          <div className="modal" onClick={e => e.stopPropagation()}>
+          <div className="modal modal-tall" onClick={e => e.stopPropagation()}>
             <h3>{isNew ? 'Add habit' : 'Edit habit'}</h3>
 
             <div className="field">

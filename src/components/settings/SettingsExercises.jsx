@@ -55,7 +55,7 @@ export default function SettingsExercises({ exercises, setExercises }) {
 
       {editing && (
         <div className="modal-overlay" onClick={close}>
-          <div className="modal" onClick={e => e.stopPropagation()}>
+          <div className="modal modal-tall" onClick={e => e.stopPropagation()}>
             <h3>{isNew ? 'Add exercise' : 'Edit exercise'}</h3>
 
             <div className="field">

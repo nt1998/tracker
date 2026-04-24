@@ -183,7 +183,7 @@ export default function WeightLog({ entries, setEntries, autoHabitsByDate, habit
               longPressRef.current = setTimeout(() => {
                 setHabitDetail(h)
                 longPressRef.current = null
-              }, 1000)
+              }, 500)
             }
             const pressEnd = () => {
               if (celebPhase !== 'orbit') return
