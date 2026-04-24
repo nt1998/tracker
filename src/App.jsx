@@ -184,7 +184,7 @@ export default function App() {
       className={`app${isSwiping ? ' is-swiping' : ''}`}
       onClickCapture={onClickCapture}
     >
-      <main className="content" key={tab}>
+      <main className={`content ${tab === 'weight' ? 'no-scroll' : ''}`} key={tab}>
         {tab === 'weight' && (
           <WeightLog entries={entries} setEntries={setEntries} autoHabitsByDate={autoHabitsByDate} habits={habits} settings={settings} water={water} setWater={setWater} />
         )}
