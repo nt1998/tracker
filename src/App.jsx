@@ -20,9 +20,9 @@ export default function App() {
 
   const {
     entries, setEntries,
-    phases,
+    phases, setPhases,
     workouts, setWorkouts,
-    routines,
+    routines, setRoutines,
     exerciseNotes, setExerciseNotes,
     autoHabitsByDate,
   } = useStore()
@@ -59,7 +59,12 @@ export default function App() {
             autoHabitsByDate={autoHabitsByDate}
           />
         )}
-        {tab === 'settings' && <Settings />}
+        {tab === 'settings' && (
+          <Settings
+            phases={phases} setPhases={setPhases}
+            routines={routines} setRoutines={setRoutines}
+          />
+        )}
       </main>
 
       <nav className="tabbar">

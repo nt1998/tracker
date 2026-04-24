@@ -3330,3 +3330,35 @@ body:has(textarea:focus) .tabbar {
   font-weight: 600;
   cursor: pointer;
 }
+
+/* Settings sub-nav */
+.settings-subnav {
+  display: flex;
+  gap: 4px;
+  background: #181825;
+  border-radius: 10px;
+  padding: 3px;
+  margin: 0 0 12px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.settings-subnav::-webkit-scrollbar { display: none; }
+.settings-subnav button {
+  border: 0;
+  background: transparent;
+  color: #6c7086;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: inherit;
+  padding: 6px 10px;
+  border-radius: 7px;
+  cursor: pointer;
+  flex: 1;
+  white-space: nowrap;
+  transition: all .15s;
+}
+.settings-subnav button.active {
+  background: linear-gradient(145deg, rgba(49,50,68,.9), rgba(30,30,46,.95));
+  color: #89b4fa;
+  box-shadow: inset 2px 2px 4px rgba(17,17,27,.35), inset -1px -1px 3px rgba(69,71,90,.12);
+}

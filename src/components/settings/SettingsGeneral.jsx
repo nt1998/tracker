@@ -1,0 +1,135 @@
+import { useState } from 'react'
+import { todayKey } from '../../lib/dates'
+import useLocalStorage from '../../hooks/useLocalStorage'
+
+export default function SettingsGeneral({ phases, setPhases }) {
+  const [phaseModal, setPhaseModal] = useState(null)
+  const [github, setGithub] = useLocalStorage('tracker_github', { token: '', repo: '', owner: '', connected: false })
+  const [ghExpanded, setGhExpanded] = useState(false)
+
+  const openAddPhase = () => {
+    setPhaseModal({ name: '', goals: { weight: '', bodyFat: '', musclePct: '' } })
+  }
+  const savePhaseModal = () => {
+    setPhases(prev => [
+      ...prev,
+      { id: Date.now(), name: phaseModal.name, start: todayKey(), end: '', goals: phaseModal.goals },
+    ])
+    setPhaseModal(null)
+  }
+  const endPhase = (id) => {
+    setPhases(prev => prev.map(p => p.id === id ? { ...p, end: todayKey() } : p))
+  }
+  const deletePhase = (id) => {
+    if (!confirm('Delete this phase?')) return
+    setPhases(prev => prev.filter(p => p.id !== id))
+  }
+
+  const connectGithub = () => setGithub({ ...github, connected: true })
+  const disconnectGithub = () => setGithub({ token: '', repo: '', owner: '', connected: false })
+
+  const resetToSeed = () => {
+    if (!confirm('Wipe tracker storage and reload? Seed test data will re-populate on refresh.')) return
+    ;['tracker_entries', 'tracker_phases', 'tracker_workouts', 'tracker_routines', 'tracker_notes']
+      .forEach(k => localStorage.removeItem(k))
+    window.location.reload()
+  }
+
+  return (
+    <>
+      <div className="settings-section">Phases</div>
+      {phases.map(p => {
+        const isCurrent = !p.end
+        return (
+          <div key={p.id} className={`phase-card ${isCurrent ? 'current' : ''}`}>
+            <div className="pc-name">{p.name}</div>
+            <div className="pc-dates">{p.start} {'→'} {p.end || 'ongoing'}</div>
+            {p.goals && (
+              <div className="pc-goals">
+                Goal: {p.goals.weight && `${p.goals.weight}kg`} {p.goals.bodyFat && `${p.goals.bodyFat}% BF`} {p.goals.musclePct && `${p.goals.musclePct}% Mu`}
+              </div>
+            )}
+            {isCurrent && <div className="pc-badge">Current</div>}
+            <div className="pc-actions">
+              {isCurrent && <button onClick={() => endPhase(p.id)}>End</button>}
+              <button className="del" onClick={() => deletePhase(p.id)}>{'×'}</button>
+            </div>
+          </div>
+        )
+      })}
+      {phases.length === 0 && <div style={{ color: '#45475a', fontSize: 12, padding: '8px 0' }}>No phases yet</div>}
+      <button className="add-phase-btn" onClick={openAddPhase}>+ Add Phase</button>
+
+      <div className="settings-section">Sync</div>
+      <div className="settings-row" onClick={() => setGhExpanded(!ghExpanded)}>
+        <div className="sr-left">
+          <span className="sr-icon">{'\u{E0A0}'}</span>
+          <span className="sr-label">GitHub Sync</span>
+        </div>
+        <span className="sr-arrow">{ghExpanded ? '‹' : '›'}</span>
+      </div>
+
+      {ghExpanded && (
+        <div className="gh-form">
+          {!github.connected ? (
+            <>
+              <div className="field">
+                <label>Token</label>
+                <input type="password" value={github.token} onChange={(e) => setGithub({ ...github, token: e.target.value })} placeholder="ghp_..." />
+              </div>
+              <div className="field">
+                <label>Owner</label>
+                <input value={github.owner} onChange={(e) => setGithub({ ...github, owner: e.target.value })} placeholder="username" />
+              </div>
+              <div className="field">
+                <label>Repo</label>
+                <input value={github.repo} onChange={(e) => setGithub({ ...github, repo: e.target.value })} placeholder="repo-name" />
+              </div>
+              <button className="primary-btn" onClick={connectGithub}>Save credentials</button>
+              <p style={{ fontSize: 11, color: '#6c7086', marginTop: 8 }}>
+                Credential storage only for now — push/pull not wired yet.
+              </p>
+            </>
+          ) : (
+            <>
+              <div className="connected-info">Saved: {github.owner}/{github.repo}</div>
+              <button className="danger-btn" onClick={disconnectGithub}>Clear credentials</button>
+            </>
+          )}
+        </div>
+      )}
+
+      <div className="settings-section">App</div>
+      <button className="primary-btn" onClick={() => window.location.reload()}>Reload App</button>
+      <button className="primary-btn" style={{ marginTop: 8 }} onClick={resetToSeed}>Reset to seed data</button>
+
+      {phaseModal && (
+        <div className="modal-overlay" onClick={() => setPhaseModal(null)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <h3>Add Phase</h3>
+            <div className="field">
+              <label>Name</label>
+              <input value={phaseModal.name} onChange={(e) => setPhaseModal({ ...phaseModal, name: e.target.value })} placeholder="Cut, Bulk, Maintain..." />
+            </div>
+            <div className="field">
+              <label>Goal Weight (kg)</label>
+              <input type="text" inputMode="decimal" value={phaseModal.goals.weight} onChange={(e) => setPhaseModal({ ...phaseModal, goals: { ...phaseModal.goals, weight: e.target.value } })} placeholder="75" />
+            </div>
+            <div className="field">
+              <label>Goal Body Fat %</label>
+              <input type="text" inputMode="decimal" value={phaseModal.goals.bodyFat} onChange={(e) => setPhaseModal({ ...phaseModal, goals: { ...phaseModal.goals, bodyFat: e.target.value } })} placeholder="15" />
+            </div>
+            <div className="field">
+              <label>Goal Muscle %</label>
+              <input type="text" inputMode="decimal" value={phaseModal.goals.musclePct} onChange={(e) => setPhaseModal({ ...phaseModal, goals: { ...phaseModal.goals, musclePct: e.target.value } })} placeholder="40" />
+            </div>
+            <div className="modal-actions">
+              <button className="cancel-btn" onClick={() => setPhaseModal(null)}>Cancel</button>
+              <button className="primary-btn" style={{ marginTop: 0 }} onClick={savePhaseModal}>Save</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
