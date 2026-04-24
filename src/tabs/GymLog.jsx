@@ -33,7 +33,7 @@ const defaultGetWorkoutFromTemplate = (templateKey, template, exercises, exercis
   }
 }
 
-export default function GymLog({ workouts, setWorkouts, workoutTemplates, exercises, routines, activeRoutineId, exerciseNotes, setExerciseNotes }) {
+export default function GymLog({ workouts, setWorkouts, exercises, routines, activeRoutineId, exerciseNotes, setExerciseNotes }) {
   const [date] = useState(todayKey())
   const [currentExerciseIdx, setCurrentExerciseIdx] = useState(0)
   const [activeSetIdx, setActiveSetIdx] = useState({ type: 'work', idx: 0 })
@@ -47,6 +47,7 @@ export default function GymLog({ workouts, setWorkouts, workoutTemplates, exerci
   }, [])
 
   const activeRoutine = (routines || []).find(r => r.id === activeRoutineId) || routines?.[0]
+  const routineWorkouts = activeRoutine?.workouts || {}
 
   const getTodaysRoutineType = () => {
     if (workouts[date]?.routineType) return workouts[date].routineType
@@ -54,7 +55,7 @@ export default function GymLog({ workouts, setWorkouts, workoutTemplates, exerci
   }
 
   const currentRoutineType = getTodaysRoutineType()
-  const currentRoutine = workoutTemplates[currentRoutineType]
+  const currentRoutine = routineWorkouts[currentRoutineType]
 
   const workout = workouts[date] || defaultGetWorkoutFromTemplate(currentRoutineType, currentRoutine, exercises, exerciseNotes)
   const warmups = currentRoutine?.warmups || []

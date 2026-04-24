@@ -3449,3 +3449,9 @@ body:has(textarea:focus) .tabbar {
   color: #89b4fa;
   border-color: #89b4fa;
 }
+
+/* Keep the habit modal at a consistent height whichever schedule mode is selected */
+.schedule-details {
+  min-height: 70px;
+  margin-top: 8px;
+}

@@ -42,9 +42,6 @@ export default function SettingsExercises({ exercises, setExercises }) {
   return (
     <>
       <div className="settings-section">Exercise library</div>
-      <button className="primary-btn" onClick={openAdd}>+ Add exercise</button>
-      <div style={{ height: 12 }} />
-
       {list.map(ex => (
         <div key={ex.id} className="phase-card" style={{ cursor: 'pointer', marginBottom: 6 }} onClick={() => openEdit(ex)}>
           <div className="pc-name" style={{ fontSize: 14 }}>{ex.name}</div>
@@ -53,6 +50,8 @@ export default function SettingsExercises({ exercises, setExercises }) {
         </div>
       ))}
       {list.length === 0 && <div style={{ color: '#45475a', fontSize: 12, padding: '8px 0' }}>No exercises yet</div>}
+
+      <button className="primary-btn" style={{ marginTop: 12 }} onClick={openAdd}>+ Add exercise</button>
 
       {editing && (
         <div className="modal-overlay" onClick={close}>

@@ -174,8 +174,8 @@ const workoutTemplates = {
   },
 }
 
-// User's own routines. Schedule maps weekdays (or a cycle) to workout
-// template keys.
+// User's own routines. Each routine owns its workouts (push/pull/rest)
+// and a schedule mapping days to which workout runs.
 const routines = [
   {
     id: 'r_default',
@@ -186,6 +186,7 @@ const routines = [
       cycle: ['push', 'pull', 'rest'],
       cycleAnchor: START,
     },
+    workouts: workoutTemplates,
   },
 ]
 
@@ -261,7 +262,6 @@ export const seedEntries = buildEntries()
 export const seedPhases = buildPhases()
 export const seedWorkouts = buildWorkouts()
 export const seedExercises = exercises
-export const seedWorkoutTemplates = workoutTemplates
 export const seedRoutines = routines
 export const seedActiveRoutineId = activeRoutineId
 export const seedNotes = notes

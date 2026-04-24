@@ -25,7 +25,6 @@ export default function App() {
     exerciseNotes, setExerciseNotes,
     habits, setHabits,
     exercises, setExercises,
-    workoutTemplates, setWorkoutTemplates,
     routines, setRoutines,
     activeRoutineId, setActiveRoutineId,
     autoHabitsByDate,
@@ -49,7 +48,6 @@ export default function App() {
           <GymLog
             workouts={workouts}
             setWorkouts={setWorkouts}
-            workoutTemplates={workoutTemplates}
             exercises={exercises}
             routines={routines}
             activeRoutineId={activeRoutineId}
@@ -72,7 +70,6 @@ export default function App() {
             phases={phases} setPhases={setPhases}
             habits={habits} setHabits={setHabits}
             exercises={exercises} setExercises={setExercises}
-            workoutTemplates={workoutTemplates} setWorkoutTemplates={setWorkoutTemplates}
             routines={routines} setRoutines={setRoutines}
             activeRoutineId={activeRoutineId} setActiveRoutineId={setActiveRoutineId}
           />

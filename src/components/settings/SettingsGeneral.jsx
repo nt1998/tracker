@@ -45,7 +45,7 @@ export default function SettingsGeneral({ phases, setPhases }) {
   const resetToSeed = () => {
     if (!confirm('Wipe tracker storage and reload? Seed test data will re-populate on refresh.')) return
     ;['tracker_entries', 'tracker_phases', 'tracker_workouts', 'tracker_notes',
-      'tracker_habits', 'tracker_exercises', 'tracker_workout_templates',
+      'tracker_habits', 'tracker_exercises',
       'tracker_routines', 'tracker_active_routine']
       .forEach(k => localStorage.removeItem(k))
     window.location.reload()

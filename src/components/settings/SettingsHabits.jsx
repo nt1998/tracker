@@ -53,9 +53,6 @@ export default function SettingsHabits({ habits, setHabits }) {
   return (
     <>
       <div className="settings-section">Habits</div>
-      <button className="primary-btn" onClick={openAdd}>+ Add habit</button>
-      <div style={{ height: 12 }} />
-
       {habits.map(h => (
         <div key={h.key} className="phase-card" style={{ borderColor: h.color + '40', cursor: 'pointer' }} onClick={() => openEdit(h)}>
           <div className="pc-name" style={{ color: h.color }}>
@@ -66,6 +63,8 @@ export default function SettingsHabits({ habits, setHabits }) {
         </div>
       ))}
       {habits.length === 0 && <div style={{ color: '#45475a', fontSize: 12, padding: '8px 0' }}>No habits yet</div>}
+
+      <button className="primary-btn" style={{ marginTop: 12 }} onClick={openAdd}>+ Add habit</button>
 
       {editing && (
         <div className="modal-overlay" onClick={close}>
@@ -130,34 +129,35 @@ export default function SettingsHabits({ habits, setHabits }) {
               </div>
             </div>
 
-            {editing.schedule.mode === 'weekdays' && (
-              <div className="field">
-                <label>Days</label>
-                <div className="weekday-picker">
-                  {WEEKDAY_LABELS.map((l, i) => (
-                    <button
-                      key={i}
-                      type="button"
-                      className={(editing.schedule.weekdays || []).includes(i) ? 'active' : ''}
-                      onClick={() => toggleWeekday(i)}
-                    >{l}</button>
-                  ))}
+            <div className="schedule-details">
+              {editing.schedule.mode === 'weekdays' && (
+                <div className="field" style={{ margin: 0 }}>
+                  <label>Days</label>
+                  <div className="weekday-picker">
+                    {WEEKDAY_LABELS.map((l, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        className={(editing.schedule.weekdays || []).includes(i) ? 'active' : ''}
+                        onClick={() => toggleWeekday(i)}
+                      >{l}</button>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
-
-            {editing.schedule.mode === 'everyN' && (
-              <div className="field">
-                <label>Every N days</label>
-                <input
-                  type="number"
-                  min={1}
-                  max={30}
-                  value={editing.schedule.everyN || 2}
-                  onChange={(e) => updateSchedule({ everyN: Math.max(1, +e.target.value) })}
-                />
-              </div>
-            )}
+              )}
+              {editing.schedule.mode === 'everyN' && (
+                <div className="field" style={{ margin: 0 }}>
+                  <label>Every N days</label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={30}
+                    value={editing.schedule.everyN || 2}
+                    onChange={(e) => updateSchedule({ everyN: Math.max(1, +e.target.value) })}
+                  />
+                </div>
+              )}
+            </div>
 
             <div className="modal-actions">
               {!isNew && <button className="danger-btn" onClick={del}>Delete</button>}
