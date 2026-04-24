@@ -1,10 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Line } from 'react-chartjs-2'
 
-export default function ScrubbableLine({ data, options, width, height, style, renderHead, className }) {
+export default function ScrubbableLine({
+  data, options, width, height, style, renderHead, className,
+  // Optional zoom/pan. When range + onRangeChange are provided, two-finger
+  // touch gestures pinch-zoom and pan the x-axis within [0, maxIndex].
+  range, onRangeChange, maxIndex,
+}) {
   const chartRef = useRef(null)
   const wrapRef = useRef(null)
   const selRef = useRef(null)
+  const gestureRef = useRef(null)
   const [sel, setSel] = useState(null)
 
   const clearSel = () => {
@@ -52,20 +58,96 @@ export default function ScrubbableLine({ data, options, width, height, style, re
     chartRef.current?.update('none')
   }
 
-  // Multi-finger touches are reserved for the chart's pinch-zoom + 2-finger-pan
-  // plugin. Only scrub on single-finger touches.
+  // ----- Gesture handling -----
+  // One finger: scrub.
+  // Two fingers: pinch zoom + pan (x-axis only). Only active when the caller
+  // wired onRangeChange.
+  const zoomEnabled = typeof onRangeChange === 'function' && typeof maxIndex === 'number'
+
   const onTouchStart = (e) => {
-    if ((e.touches?.length ?? 0) > 1) { clearSel(); return }
+    if (zoomEnabled && e.touches.length === 2) {
+      const chart = chartRef.current
+      if (!chart) return
+      const rect = chart.canvas.getBoundingClientRect()
+      const x0 = e.touches[0].clientX - rect.left
+      const x1 = e.touches[1].clientX - rect.left
+      const span = (range ? (range.max - range.min) : maxIndex) || 1
+      gestureRef.current = {
+        startDist: Math.abs(x1 - x0),
+        startCenterPx: (x0 + x1) / 2,
+        startMin: range ? range.min : 0,
+        startMax: range ? range.max : maxIndex,
+        startSpan: span,
+        chartLeft: rect.left,
+        chartWidth: rect.width,
+      }
+      clearSel()
+      e.preventDefault()
+      return
+    }
+    if (e.touches.length > 1) { clearSel(); return }
     const t = e.touches?.[0]
     if (t) updateSel(pickIdx(t.clientX))
   }
+
   const onTouchMove = (e) => {
-    if ((e.touches?.length ?? 0) > 1) return
+    if (zoomEnabled && gestureRef.current && e.touches.length === 2) {
+      const chart = chartRef.current
+      if (!chart) return
+      const rect = chart.canvas.getBoundingClientRect()
+      const x0 = e.touches[0].clientX - rect.left
+      const x1 = e.touches[1].clientX - rect.left
+      const curDist = Math.abs(x1 - x0)
+      const curCenterPx = (x0 + x1) / 2
+      const { startDist, startCenterPx, startMin, startSpan, chartWidth } = gestureRef.current
+      // Zoom: distance grows → zoom in (span shrinks)
+      const zoomFactor = startDist / Math.max(1, curDist)
+      let newSpan = Math.max(2, startSpan * zoomFactor)
+      newSpan = Math.min(maxIndex, newSpan)
+      // Anchor: value under the fingers' midpoint at gesture start stays under
+      // the (possibly shifted) midpoint now.
+      const pxPerIdxStart = chartWidth / Math.max(1, startSpan)
+      const valueAtStartCenter = startMin + startCenterPx / pxPerIdxStart
+      const pxPerIdxNew = chartWidth / newSpan
+      let newMin = valueAtStartCenter - curCenterPx / pxPerIdxNew
+      let newMax = newMin + newSpan
+      // clamp
+      if (newMin < 0) { newMax -= newMin; newMin = 0 }
+      if (newMax > maxIndex) { newMin -= (newMax - maxIndex); newMax = maxIndex }
+      newMin = Math.max(0, newMin)
+      newMax = Math.min(maxIndex, newMax)
+      if (newMax - newMin < 2) newMax = Math.min(maxIndex, newMin + 2)
+      onRangeChange({ min: Math.round(newMin), max: Math.round(newMax) })
+      e.preventDefault()
+      return
+    }
+    if (gestureRef.current) return
+    if (e.touches.length > 1) return
     const t = e.touches?.[0]
     if (!t) return
     e.preventDefault()
     updateSel(pickIdx(t.clientX))
   }
+
+  const onTouchEnd = (e) => {
+    if (e.touches.length < 2) gestureRef.current = null
+  }
+
+  // Merge range into options.scales.x so Chart.js draws the zoomed view.
+  const finalOptions = useMemo(() => {
+    if (!range) return options
+    return {
+      ...options,
+      scales: {
+        ...(options?.scales || {}),
+        x: {
+          ...((options?.scales && options.scales.x) || {}),
+          min: range.min,
+          max: range.max,
+        },
+      },
+    }
+  }, [options, range])
 
   const scrubPlugin = useMemo(() => ({
     id: 'scrub',
@@ -107,12 +189,14 @@ export default function ScrubbableLine({ data, options, width, height, style, re
         className={className}
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
-        style={{ touchAction: 'pan-y', width: '100%', height: height ?? style?.height }}
+        onTouchEnd={onTouchEnd}
+        onTouchCancel={onTouchEnd}
+        style={{ touchAction: zoomEnabled ? 'none' : 'pan-y', width: '100%', height: height ?? style?.height }}
       >
         <Line
           ref={chartRef}
           data={data}
-          options={options}
+          options={finalOptions}
           plugins={[scrubPlugin]}
         />
       </div>

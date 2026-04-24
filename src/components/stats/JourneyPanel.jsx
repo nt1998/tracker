@@ -131,7 +131,7 @@ export default function JourneyPanel({ entries, phases, sortedDates: allDates, h
 
       <div className="stat-section-title">Weight trajectory</div>
       <div className="chart-card">
-        <ScrubbableLine
+        <ScrubbableLine range={xRange} onRangeChange={setXRange} maxIndex={maxIdx}
           data={makeData(wts, '#f38ba8')}
           options={journeyOpts()}
           width={CANVAS_W} height={140}
@@ -145,11 +145,11 @@ export default function JourneyPanel({ entries, phases, sortedDates: allDates, h
       </div>
 
       <div className="stat-section-title">7 Day Weight Delta</div>
-      <WeightTrendChart keys={sortedDates} entries={entries} opts={journeyOpts()} />
+      <WeightTrendChart keys={sortedDates} entries={entries} opts={journeyOpts()} range={xRange} onRangeChange={setXRange} maxIndex={maxIdx} />
 
       <div className="stat-section-title">Body composition</div>
       <div className="chart-card">
-        <ScrubbableLine
+        <ScrubbableLine range={xRange} onRangeChange={setXRange} maxIndex={maxIdx}
           data={{
             labels,
             datasets: [
@@ -181,7 +181,7 @@ export default function JourneyPanel({ entries, phases, sortedDates: allDates, h
       </div>
 
       <div className="chart-card">
-        <ScrubbableLine
+        <ScrubbableLine range={xRange} onRangeChange={setXRange} maxIndex={maxIdx}
           data={makeData(bfs, '#fab387')}
           options={journeyOpts()}
           width={CANVAS_W} height={120}
@@ -195,7 +195,7 @@ export default function JourneyPanel({ entries, phases, sortedDates: allDates, h
       </div>
 
       <div className="chart-card">
-        <ScrubbableLine
+        <ScrubbableLine range={xRange} onRangeChange={setXRange} maxIndex={maxIdx}
           data={makeData(mus, '#a6e3a1')}
           options={journeyOpts()}
           width={CANVAS_W} height={120}
@@ -219,7 +219,7 @@ export default function JourneyPanel({ entries, phases, sortedDates: allDates, h
         }
         return (
           <div className="chart-card">
-            <ScrubbableLine
+            <ScrubbableLine range={xRange} onRangeChange={setXRange} maxIndex={maxIdx}
               data={makeData(vis, '#cba6f7')}
               options={visOpts}
               width={CANVAS_W} height={90}
@@ -268,7 +268,7 @@ export default function JourneyPanel({ entries, phases, sortedDates: allDates, h
               </div>
             </div>
             <div className="chart-card">
-              <ScrubbableLine
+              <ScrubbableLine range={xRange} onRangeChange={setXRange} maxIndex={maxIdx}
                 data={{
                   labels,
                   datasets: [
