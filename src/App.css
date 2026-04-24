@@ -3939,3 +3939,22 @@ body:has(textarea:focus) .tabbar {
   width: 100%;
   min-width: 0;
 }
+
+/* Rest-day block editor */
+.rest-block {
+  background: rgba(24,24,37,.5);
+  border: 1px solid rgba(137,180,250,.06);
+  border-radius: 12px;
+  padding: 10px 10px 6px;
+  margin-bottom: 10px;
+}
+.rest-block .rb-head {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.rest-block .rb-head input {
+  font-weight: 600;
+  color: #cdd6f4;
+}

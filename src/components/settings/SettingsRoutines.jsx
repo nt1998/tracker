@@ -109,6 +109,54 @@ export default function SettingsRoutines({
     updateWorkout(key, { items: (w.items || []).filter((_, i) => i !== idx) })
   }
 
+  // ---------- Rest-day block + rehab item CRUD ----------
+  const addBlock = (key) => {
+    if (!editRoutine) return
+    const w = editRoutine.workouts[key]
+    updateWorkout(key, { blocks: [...(w.blocks || []), { name: 'New block', exercises: [] }] })
+  }
+  const updateBlock = (key, bIdx, patch) => {
+    if (!editRoutine) return
+    const w = editRoutine.workouts[key]
+    const blocks = [...(w.blocks || [])]
+    blocks[bIdx] = { ...blocks[bIdx], ...patch }
+    updateWorkout(key, { blocks })
+  }
+  const removeBlock = (key, bIdx) => {
+    if (!editRoutine) return
+    if (!confirm('Delete this block and all its exercises?')) return
+    const w = editRoutine.workouts[key]
+    updateWorkout(key, { blocks: (w.blocks || []).filter((_, i) => i !== bIdx) })
+  }
+  const addRehabItem = (key, bIdx) => {
+    if (!editRoutine) return
+    const w = editRoutine.workouts[key]
+    const blocks = [...(w.blocks || [])]
+    const b = blocks[bIdx]
+    blocks[bIdx] = { ...b, exercises: [...(b.exercises || []), { name: '', type: 'rep', sets: 2, reps: '10', perSide: false }] }
+    updateWorkout(key, { blocks })
+  }
+  const updateRehabItem = (key, bIdx, exIdx, patch) => {
+    if (!editRoutine) return
+    const w = editRoutine.workouts[key]
+    const blocks = [...(w.blocks || [])]
+    const b = { ...blocks[bIdx] }
+    const exs = [...(b.exercises || [])]
+    exs[exIdx] = { ...exs[exIdx], ...patch }
+    b.exercises = exs
+    blocks[bIdx] = b
+    updateWorkout(key, { blocks })
+  }
+  const removeRehabItem = (key, bIdx, exIdx) => {
+    if (!editRoutine) return
+    const w = editRoutine.workouts[key]
+    const blocks = [...(w.blocks || [])]
+    const b = { ...blocks[bIdx] }
+    b.exercises = (b.exercises || []).filter((_, i) => i !== exIdx)
+    blocks[bIdx] = b
+    updateWorkout(key, { blocks })
+  }
+
   // ---------- Warmup CRUD ----------
   const addWarmup = (key) => {
     if (!editRoutine) return
@@ -343,9 +391,89 @@ export default function SettingsRoutines({
             </div>
 
             {editWorkout.isRest ? (
-              <p style={{ fontSize: 12, color: '#a6adc8' }}>
-                Rest-day block editor coming later. {(editWorkout.blocks || []).length} blocks currently defined.
-              </p>
+              <div className="field">
+                <label>Blocks</label>
+                {(editWorkout.blocks || []).length === 0 && (
+                  <div style={{ color: '#45475a', fontSize: 12, padding: '4px 0' }}>No blocks yet</div>
+                )}
+                {(editWorkout.blocks || []).map((b, bIdx) => (
+                  <div key={bIdx} className="rest-block">
+                    <div className="rb-head">
+                      <input
+                        value={b.name}
+                        onChange={(e) => updateBlock(editWorkoutKey, bIdx, { name: e.target.value })}
+                        placeholder="Block name"
+                        style={{ flex: 1 }}
+                      />
+                      <button className="x-btn" onClick={() => removeBlock(editWorkoutKey, bIdx)}>{'×'}</button>
+                    </div>
+                    {(b.exercises || []).map((ex, exIdx) => (
+                      <div key={exIdx} className="ex-item" style={{ marginBottom: 6 }}>
+                        <div className="ei-head">
+                          <input
+                            value={ex.name}
+                            onChange={(e) => updateRehabItem(editWorkoutKey, bIdx, exIdx, { name: e.target.value })}
+                            placeholder="Exercise name"
+                            style={{ flex: 1, minWidth: 0 }}
+                          />
+                          <button className="x-btn" onClick={() => removeRehabItem(editWorkoutKey, bIdx, exIdx)}>{'×'}</button>
+                        </div>
+                        <div className="ei-grid" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
+                          <label>
+                            Type
+                            <select
+                              value={ex.type || 'rep'}
+                              onChange={(e) => updateRehabItem(editWorkoutKey, bIdx, exIdx, { type: e.target.value })}
+                            >
+                              <option value="rep">reps</option>
+                              <option value="time">time</option>
+                            </select>
+                          </label>
+                          <label>
+                            Sets
+                            <input type="number" min={1} value={ex.sets || 1}
+                              onChange={(e) => updateRehabItem(editWorkoutKey, bIdx, exIdx, { sets: +e.target.value })} />
+                          </label>
+                          {ex.type === 'time' ? (
+                            <label>
+                              Seconds
+                              <input type="number" min={1} value={ex.duration || 30}
+                                onChange={(e) => updateRehabItem(editWorkoutKey, bIdx, exIdx, { duration: +e.target.value })} />
+                            </label>
+                          ) : (
+                            <label>
+                              Reps
+                              <input value={ex.reps || ''}
+                                onChange={(e) => updateRehabItem(editWorkoutKey, bIdx, exIdx, { reps: e.target.value })}
+                                placeholder="10" />
+                            </label>
+                          )}
+                        </div>
+                        <div className="ei-grid" style={{ gridTemplateColumns: '1fr 1fr', marginTop: 6 }}>
+                          <label style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                            <input
+                              type="checkbox"
+                              checked={!!ex.perSide}
+                              onChange={(e) => updateRehabItem(editWorkoutKey, bIdx, exIdx, { perSide: e.target.checked })}
+                            />
+                            per side
+                          </label>
+                          {ex.type === 'rep' && (
+                            <label>
+                              Hold (s, opt)
+                              <input type="number" min={0} value={ex.holdSec || ''}
+                                onChange={(e) => updateRehabItem(editWorkoutKey, bIdx, exIdx, { holdSec: e.target.value ? +e.target.value : undefined })}
+                                placeholder="0" />
+                            </label>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                    <button className="add-btn-wide" onClick={() => addRehabItem(editWorkoutKey, bIdx)}>+ Add exercise to {b.name || 'block'}</button>
+                  </div>
+                ))}
+                <button className="add-btn-wide" style={{ marginTop: 12 }} onClick={() => addBlock(editWorkoutKey)}>+ Add block</button>
+              </div>
             ) : (
               <>
                 <div className="field">
