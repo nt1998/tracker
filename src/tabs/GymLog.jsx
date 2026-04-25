@@ -96,10 +96,13 @@ export default function GymLog({ workouts, setWorkouts, exercises, routines, act
 
   const getLastExerciseValues = (exerciseName) => {
     const sortedDates = Object.keys(workouts).filter(d => d < date && workouts[d].committed).sort().reverse()
+    const hasAny = (sets) => (sets || []).some(s => s && (s.weight || s.reps))
     for (const d of sortedDates) {
       const w = workouts[d]
       const ex = w.exercises?.find(e => e.name === exerciseName)
-      if (ex) return { warmupSets: ex.warmupSets || [], workSets: ex.workSets || [] }
+      if (!ex) continue
+      if (!hasAny(ex.warmupSets) && !hasAny(ex.workSets)) continue
+      return { warmupSets: ex.warmupSets || [], workSets: ex.workSets || [] }
     }
     return { warmupSets: [], workSets: [] }
   }
