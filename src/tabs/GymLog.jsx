@@ -161,15 +161,22 @@ export default function GymLog({ workouts, setWorkouts, exercises, routines, act
   const lastExerciseValues = currentExercise ? getLastExerciseValues(currentExercise.name) : { warmupSets: [], workSets: [] }
   const lastData = currentExercise ? getLastExerciseData(currentExercise.name) : null
 
-  const isSetPR = (exerciseName, weight, reps) => {
-    const pr = getExercisePR(exerciseName)
-    const config = getExerciseConfig(exerciseName)
-    const w = Math.round(toKg(weight, config.unit, config.kgPerUnit) * 10) / 10
-    const r = parseInt(reps) || 0
-    if (w <= 0 || r <= 0) return { isWeightPR: false, isRepPR: false }
-    const isWeightPR = w > pr.maxWeight
-    const isRepPR = !isWeightPR && w === pr.maxWeight && r > pr.maxRepsAtMaxWeight
-    return { isWeightPR, isRepPR }
+  // Single best work set today (by weight then reps). Used to highlight only
+  // the one set that pushes the PR, instead of every set tied at the same load.
+  const todayBestSet = (sets, config) => {
+    let best = null
+    sets?.forEach((set, idx) => {
+      const hasValues = set.weight || set.reps
+      const isCommitted = set.committed === true || (hasValues && set.committed !== false)
+      if (!isCommitted) return
+      const w = Math.round(toKg(set.weight, config.unit, config.kgPerUnit) * 10) / 10
+      const r = parseInt(set.reps) || 0
+      if (w <= 0 || r <= 0) return
+      if (!best || w > best.weightKg || (w === best.weightKg && r > best.reps)) {
+        best = { idx, weightKg: w, reps: r }
+      }
+    })
+    return best
   }
 
   const writeWorkout = (mutator) => {
@@ -353,9 +360,13 @@ export default function GymLog({ workouts, setWorkouts, exercises, routines, act
     const unit = routineTemplate?.unit || 'kg'
     const hasValues = set.weight || set.reps
     const isCommitted = set.committed === true || (hasValues && set.committed !== false)
-    const prStatus = type === 'work' && isCommitted && set.weight && set.reps
-      ? isSetPR(currentExercise.name, set.weight, set.reps)
-      : { isWeightPR: false, isRepPR: false }
+    // Only the single best work set today gets the PR flag, and only when it
+    // actually beats prior history (avoids tagging every set tied at same load).
+    const isThisBest = type === 'work' && bestThis && bestThis.idx === idx
+    const prStatus = {
+      isWeightPR: !!(isThisBest && isWeightPR),
+      isRepPR: !!(isThisBest && isRepPR),
+    }
 
     return (
       <div key={`${type}${idx}`} className={`set-row ${type === 'work' ? 'work' : ''} ${isCommitted ? 'committed' : 'uncommitted'} ${prStatus.isWeightPR ? 'weight-pr' : ''} ${prStatus.isRepPR ? 'rep-pr' : ''}`}>
@@ -468,21 +479,10 @@ export default function GymLog({ workouts, setWorkouts, exercises, routines, act
   const pr = currentExercise ? getExercisePR(currentExercise.name) : { maxWeight: 0, maxRepsAtMaxWeight: 0 }
   const unit = routineTemplate?.unit || 'kg'
   const kgPerUnit = routineTemplate?.kgPerUnit
-  let bestWeightNative = 0, bestReps = 0
-  currentExercise?.workSets?.forEach(set => {
-    const hasValues = set.weight || set.reps
-    const isCommitted = set.committed === true || (hasValues && set.committed !== false)
-    if (!isCommitted) return
-    const w = parseFloat(set.weight) || 0
-    const r = parseInt(set.reps) || 0
-    if (w > 0 && r > 0 && (w > bestWeightNative || (w === bestWeightNative && r > bestReps))) {
-      bestWeightNative = w
-      bestReps = r
-    }
-  })
-  const bestWeightKg = Math.round(toKg(bestWeightNative, unit, kgPerUnit) * 10) / 10
-  const isWeightPR = bestWeightKg > pr.maxWeight
-  const isRepPR = !isWeightPR && bestWeightKg === pr.maxWeight && bestReps > pr.maxRepsAtMaxWeight
+  const bestThis = currentExercise ? todayBestSet(currentExercise.workSets, { unit, kgPerUnit }) : null
+  const isWeightPR = !!(bestThis && bestThis.weightKg > pr.maxWeight)
+  const isRepPR = !!(bestThis && !isWeightPR && bestThis.weightKg === pr.maxWeight && bestThis.reps > pr.maxRepsAtMaxWeight)
+  const isAnyPR = isWeightPR || isRepPR
   const lastDataKg = lastData ? toKg(lastData.weight, unit, kgPerUnit) : 0
   const anyCommitted = currentExercise?.warmupSets.some(s => s.committed === true) || currentExercise?.workSets.some(s => s.committed === true)
   const allWorkDone = currentExercise?.workSets.length > 0 && currentExercise?.workSets.every(s => s.committed === true)
@@ -534,11 +534,15 @@ export default function GymLog({ workouts, setWorkouts, exercises, routines, act
         </div>
       ) : (
         <>
-          {(pr.maxWeight > 0 || isWeightPR || isRepPR) ? (
+          {(pr.maxWeight > 0 || isAnyPR) ? (
             <div className={`pr-info ${isWeightPR ? 'new-weight-pr' : ''} ${isRepPR ? 'new-rep-pr' : ''}`}>
-              <span className="pr-label">{isWeightPR || isRepPR ? 'NEW PR' : 'PR'}</span>
-              <span className="pr-value">{pr.maxWeight}kg×{pr.maxRepsAtMaxWeight}</span>
-              {lastData && !(isWeightPR || isRepPR) && (
+              <span className="pr-label">{isAnyPR ? 'NEW PR' : 'PR'}</span>
+              <span className="pr-value">
+                {isAnyPR
+                  ? `${bestThis.weightKg}kg×${bestThis.reps}`
+                  : `${pr.maxWeight}kg×${pr.maxRepsAtMaxWeight}`}
+              </span>
+              {lastData && !isAnyPR && (
                 <span className="last-value">Last {lastData.weight}{unit}×{lastData.reps}</span>
               )}
               {timer}
