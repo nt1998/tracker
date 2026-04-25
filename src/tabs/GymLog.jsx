@@ -49,9 +49,11 @@ export default function GymLog({ workouts, setWorkouts, exercises, routines, act
     })
   }
   const [activeSetIdx, setActiveSetIdx] = useState({ type: 'work', idx: 0 })
-  const lastCommitRef = useRef({})
+  // Persist last-commit timestamps so the rest timer survives reload, tab switch,
+  // and PWA-out-of-memory.
+  const [lastCommit, setLastCommit] = useLocalStorage('tracker_gym_lastcommit', {})
   const [, forceTick] = useState(0)
-  const markCommit = (exId) => { if (exId) { lastCommitRef.current[exId] = Date.now(); forceTick(n => n + 1) } }
+  const markCommit = (exId) => { if (exId) setLastCommit(prev => ({ ...prev, [exId]: Date.now() })) }
 
   useEffect(() => {
     const iv = setInterval(() => forceTick(n => (n + 1) % 1000000), 1000)
@@ -484,7 +486,7 @@ export default function GymLog({ workouts, setWorkouts, exercises, routines, act
   const lastDataKg = lastData ? toKg(lastData.weight, unit, kgPerUnit) : 0
   const anyCommitted = currentExercise?.warmupSets.some(s => s.committed === true) || currentExercise?.workSets.some(s => s.committed === true)
   const allWorkDone = currentExercise?.workSets.length > 0 && currentExercise?.workSets.every(s => s.committed === true)
-  const ts = currentExercise ? lastCommitRef.current[currentExercise.id] : null
+  const ts = currentExercise ? lastCommit[currentExercise.id] : null
   const showTimer = anyCommitted && !allWorkDone && ts
   const timer = showTimer ? <span className="set-timer">⏱ {fmtSec(Math.floor((Date.now() - ts) / 1000))}</span> : null
 
