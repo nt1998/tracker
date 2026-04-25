@@ -4,6 +4,7 @@ import { fmtSec, formatPlates, generateWeightSteps, getPlatesPerSide, toKg } fro
 import RestSetRow from '../components/RestSetRow'
 import KeypadInput from '../components/KeypadInput'
 import { templateKeyForDate } from '../lib/routine'
+import useLocalStorage from '../hooks/useLocalStorage'
 
 const defaultGetWorkoutFromTemplate = (templateKey, template, exercises, exerciseNotes) => {
   if (template?.isRest) {
@@ -37,7 +38,16 @@ const defaultGetWorkoutFromTemplate = (templateKey, template, exercises, exercis
 
 export default function GymLog({ workouts, setWorkouts, exercises, routines, activeRoutineId, exerciseNotes, setExerciseNotes }) {
   const [date, setDate] = useState(todayKey())
-  const [currentExerciseIdx, setCurrentExerciseIdx] = useState(0)
+  // Persist current exercise index keyed by date so reopening today's session
+  // lands back where the user left off (PWA reload, app switch, etc.).
+  const [exIdxStore, setExIdxStore] = useLocalStorage('tracker_gym_exidx', {})
+  const currentExerciseIdx = exIdxStore[date] ?? 0
+  const setCurrentExerciseIdx = (next) => {
+    setExIdxStore(prev => {
+      const val = typeof next === 'function' ? next(prev[date] ?? 0) : next
+      return { ...prev, [date]: val }
+    })
+  }
   const [activeSetIdx, setActiveSetIdx] = useState({ type: 'work', idx: 0 })
   const lastCommitRef = useRef({})
   const [, forceTick] = useState(0)

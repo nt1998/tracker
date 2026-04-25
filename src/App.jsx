@@ -17,7 +17,7 @@ import { todayKey } from './lib/dates'
 const TABS = ['weight', 'gym', 'stats', 'settings']
 
 export default function App() {
-  const [tab, setTab] = useState('weight')
+  const [tab, setTab] = useLocalStorage('tracker_tab', 'weight')
   const appRef = useRef(null)
 
   useOrientationLock()
