@@ -38,6 +38,30 @@ function migrateRoutinesShape() {
 }
 migrateRoutinesShape()
 
+// One-shot fix: trim garbage pre-2026-02-01 days from the first cut. Runs
+// once per device. Touches localStorage directly so the auto-push picks the
+// corrected value up on the next debounce tick.
+function migrateFirstCutStart() {
+  if (typeof localStorage === 'undefined') return
+  if (localStorage.getItem('tracker_mig_cut_feb1') === '1') return
+  try {
+    const raw = localStorage.getItem('tracker_phases')
+    if (!raw) { localStorage.setItem('tracker_mig_cut_feb1', '1'); return }
+    const phases = JSON.parse(raw)
+    if (!Array.isArray(phases)) { localStorage.setItem('tracker_mig_cut_feb1', '1'); return }
+    let changed = false
+    phases.forEach(p => {
+      if (p && p.name === 'Cut' && p.start === '2026-01-29') {
+        p.start = '2026-02-01'
+        changed = true
+      }
+    })
+    if (changed) localStorage.setItem('tracker_phases', JSON.stringify(phases))
+    localStorage.setItem('tracker_mig_cut_feb1', '1')
+  } catch { /* ignore */ }
+}
+migrateFirstCutStart()
+
 export default function useStore() {
   const [entries, setEntries] = useLocalStorage('tracker_entries', {})
   const [phases, setPhases] = useLocalStorage('tracker_phases', [])
