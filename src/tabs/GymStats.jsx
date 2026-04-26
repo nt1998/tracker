@@ -222,7 +222,7 @@ function detectPRsInRange(exercises, workouts, phases, statsFilter) {
   return prs
 }
 
-export default function GymStats({ workouts, phases, exercises, forcedScope, forcedSubTab, hideSubTabs, flatLayout }) {
+export default function GymStats({ workouts, phases, exercises, routines, activeRoutineId, forcedScope, forcedSubTab, hideSubTabs, flatLayout }) {
   const [ownFilter, setOwnFilter] = useState('current')
   const statsFilter = forcedScope !== undefined ? forcedScope : ownFilter
   const setStatsFilter = forcedScope !== undefined ? () => {} : setOwnFilter
@@ -246,7 +246,21 @@ export default function GymStats({ workouts, phases, exercises, forcedScope, for
   const exIdx = useMemo(() => buildExerciseIndex(exercises, workouts, phases, statsFilter), [exercises, workouts, phases, statsFilter])
   const prs = useMemo(() => detectPRsInRange(exercises, workouts, phases, statsFilter), [exercises, workouts, phases, statsFilter])
 
-  const exList = Object.values(exIdx)
+  // Restrict exercise breakdown to entries in the active routine plan.
+  const activeRoutine = (routines || []).find(r => r.id === activeRoutineId) || routines?.[0]
+  const activeExerciseNames = useMemo(() => {
+    if (!activeRoutine?.workouts) return null
+    const names = new Set()
+    Object.values(activeRoutine.workouts).forEach(w => {
+      if (w?.isRest) return
+      ;(w?.items || []).forEach(it => {
+        const ex = exercises?.[it.exerciseId]
+        if (ex?.name) names.add(ex.name)
+      })
+    })
+    return names.size ? names : null
+  }, [activeRoutine, exercises])
+  const exList = Object.values(exIdx).filter(e => !activeExerciseNames || activeExerciseNames.has(e.name))
 
   const sortedExList = [...exList]
   if (exSort === 'alpha') sortedExList.sort((a, b) => a.name.localeCompare(b.name))
@@ -432,7 +446,7 @@ export default function GymStats({ workouts, phases, exercises, forcedScope, for
                         datasets: [
                           { label: 'Weight', data: e.sessions.map(s => +s.topSet.weightKg.toFixed(1)), borderColor: '#89b4fa', backgroundColor: '#89b4fa22', tension: 0.3, borderWidth: 2, pointRadius: 2.5, yAxisID: 'y' },
                           { label: '1RM', data: e.sessions.map(s => +s.e1RM.toFixed(1)), borderColor: '#f9e2af', backgroundColor: '#f9e2af22', tension: 0.3, borderWidth: 2, pointRadius: 2.5, borderDash: [4, 3], yAxisID: 'y' },
-                          { label: 'Volume', data: e.sessions.map(s => Math.round(s.volume)), borderColor: '#cba6f7', backgroundColor: '#cba6f733', tension: 0.3, borderWidth: 2, pointRadius: 2.5, yAxisID: 'y2' },
+                          { label: 'Reps', data: e.sessions.map(s => s.workSets.reduce((a, b) => a + b.reps, 0)), borderColor: '#cba6f7', backgroundColor: '#cba6f733', tension: 0.3, borderWidth: 2, pointRadius: 2.5, yAxisID: 'y2' },
                         ],
                       }}
                       options={{
@@ -445,7 +459,7 @@ export default function GymStats({ workouts, phases, exercises, forcedScope, for
                         scales: {
                           x: { ticks: { color: '#6c7086', font: { size: 8 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 6 }, grid: { display: false } },
                           y: { position: 'left', ticks: { color: '#89b4fa', font: { size: 8 } }, grid: { color: '#31324480' }, title: { display: true, text: 'kg', color: '#89b4fa', font: { size: 9 } } },
-                          y2: { position: 'right', ticks: { color: '#cba6f7', font: { size: 8 }, callback: v => fmtKg(v) }, grid: { display: false }, title: { display: true, text: 'vol', color: '#cba6f7', font: { size: 9 } } },
+                          y2: { position: 'right', ticks: { color: '#cba6f7', font: { size: 8 } }, grid: { display: false }, title: { display: true, text: 'reps', color: '#cba6f7', font: { size: 9 } } },
                         },
                       }}
                     />
@@ -455,7 +469,7 @@ export default function GymStats({ workouts, phases, exercises, forcedScope, for
                   <div><span>Top</span><b>{e.maxWeight.toFixed(1)}kg</b></div>
                   <div><span>e1RM</span><b>{e.maxE1RM.toFixed(1)}kg</b></div>
                   <div><span>Sets</span><b>{e.totalSets}</b></div>
-                  <div><span>Vol</span><b>{fmtKg(e.totalVolume)}</b></div>
+                  <div><span>Reps</span><b>{e.totalReps}</b></div>
                 </div>
               </div>
             )

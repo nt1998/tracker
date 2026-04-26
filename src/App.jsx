@@ -209,6 +209,7 @@ export default function App() {
             autoHabitsByDate={autoHabitsByDate}
             habits={habits}
             routines={routines}
+            activeRoutineId={activeRoutineId}
             settings={settings}
             water={water}
           />
