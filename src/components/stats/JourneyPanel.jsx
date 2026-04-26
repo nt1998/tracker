@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import ScrubbableLine from '../ScrubbableLine'
 import DeltaBadge from '../DeltaBadge'
 import MeasurementsTable from './MeasurementsTable'
@@ -40,6 +40,47 @@ export default function JourneyPanel({ entries, phases, sortedDates: allDates, h
   const firstMu = parseFloat(firstE.musclePct) || 0
   const lastMu = parseFloat(lastE.musclePct) || 0
 
+  // Hero card metric mode. Default short-term: 4-day avg now vs 4-day avg
+  // ending 7 days ago. Tap to swap to journey-start vs now.
+  const [heroMode, setHeroMode] = useState('avg4')
+  // Average a metric over the last `windowDays` logged values whose date
+  // is on or before `endDate`. Skips days without a value for that field.
+  const recentAvg = (field, endDate, windowDays = 4) => {
+    if (!endDate) return null
+    const vals = []
+    for (let i = loggedDates.length - 1; i >= 0 && vals.length < windowDays; i--) {
+      const d = loggedDates[i]
+      if (d > endDate) continue
+      const v = parseFloat(entries[d]?.[field])
+      if (!isNaN(v)) vals.push(v)
+    }
+    return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null
+  }
+  // Date 7 days before lastKey, in YYYY-MM-DD.
+  const priorEndDate = (() => {
+    if (!lastKey) return null
+    const d = new Date(lastKey + 'T12:00:00')
+    d.setDate(d.getDate() - 7)
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  })()
+  const curW = recentAvg('weight', lastKey)
+  const curBf = recentAvg('bodyFat', lastKey)
+  const curMu = recentAvg('musclePct', lastKey)
+  const priW = recentAvg('weight', priorEndDate)
+  const priBf = recentAvg('bodyFat', priorEndDate)
+  const priMu = recentAvg('musclePct', priorEndDate)
+  const fmt1 = (v) => v == null ? '--' : v.toFixed(1)
+  const heroW = heroMode === 'avg4'
+    ? { val: curW, delta: (curW != null && priW != null) ? curW - priW : null }
+    : { val: lastW, delta: lastW - firstW }
+  const heroBf = heroMode === 'avg4'
+    ? { val: curBf, delta: (curBf != null && priBf != null) ? curBf - priBf : null }
+    : { val: lastBf, delta: lastBf - firstBf }
+  const heroMu = heroMode === 'avg4'
+    ? { val: curMu, delta: (curMu != null && priMu != null) ? curMu - priMu : null }
+    : { val: lastMu, delta: lastMu - firstMu }
+  const toggleHero = () => setHeroMode(m => m === 'avg4' ? 'journey' : 'avg4')
+
   const phaseBands = buildPhaseBands(sortedDates, phases, isGap)
   const labels = sortedDates.map(k => k === '__gap__' ? '' : k.slice(5))
   const pickNum = (k, field) => {
@@ -79,21 +120,21 @@ export default function JourneyPanel({ entries, phases, sortedDates: allDates, h
         </div>
       </div>
 
-      <div className="hero-metrics">
+      <div className="hero-metrics" onClick={toggleHero} style={{ cursor: 'pointer' }} title={heroMode === 'avg4' ? '4-day avg vs 7 days ago — tap for journey total' : 'Journey start to now — tap for 4-day avg'}>
         <div className="hero-card" style={{ '--accent': '#f38ba8' }}>
-          <div className="hero-val">{lastW.toFixed(1)}</div>
+          <div className="hero-val">{fmt1(heroW.val)}</div>
           <div className="hero-label">Weight kg</div>
-          <div className="hero-delta"><DeltaBadge val={lastW - firstW} unit="kg" invertGood={true} /></div>
+          <div className="hero-delta">{heroW.delta != null && <DeltaBadge val={heroW.delta} unit="kg" invertGood={true} />}</div>
         </div>
         <div className="hero-card" style={{ '--accent': '#fab387' }}>
-          <div className="hero-val">{lastBf.toFixed(1)}</div>
+          <div className="hero-val">{fmt1(heroBf.val)}</div>
           <div className="hero-label">Body Fat %</div>
-          <div className="hero-delta"><DeltaBadge val={lastBf - firstBf} unit="%" invertGood={true} /></div>
+          <div className="hero-delta">{heroBf.delta != null && <DeltaBadge val={heroBf.delta} unit="%" invertGood={true} />}</div>
         </div>
         <div className="hero-card" style={{ '--accent': '#a6e3a1' }}>
-          <div className="hero-val">{lastMu.toFixed(1)}</div>
+          <div className="hero-val">{fmt1(heroMu.val)}</div>
           <div className="hero-label">Muscle %</div>
-          <div className="hero-delta"><DeltaBadge val={lastMu - firstMu} unit="%" invertGood={false} /></div>
+          <div className="hero-delta">{heroMu.delta != null && <DeltaBadge val={heroMu.delta} unit="%" invertGood={false} />}</div>
         </div>
       </div>
 
