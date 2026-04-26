@@ -124,7 +124,7 @@ export default function JourneyPanel({ entries, phases, sortedDates: allDates, h
 
       <div onClick={toggleHero} style={{ cursor: 'pointer' }} title="Tap to switch range">
         <div className="hero-mode-caption">
-          {heroMode === 'avg4' ? '4-day avg · vs 7d ago' : `Journey · since ${firstKey}`}
+          {heroMode === 'avg4' ? '7 day change' : `Journey · since ${firstKey}`}
         </div>
         <div className="hero-metrics">
           <div className="hero-card" style={{ '--accent': '#f38ba8' }}>
