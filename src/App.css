@@ -2577,6 +2577,21 @@ body:has(textarea:focus) .tabbar {
   gap: 8px;
   margin-bottom: 14px;
 }
+.hero-mode-caption {
+  font-size: 10px;
+  color: #6c7086;
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  margin: 0 2px 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.hero-mode-caption::after {
+  content: '⇄';
+  color: #45475a;
+  font-size: 11px;
+}
 .hero-card {
   background: rgba(30,30,46,0.85);
   border: 1px solid rgba(137,180,250,.1);

@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
+import useLocalStorage from '../../hooks/useLocalStorage'
 import ScrubbableLine from '../ScrubbableLine'
 import DeltaBadge from '../DeltaBadge'
 import MeasurementsTable from './MeasurementsTable'
@@ -41,8 +42,9 @@ export default function JourneyPanel({ entries, phases, sortedDates: allDates, h
   const lastMu = parseFloat(lastE.musclePct) || 0
 
   // Hero card metric mode. Default short-term: 4-day avg now vs 4-day avg
-  // ending 7 days ago. Tap to swap to journey-start vs now.
-  const [heroMode, setHeroMode] = useState('avg4')
+  // ending 7 days ago. Tap to swap to journey-start vs now. Persisted across
+  // reloads / tab switches.
+  const [heroMode, setHeroMode] = useLocalStorage('tracker_hero_mode', 'avg4')
   // Average a metric over the last `windowDays` logged values whose date
   // is on or before `endDate`. Skips days without a value for that field.
   const recentAvg = (field, endDate, windowDays = 4) => {
@@ -120,21 +122,26 @@ export default function JourneyPanel({ entries, phases, sortedDates: allDates, h
         </div>
       </div>
 
-      <div className="hero-metrics" onClick={toggleHero} style={{ cursor: 'pointer' }} title={heroMode === 'avg4' ? '4-day avg vs 7 days ago — tap for journey total' : 'Journey start to now — tap for 4-day avg'}>
-        <div className="hero-card" style={{ '--accent': '#f38ba8' }}>
-          <div className="hero-val">{fmt1(heroW.val)}</div>
-          <div className="hero-label">Weight kg</div>
-          <div className="hero-delta">{heroW.delta != null && <DeltaBadge val={heroW.delta} unit="kg" invertGood={true} />}</div>
+      <div onClick={toggleHero} style={{ cursor: 'pointer' }} title="Tap to switch range">
+        <div className="hero-mode-caption">
+          {heroMode === 'avg4' ? '4-day avg · vs 7d ago' : `Journey · since ${firstKey}`}
         </div>
-        <div className="hero-card" style={{ '--accent': '#fab387' }}>
-          <div className="hero-val">{fmt1(heroBf.val)}</div>
-          <div className="hero-label">Body Fat %</div>
-          <div className="hero-delta">{heroBf.delta != null && <DeltaBadge val={heroBf.delta} unit="%" invertGood={true} />}</div>
-        </div>
-        <div className="hero-card" style={{ '--accent': '#a6e3a1' }}>
-          <div className="hero-val">{fmt1(heroMu.val)}</div>
-          <div className="hero-label">Muscle %</div>
-          <div className="hero-delta">{heroMu.delta != null && <DeltaBadge val={heroMu.delta} unit="%" invertGood={false} />}</div>
+        <div className="hero-metrics">
+          <div className="hero-card" style={{ '--accent': '#f38ba8' }}>
+            <div className="hero-val">{fmt1(heroW.val)}</div>
+            <div className="hero-label">Weight kg</div>
+            <div className="hero-delta">{heroW.delta != null && <DeltaBadge val={heroW.delta} unit="kg" invertGood={true} />}</div>
+          </div>
+          <div className="hero-card" style={{ '--accent': '#fab387' }}>
+            <div className="hero-val">{fmt1(heroBf.val)}</div>
+            <div className="hero-label">Body Fat %</div>
+            <div className="hero-delta">{heroBf.delta != null && <DeltaBadge val={heroBf.delta} unit="%" invertGood={true} />}</div>
+          </div>
+          <div className="hero-card" style={{ '--accent': '#a6e3a1' }}>
+            <div className="hero-val">{fmt1(heroMu.val)}</div>
+            <div className="hero-label">Muscle %</div>
+            <div className="hero-delta">{heroMu.delta != null && <DeltaBadge val={heroMu.delta} unit="%" invertGood={false} />}</div>
+          </div>
         </div>
       </div>
 
