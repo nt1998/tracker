@@ -166,6 +166,10 @@ function buildExerciseIndex(exercises, workouts, phases, statsFilter) {
   const now = new Date()
   Object.values(idx).forEach(e => {
     e.maxWeight = Math.max(...e.sessions.map(s => s.topSet.weightKg))
+    {
+      const maxSession = e.sessions.reduce((b, s) => !b || s.topSet.weightKg > b.topSet.weightKg ? s : b, null)
+      e.maxWeightReps = maxSession?.topSet?.reps || 0
+    }
     e.maxE1RM = Math.max(...e.sessions.map(s => s.e1RM))
     e.totalVolume = e.sessions.reduce((s, x) => s + x.volume, 0)
     e.totalSets = e.sessions.reduce((s, x) => s + x.workSets.length, 0)
@@ -446,7 +450,7 @@ export default function GymStats({ workouts, phases, exercises, routines, active
                         datasets: [
                           { label: 'Weight', data: e.sessions.map(s => +s.topSet.weightKg.toFixed(1)), borderColor: '#89b4fa', backgroundColor: '#89b4fa22', tension: 0.3, borderWidth: 2, pointRadius: 2.5, yAxisID: 'y' },
                           { label: '1RM', data: e.sessions.map(s => +s.e1RM.toFixed(1)), borderColor: '#f9e2af', backgroundColor: '#f9e2af22', tension: 0.3, borderWidth: 2, pointRadius: 2.5, borderDash: [4, 3], yAxisID: 'y' },
-                          { label: 'Reps', data: e.sessions.map(s => s.workSets.reduce((a, b) => a + b.reps, 0)), borderColor: '#cba6f7', backgroundColor: '#cba6f733', tension: 0.3, borderWidth: 2, pointRadius: 2.5, yAxisID: 'y2' },
+                          { label: 'Top reps', data: e.sessions.map(s => s.topSet?.reps || 0), borderColor: '#cba6f7', backgroundColor: '#cba6f733', tension: 0.3, borderWidth: 2, pointRadius: 2.5, yAxisID: 'y2' },
                         ],
                       }}
                       options={{
@@ -459,7 +463,7 @@ export default function GymStats({ workouts, phases, exercises, routines, active
                         scales: {
                           x: { ticks: { color: '#6c7086', font: { size: 8 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 6 }, grid: { display: false } },
                           y: { position: 'left', ticks: { color: '#89b4fa', font: { size: 8 } }, grid: { color: '#31324480' }, title: { display: true, text: 'kg', color: '#89b4fa', font: { size: 9 } } },
-                          y2: { position: 'right', ticks: { color: '#cba6f7', font: { size: 8 } }, grid: { display: false }, title: { display: true, text: 'reps', color: '#cba6f7', font: { size: 9 } } },
+                          y2: { position: 'right', ticks: { color: '#cba6f7', font: { size: 8 } }, grid: { display: false }, title: { display: true, text: 'top reps', color: '#cba6f7', font: { size: 9 } } },
                         },
                       }}
                     />
@@ -469,7 +473,7 @@ export default function GymStats({ workouts, phases, exercises, routines, active
                   <div><span>Top</span><b>{e.maxWeight.toFixed(1)}kg</b></div>
                   <div><span>e1RM</span><b>{e.maxE1RM.toFixed(1)}kg</b></div>
                   <div><span>Sets</span><b>{e.totalSets}</b></div>
-                  <div><span>Reps</span><b>{e.totalReps}</b></div>
+                  <div><span>Reps</span><b>{e.maxWeightReps}</b></div>
                 </div>
               </div>
             )
