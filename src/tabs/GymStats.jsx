@@ -3,7 +3,8 @@ import { Bar, Line } from 'react-chartjs-2'
 import { todayKey } from '../lib/dates'
 import { toKg } from '../lib/weights'
 
-const fmtKgVal = v => v >= 1000 ? (v / 1000).toFixed(1) + 'k' : Math.round(v).toString()
+// Render kg value with unit, switching to tons above 1000 kg.
+const fmtKg = v => v >= 1000 ? `${(v / 1000).toFixed(1)} t` : `${Math.round(v)} kg`
 const fmtMD = d => { const [, m, da] = d.split('-'); return `${m}/${da}` }
 
 function getExerciseConfig(exercises, name) {
@@ -300,7 +301,7 @@ export default function GymStats({ workouts, phases, exercises, forcedScope, for
           <div className="hero-quad">
             <div className="hero-card"><div className="v">{workSessions.length}</div><div className="l">Sessions</div></div>
             <div className="hero-card streak"><div className="v">{getWeeklyStreak(workouts, phases, true)}</div><div className="l">Week Streak</div></div>
-            <div className="hero-card"><div className="v">{fmtKgVal(totalVolume)} kg</div><div className="l">Volume</div></div>
+            <div className="hero-card"><div className="v">{fmtKg(totalVolume)}</div><div className="l">Volume</div></div>
             <div className="hero-card pr"><div className="v">{prs.length}</div><div className="l">PRs</div></div>
           </div>
 
@@ -320,7 +321,7 @@ export default function GymStats({ workouts, phases, exercises, forcedScope, for
                     plugins: { legend: { display: false } },
                     scales: {
                       x: { ticks: { color: '#6c7086', font: { size: 9 } }, grid: { display: false } },
-                      y: { ticks: { color: '#6c7086', font: { size: 9 }, callback: v => fmtKgVal(v) }, grid: { color: '#313244' } },
+                      y: { ticks: { color: '#6c7086', font: { size: 9 }, callback: v => fmtKg(v) }, grid: { color: '#313244' } },
                     },
                   }}
                 />
@@ -448,7 +449,7 @@ export default function GymStats({ workouts, phases, exercises, forcedScope, for
                         scales: {
                           x: { ticks: { color: '#6c7086', font: { size: 8 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 6 }, grid: { display: false } },
                           y: { position: 'left', ticks: { color: '#89b4fa', font: { size: 8 } }, grid: { color: '#31324480' }, title: { display: true, text: 'kg', color: '#89b4fa', font: { size: 9 } } },
-                          y2: { position: 'right', ticks: { color: '#cba6f7', font: { size: 8 }, callback: v => fmtKgVal(v) }, grid: { display: false }, title: { display: true, text: 'vol', color: '#cba6f7', font: { size: 9 } } },
+                          y2: { position: 'right', ticks: { color: '#cba6f7', font: { size: 8 }, callback: v => fmtKg(v) }, grid: { display: false }, title: { display: true, text: 'vol', color: '#cba6f7', font: { size: 9 } } },
                         },
                       }}
                     />
@@ -458,7 +459,7 @@ export default function GymStats({ workouts, phases, exercises, forcedScope, for
                   <div><span>Top</span><b>{e.maxWeight.toFixed(1)}kg</b></div>
                   <div><span>e1RM</span><b>{e.maxE1RM.toFixed(1)}kg</b></div>
                   <div><span>Sets</span><b>{e.totalSets}</b></div>
-                  <div><span>Vol</span><b>{fmtKgVal(e.totalVolume)}kg</b></div>
+                  <div><span>Vol</span><b>{fmtKg(e.totalVolume)}</b></div>
                 </div>
               </div>
             )
@@ -497,7 +498,7 @@ export default function GymStats({ workouts, phases, exercises, forcedScope, for
                         <span className="date">{fmtMD(d)}</span>
                       </div>
                       <div className="meta">
-                        {isRest ? <span>rehab ✓</span> : <><span>{fmtKgVal(volume)}kg</span><span>{sets} sets</span></>}
+                        {isRest ? <span>rehab ✓</span> : <><span>{fmtKg(volume)}</span><span>{sets} sets</span></>}
                         {exPRs > 0 && <span className="pr">{exPRs}⭐</span>}
                         <span className="chev">{open ? '▴' : '▾'}</span>
                       </div>
