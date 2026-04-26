@@ -37,8 +37,9 @@ export default function App() {
     autoHabitsByDate,
   } = store
 
+  const swipeEnabled = settings?.swipeNavEnabled !== false
   const { isSwiping, tabCls, tabStl, onClickCapture } = useSwipeNav({
-    appRef, tabs: TABS, tab, setTab,
+    appRef, tabs: TABS, tab, setTab, enabled: swipeEnabled,
   })
 
   const activeRoutine = (routines || []).find(r => r.id === activeRoutineId) || routines?.[0]

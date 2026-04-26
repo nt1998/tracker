@@ -215,10 +215,3 @@ export function baseChartOpts(extraScales, phaseBands, dates, isGap) {
   }
 }
 
-// Legacy wrapper retained so existing callers keep working. Zoom/pan is
-// now handled directly in ScrubbableLine via touch gestures; this helper
-// just forwards options unchanged. Pass range/onRangeChange/maxIndex to
-// <ScrubbableLine> as props instead.
-export function withZoomOpts(opts /* , _ignored */) {
-  return opts
-}

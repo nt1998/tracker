@@ -6,7 +6,7 @@ const FLICK_DX = 40
 const GRAPH_HOLD_MS = 300
 const GLOW_RANGE_PX = 100
 
-export default function useSwipeNav({ appRef, tabs, tab, setTab }) {
+export default function useSwipeNav({ appRef, tabs, tab, setTab, enabled = true }) {
   const [swipeDx, setSwipeDx] = useState(0)
   const [isSwiping, setIsSwiping] = useState(false)
   const swipeRef = useRef(null)
@@ -16,6 +16,7 @@ export default function useSwipeNav({ appRef, tabs, tab, setTab }) {
   useEffect(() => { tabRef.current = tab }, [tab])
 
   useEffect(() => {
+    if (!enabled) return
     const el = appRef.current
     if (!el) return
     const onStart = (e) => {
@@ -90,7 +91,7 @@ export default function useSwipeNav({ appRef, tabs, tab, setTab }) {
       el.removeEventListener('touchend', onEnd, { capture: true })
       el.removeEventListener('touchcancel', onEnd, { capture: true })
     }
-  }, [appRef, tabs, setTab])
+  }, [appRef, tabs, setTab, enabled])
 
   const getTabGlow = (tabId) => {
     const activeIdx = tabs.indexOf(tab)

@@ -1,37 +1,14 @@
-import { useState, useMemo } from 'react'
+import { useMemo } from 'react'
 import ScrubbableLine from '../ScrubbableLine'
 import DeltaBadge from '../DeltaBadge'
 import MeasurementsTable from './MeasurementsTable'
 import WeightTrendChart from './WeightTrendChart'
 import { hexToRgba } from '../../lib/colors'
-import { buildPhaseBands, baseChartOpts, withZoomOpts } from '../../lib/chartSetup'
+import { buildPhaseBands, baseChartOpts } from '../../lib/chartSetup'
 import { ensureHabits } from '../../lib/bodyData'
 import { buildTimeSeries } from '../../lib/dates'
 
 const CANVAS_W = 337
-
-// Default x-axis window: last ~3 months of data. Returns { min, max } as
-// integer indices into the passed sortedDates (which may include '__gap__'
-// sentinels). If the series is shorter than 3 months, returns null so the
-// chart shows its full range.
-function defaultLast3Months(keys) {
-  if (!keys || keys.length === 0) return null
-  let lastIdx = keys.length - 1
-  while (lastIdx >= 0 && keys[lastIdx] === '__gap__') lastIdx--
-  if (lastIdx < 0) return null
-  const lastDate = new Date(keys[lastIdx] + 'T12:00:00')
-  const cutoff = new Date(lastDate)
-  cutoff.setMonth(cutoff.getMonth() - 3)
-  let minIdx = lastIdx
-  for (let i = lastIdx; i >= 0; i--) {
-    if (keys[i] === '__gap__') continue
-    const d = new Date(keys[i] + 'T12:00:00')
-    if (d >= cutoff) minIdx = i
-    else break
-  }
-  if (minIdx === 0 && lastIdx === keys.length - 1) return null
-  return { min: minIdx, max: lastIdx }
-}
 
 export default function JourneyPanel({ entries, phases, sortedDates: allDates, hideMeasurements, settings, water }) {
   const visceralEnabled = !!settings?.visceralEnabled
@@ -50,11 +27,6 @@ export default function JourneyPanel({ entries, phases, sortedDates: allDates, h
       : buildTimeSeries(firstKey, lastKey, entries, 14)),
     [firstKey, lastKey, entries, loggedDates.length],
   )
-  // Shared zoom window across every chart on this panel. Initialized once on
-  // mount to the last 3 months — Stats re-mounts JourneyPanel on tab switch
-  // (see <main key={tab}> in App.jsx), so this naturally resets.
-  const [xRange, setXRange] = useState(() => defaultLast3Months(sortedDates))
-
   if (loggedDates.length === 0) return <div style={{ color: '#45475a', textAlign: 'center', padding: 40 }}>No data yet</div>
 
   const firstE = ensureHabits(entries[firstKey])
@@ -94,11 +66,7 @@ export default function JourneyPanel({ entries, phases, sortedDates: allDates, h
     labels,
     datasets: [{ data: vals, borderColor: color, backgroundColor: hexToRgba(color, 0.12), fill: true }],
   })
-  const maxIdx = sortedDates.length - 1
-  const journeyOpts = (extraScales) => withZoomOpts(
-    baseChartOpts(extraScales, phaseBands, dateMarkers, isGap),
-    { range: xRange, onChange: setXRange, maxIndex: maxIdx },
-  )
+  const journeyOpts = (extraScales) => baseChartOpts(extraScales, phaseBands, dateMarkers, isGap)
   const pickLast = (arr) => { for (let j = arr.length - 1; j >= 0; j--) if (arr[j] != null) return j; return arr.length - 1 }
 
   return (
@@ -131,7 +99,7 @@ export default function JourneyPanel({ entries, phases, sortedDates: allDates, h
 
       <div className="stat-section-title">Weight trajectory</div>
       <div className="chart-card">
-        <ScrubbableLine range={xRange} onRangeChange={setXRange} maxIndex={maxIdx}
+        <ScrubbableLine
           data={makeData(wts, '#f38ba8')}
           options={journeyOpts()}
           width={CANVAS_W} height={140}
@@ -145,11 +113,11 @@ export default function JourneyPanel({ entries, phases, sortedDates: allDates, h
       </div>
 
       <div className="stat-section-title">7 Day Weight Delta</div>
-      <WeightTrendChart keys={sortedDates} entries={entries} opts={journeyOpts()} range={xRange} onRangeChange={setXRange} maxIndex={maxIdx} />
+      <WeightTrendChart keys={sortedDates} entries={entries} opts={journeyOpts()} />
 
       <div className="stat-section-title">Body composition</div>
       <div className="chart-card">
-        <ScrubbableLine range={xRange} onRangeChange={setXRange} maxIndex={maxIdx}
+        <ScrubbableLine
           data={{
             labels,
             datasets: [
@@ -181,7 +149,7 @@ export default function JourneyPanel({ entries, phases, sortedDates: allDates, h
       </div>
 
       <div className="chart-card">
-        <ScrubbableLine range={xRange} onRangeChange={setXRange} maxIndex={maxIdx}
+        <ScrubbableLine
           data={makeData(bfs, '#fab387')}
           options={journeyOpts()}
           width={CANVAS_W} height={120}
@@ -195,7 +163,7 @@ export default function JourneyPanel({ entries, phases, sortedDates: allDates, h
       </div>
 
       <div className="chart-card">
-        <ScrubbableLine range={xRange} onRangeChange={setXRange} maxIndex={maxIdx}
+        <ScrubbableLine
           data={makeData(mus, '#a6e3a1')}
           options={journeyOpts()}
           width={CANVAS_W} height={120}
@@ -219,7 +187,7 @@ export default function JourneyPanel({ entries, phases, sortedDates: allDates, h
         }
         return (
           <div className="chart-card">
-            <ScrubbableLine range={xRange} onRangeChange={setXRange} maxIndex={maxIdx}
+            <ScrubbableLine
               data={makeData(vis, '#cba6f7')}
               options={visOpts}
               width={CANVAS_W} height={90}
@@ -268,7 +236,7 @@ export default function JourneyPanel({ entries, phases, sortedDates: allDates, h
               </div>
             </div>
             <div className="chart-card">
-              <ScrubbableLine range={xRange} onRangeChange={setXRange} maxIndex={maxIdx}
+              <ScrubbableLine
                 data={{
                   labels,
                   datasets: [

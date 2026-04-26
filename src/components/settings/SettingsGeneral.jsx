@@ -85,6 +85,21 @@ export default function SettingsGeneral({
 
       <div className="toggle-row">
         <span>
+          <div className="tr-title">Swipe between tabs</div>
+          <div className="tr-sub">Horizontal swipe navigates tabs.</div>
+        </span>
+        <label className="toggle-switch">
+          <input
+            type="checkbox"
+            checked={settings?.swipeNavEnabled !== false}
+            onChange={(e) => setSettings({ ...settings, swipeNavEnabled: e.target.checked })}
+          />
+          <span className="slider"></span>
+        </label>
+      </div>
+
+      <div className="toggle-row">
+        <span>
           <div className="tr-title">Water</div>
           <div className="tr-sub">Track daily water intake.</div>
         </span>

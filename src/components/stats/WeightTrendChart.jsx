@@ -4,7 +4,7 @@ import { weightAvgDeltaSeries } from '../../lib/bodyData'
 
 const CANVAS_W = 337
 
-export default function WeightTrendChart({ keys, entries, opts, range, onRangeChange, maxIndex }) {
+export default function WeightTrendChart({ keys, entries, opts }) {
   const series = weightAvgDeltaSeries(keys, entries)
   const hasData = series.some(v => v != null)
   if (!hasData) return null
@@ -24,9 +24,6 @@ export default function WeightTrendChart({ keys, entries, opts, range, onRangeCh
   return (
     <div className="chart-card">
       <ScrubbableLine
-        range={range}
-        onRangeChange={onRangeChange}
-        maxIndex={maxIndex}
         data={{
           labels,
           datasets: [
