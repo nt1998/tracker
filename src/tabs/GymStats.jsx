@@ -108,13 +108,10 @@ function getCadenceCells(exercises, workouts, today) {
       const day = new Date(start); day.setDate(day.getDate() + w * 7 + di)
       const ds = day.toISOString().slice(0, 10)
       const wk = workouts[ds]
-      if (wk?.committed) {
-        if (isRestWorkout(wk)) days.push({ ds, type: 'rest', level: 0 })
-        else {
-          const vol = getSessionVolume(exercises, wk).volume
-          const lvl = Math.min(4, Math.max(1, Math.ceil((vol / maxVol) * 4)))
-          days.push({ ds, type: 'gym', level: lvl, volume: vol })
-        }
+      if (wk?.committed && !isRestWorkout(wk)) {
+        const vol = getSessionVolume(exercises, wk).volume
+        const lvl = Math.min(4, Math.max(1, Math.ceil((vol / maxVol) * 4)))
+        days.push({ ds, type: 'gym', level: lvl, volume: vol })
       } else {
         days.push({ ds, type: null, level: 0 })
       }
@@ -330,7 +327,7 @@ export default function GymStats({ workouts, phases, exercises, forcedScope, for
           </div>
 
           <div className="stats-block">
-            <h4>Cadence <span className="sub">12wk · 1col=1wk Mon→Sun</span></h4>
+            <h4>Cadence</h4>
             <div className="heatmap-wrap">
               <div className="heatmap-months">
                 <span></span>
@@ -365,7 +362,6 @@ export default function GymStats({ workouts, phases, exercises, forcedScope, for
                 <span className="sw l4" />
                 <span>More</span>
               </div>
-              <div><span className="sw rest" /> Rehab</div>
             </div>
           </div>
 
