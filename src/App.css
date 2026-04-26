@@ -2916,6 +2916,10 @@ body:has(textarea:focus) .tabbar {
   background: transparent;
   border: 1px solid rgba(137,180,250,.12);
 }
+.dot.partial {
+  background: var(--c, #89b4fa);
+  opacity: .5;
+}
 .dot.na {
   background: rgba(137,180,250,.08);
   opacity: .4;

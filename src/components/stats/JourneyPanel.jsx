@@ -252,13 +252,17 @@ export default function JourneyPanel({ entries, phases, sortedDates: allDates, h
 
       {waterEnabled && (() => {
         const waterVals = sortedDates.map(k => (water && water[k]) || 0)
-        const loggedVals = Object.values(water || {}).map(v => parseFloat(v) || 0).filter(v => v > 0)
-        const overallAvg = loggedVals.length ? Math.round(loggedVals.reduce((a, b) => a + b, 0) / loggedVals.length) : 0
-        // 7-day avg ending today — only count days that were actually logged
+        // Today is mid-tracking — never feed it into averages.
         const now = new Date()
         const keyOf = (dt) => `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`
+        const todayKey = keyOf(now)
+        const loggedVals = Object.entries(water || {})
+          .filter(([k, v]) => k !== todayKey && (parseFloat(v) || 0) > 0)
+          .map(([, v]) => parseFloat(v))
+        const overallAvg = loggedVals.length ? Math.round(loggedVals.reduce((a, b) => a + b, 0) / loggedVals.length) : 0
+        // 7-day avg — count only logged days, skip today.
         let sum7 = 0, n7 = 0
-        for (let i = 0; i < 7; i++) {
+        for (let i = 1; i <= 7; i++) {
           const dt = new Date(now)
           dt.setDate(now.getDate() - i)
           const v = (water && water[keyOf(dt)]) || 0

@@ -22,15 +22,23 @@ export default function Stats({ entries, phases, workouts, exercises, autoHabits
     const rows = []
     if (waterEnabled) {
       const dots = []
+      const partialThresh = waterGoal * 0.9
       for (let i = 20; i >= 0; i--) {
         const d = addDays(today, -i)
         const isTodayDot = i === 0
-        const ml = (water && water[d]) || 0
-        const val = ml >= waterGoal
+        const ml = water && water[d] != null ? parseFloat(water[d]) : null
         let cls = 'dot'
-        if (val) cls += ' done'
-        else cls += ' miss'
-        if (isTodayDot) cls += ' today-dot ' + (val ? 'done' : 'pending')
+        if (ml == null || ml <= 0) cls += ' na'
+        else if (ml >= waterGoal) {
+          cls += ' done'
+          if (isTodayDot) cls += ' today-dot done'
+        } else if (ml >= partialThresh) {
+          cls += ' partial'
+          if (isTodayDot) cls += ' today-dot done'
+        } else {
+          cls += ' miss'
+          if (isTodayDot) cls += ' today-dot pending'
+        }
         dots.push({ cls, color: '#89dceb' })
       }
       rows.push({ key: '_water', icon: '💧', name: 'Water', color: '#89dceb', dots })
@@ -67,11 +75,14 @@ export default function Stats({ entries, phases, workouts, exercises, autoHabits
     const rows = []
     if (waterEnabled) {
       let done = 0, total = 0
-      // Score across dates where water has data OR the user was tracking entries; use sortedDates as range
+      const partialThresh = waterGoal * 0.9
+      // Only count days actually logged (skip blanks and current day).
       sortedDates.forEach(k => {
+        if (k === today) return
+        const ml = water && water[k] != null ? parseFloat(water[k]) : null
+        if (ml == null || ml <= 0) return
         total++
-        const ml = (water && water[k]) || 0
-        if (ml >= waterGoal) done++
+        if (ml >= partialThresh) done++
       })
       const pct = total > 0 ? done / total : 0
       rows.push({ key: '_water', icon: '💧', name: 'Water', color: '#89dceb', pct, done, total })
