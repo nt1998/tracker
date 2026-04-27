@@ -11,6 +11,9 @@
   --text: #cdd6f4;
   --text-sub: #a6adc8;
   --text-overlay: #6c7086;
+  /* Neumorphic shadow tints (used as `rgba(var(--sd), .5)` etc.). */
+  --sd: 17, 17, 27;
+  --su: 69, 71, 90;
 }
 [data-theme="light"] {
   /* Catppuccin Latte */
@@ -23,6 +26,8 @@
   --text: #4c4f69;
   --text-sub: #5c5f77;
   --text-overlay: #8c8fa1;
+  --sd: 76, 79, 105;
+  --su: 255, 255, 255;
 }
 .app {
   height: 100%;
@@ -93,8 +98,8 @@ body.landscape-override::after {
   border-radius: 20px;
   border: 1px solid rgba(137,180,250,.1);
   box-shadow: 0 -8px 30px rgba(0,0,0,.5),
-              4px 4px 10px rgba(17,17,27,.6),
-              -3px -3px 7px rgba(69,71,90,.15);
+              4px 4px 10px rgba(var(--sd),.6),
+              -3px -3px 7px var(--bg-surface1);
   animation: pickerSlideUp .2s ease-out;
 }
 @keyframes pickerSlideUp {
@@ -109,24 +114,24 @@ body.landscape-override::after {
   font-size: 13px;
   font-weight: 600;
   font-family: inherit;
-  background: linear-gradient(145deg, rgba(49,50,68,.5), rgba(30,30,46,.7));
-  box-shadow: 3px 3px 6px rgba(17,17,27,.45),
-              -2px -2px 5px rgba(69,71,90,.15);
+  background: linear-gradient(145deg, var(--bg-surface0), var(--bg-base));
+  box-shadow: 3px 3px 6px rgba(var(--sd),.45),
+              -2px -2px 5px var(--bg-surface1);
   cursor: pointer;
   transition: all .15s;
 }
 .rp-option.active {
   color: #89b4fa;
   border-color: rgba(137,180,250,.3);
-  box-shadow: 3px 3px 6px rgba(17,17,27,.45),
-              -2px -2px 5px rgba(69,71,90,.15),
+  box-shadow: 3px 3px 6px rgba(var(--sd),.45),
+              -2px -2px 5px var(--bg-surface1),
               0 0 12px rgba(137,180,250,.2),
               inset 0 0 6px rgba(137,180,250,.1);
 }
 .rp-option:active {
   transform: scale(0.95);
-  box-shadow: inset 2px 2px 4px rgba(17,17,27,.5),
-              inset -1px -1px 3px rgba(69,71,90,.1);
+  box-shadow: inset 2px 2px 4px rgba(var(--sd),.5),
+              inset -1px -1px 3px var(--bg-surface1);
 }
 
 .routine-switch {
@@ -136,15 +141,15 @@ body.landscape-override::after {
   color: var(--text);
   font-size: 0.8rem;
   font-weight: 600;
-  background: linear-gradient(145deg, rgba(49,50,68,.7), rgba(30,30,46,.85));
-  box-shadow: 3px 3px 6px rgba(17,17,27,.5),
-              -2px -2px 5px rgba(69,71,90,.18),
-              inset 0 1px 0 rgba(88,91,112,.1);
+  background: linear-gradient(145deg, var(--bg-surface0), var(--bg-base));
+  box-shadow: 3px 3px 6px rgba(var(--sd),.5),
+              -2px -2px 5px var(--bg-surface1),
+              inset 0 1px 0 var(--bg-surface2);
 }
 .routine-switch:active {
   transform: scale(0.95);
-  box-shadow: inset 2px 2px 5px rgba(17,17,27,.5),
-              inset -1px -1px 3px rgba(69,71,90,.1);
+  box-shadow: inset 2px 2px 5px rgba(var(--sd),.5),
+              inset -1px -1px 3px var(--bg-surface1);
 }
 
 .content {
@@ -213,8 +218,8 @@ body:has(textarea:focus) .navbar {
     rgba(30,30,46, calc(.85 + var(--glow) * .1))
   );
   box-shadow:
-    calc(4px + var(--glow) * 1px) calc(4px + var(--glow) * 1px) calc(10px + var(--glow) * 2px) rgba(17,17,27,.6),
-    -3px -3px calc(7px + var(--glow) * 1px) rgba(69,71,90, calc(.2 + var(--glow) * .02)),
+    calc(4px + var(--glow) * 1px) calc(4px + var(--glow) * 1px) calc(10px + var(--glow) * 2px) rgba(var(--sd),.6),
+    -3px -3px calc(7px + var(--glow) * 1px) rgba(var(--su), calc(.2 + var(--glow) * .02)),
     inset 0 0 10px rgba(137,180,250, calc(var(--glow) * .1)),
     0 0 18px rgba(137,180,250, calc(var(--glow) * .25)),
     0 0 6px rgba(137,180,250, calc(var(--glow) * .15));
@@ -227,8 +232,8 @@ body:has(textarea:focus) .navbar {
 
 .navbar button:active {
   transform: scale(0.93);
-  box-shadow: inset 3px 3px 6px rgba(17,17,27,.7),
-              inset -2px -2px 4px rgba(69,71,90,.12);
+  box-shadow: inset 3px 3px 6px rgba(var(--sd),.7),
+              inset -2px -2px 4px var(--bg-surface1);
 }
 
 .nav-icon {
@@ -265,17 +270,17 @@ body:has(textarea:focus) .navbar {
   color: var(--text);
   font-size: 1.3rem;
   flex-shrink: 0;
-  background: linear-gradient(145deg, rgba(49,50,68,.6), rgba(30,30,46,.75));
-  box-shadow: 3px 3px 6px rgba(17,17,27,.5),
-              -2px -2px 5px rgba(69,71,90,.18),
-              inset 0 1px 0 rgba(88,91,112,.1);
+  background: linear-gradient(145deg, var(--bg-surface0), var(--bg-base));
+  box-shadow: 3px 3px 6px rgba(var(--sd),.5),
+              -2px -2px 5px var(--bg-surface1),
+              inset 0 1px 0 var(--bg-surface2);
   transition: all .15s;
 }
 
 .exercise-nav button:active {
   transform: scale(0.93);
-  box-shadow: inset 2px 2px 5px rgba(17,17,27,.5),
-              inset -1px -1px 3px rgba(69,71,90,.1);
+  box-shadow: inset 2px 2px 5px rgba(var(--sd),.5),
+              inset -1px -1px 3px var(--bg-surface1);
 }
 
 .exercise-nav button:disabled {
@@ -283,14 +288,14 @@ body:has(textarea:focus) .navbar {
 }
 
 .commit-btn {
-  background: linear-gradient(145deg, rgba(69,71,90,.85), rgba(49,50,68,.9)) !important;
+  background: linear-gradient(145deg, var(--bg-surface1), rgba(49,50,68,.9)) !important;
   color: var(--text-overlay) !important;
   font-weight: 600;
   font-size: 1.1rem !important;
   padding: 0 14px;
   border-radius: 50px !important;
-  box-shadow: 3px 3px 6px rgba(17,17,27,.4),
-              -2px -2px 5px rgba(69,71,90,.12) !important;
+  box-shadow: 3px 3px 6px rgba(var(--sd),.4),
+              -2px -2px 5px var(--bg-surface1) !important;
 }
 
 .commit-btn:active {
@@ -300,8 +305,8 @@ body:has(textarea:focus) .navbar {
 .commit-btn.committed {
   background: linear-gradient(145deg, rgba(166,227,161,.9), rgba(140,200,135,.95)) !important;
   color: var(--bg-base) !important;
-  box-shadow: 3px 3px 6px rgba(17,17,27,.5),
-              -2px -2px 5px rgba(69,71,90,.18),
+  box-shadow: 3px 3px 6px rgba(var(--sd),.5),
+              -2px -2px 5px var(--bg-surface1),
               0 0 10px rgba(166,227,161,.25) !important;
 }
 
@@ -407,8 +412,8 @@ body:has(textarea:focus) .navbar {
   background: linear-gradient(145deg, #353647, #2d2d3f);
   border-radius: 14px;
   border: 1px solid rgba(137,180,250,.04);
-  box-shadow: 3px 3px 6px rgba(17,17,27,.4),
-              -2px -2px 4px rgba(69,71,90,.12);
+  box-shadow: 3px 3px 6px rgba(var(--sd),.4),
+              -2px -2px 4px var(--bg-surface1);
 }
 
 .set-row.work {
@@ -509,17 +514,17 @@ body:has(textarea:focus) .navbar {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  background: linear-gradient(145deg, rgba(49,50,68,.6), rgba(30,30,46,.75));
-  box-shadow: 3px 3px 6px rgba(17,17,27,.5),
-              -2px -2px 5px rgba(69,71,90,.18),
-              inset 0 1px 0 rgba(88,91,112,.1);
+  background: linear-gradient(145deg, var(--bg-surface0), var(--bg-base));
+  box-shadow: 3px 3px 6px rgba(var(--sd),.5),
+              -2px -2px 5px var(--bg-surface1),
+              inset 0 1px 0 var(--bg-surface2);
   transition: all .15s;
 }
 
 .adj-btn:active {
   transform: scale(0.93);
-  box-shadow: inset 2px 2px 5px rgba(17,17,27,.5),
-              inset -1px -1px 3px rgba(69,71,90,.1);
+  box-shadow: inset 2px 2px 5px rgba(var(--sd),.5),
+              inset -1px -1px 3px var(--bg-surface1);
 }
 
 .set-field input {
@@ -668,7 +673,7 @@ body:has(textarea:focus) .navbar {
   width: auto;
   min-width: 160px;
   padding: 8px 32px 8px 14px;
-  background: linear-gradient(145deg, rgba(49,50,68,.6), rgba(30,30,46,.75));
+  background: linear-gradient(145deg, var(--bg-surface0), var(--bg-base));
   border: 1px solid rgba(137,180,250,.06);
   border-radius: 50px;
   color: var(--text);
@@ -678,9 +683,9 @@ body:has(textarea:focus) .navbar {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%236c7086'%3E%3Cpath d='M6 8L1 3h10z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 12px center;
-  box-shadow: 3px 3px 6px rgba(17,17,27,.45),
-              -2px -2px 5px rgba(69,71,90,.15),
-              inset 0 1px 0 rgba(88,91,112,.1);
+  box-shadow: 3px 3px 6px rgba(var(--sd),.45),
+              -2px -2px 5px var(--bg-surface1),
+              inset 0 1px 0 var(--bg-surface2);
   text-align: center;
 }
 
@@ -915,25 +920,25 @@ body:has(textarea:focus) .navbar {
   color: var(--text-sub);
   font-size: 0.85rem;
   font-weight: 600;
-  background: linear-gradient(145deg, rgba(49,50,68,.5), rgba(30,30,46,.7));
-  box-shadow: 3px 3px 6px rgba(17,17,27,.45),
-              -2px -2px 5px rgba(69,71,90,.15);
+  background: linear-gradient(145deg, var(--bg-surface0), var(--bg-base));
+  box-shadow: 3px 3px 6px rgba(var(--sd),.45),
+              -2px -2px 5px var(--bg-surface1);
   transition: all .2s;
 }
 
 .settings-tabs button.active {
   color: #89b4fa;
   border-color: rgba(137,180,250,.2);
-  box-shadow: 3px 3px 6px rgba(17,17,27,.45),
-              -2px -2px 5px rgba(69,71,90,.15),
+  box-shadow: 3px 3px 6px rgba(var(--sd),.45),
+              -2px -2px 5px var(--bg-surface1),
               0 0 12px rgba(137,180,250,.15),
               inset 0 0 6px rgba(137,180,250,.08);
 }
 
 .settings-tabs button:active {
   transform: scale(0.95);
-  box-shadow: inset 2px 2px 4px rgba(17,17,27,.5),
-              inset -1px -1px 3px rgba(69,71,90,.1);
+  box-shadow: inset 2px 2px 4px rgba(var(--sd),.5),
+              inset -1px -1px 3px var(--bg-surface1);
 }
 
 .settings-page h2 {
@@ -969,15 +974,15 @@ body:has(textarea:focus) .navbar {
   margin-bottom: 8px;
   cursor: pointer;
   transition: all .2s;
-  background: linear-gradient(145deg, rgba(49,50,68,.5), rgba(30,30,46,.7));
-  box-shadow: 3px 3px 6px rgba(17,17,27,.45),
-              -2px -2px 5px rgba(69,71,90,.18),
-              inset 0 1px 0 rgba(88,91,112,.1);
+  background: linear-gradient(145deg, var(--bg-surface0), var(--bg-base));
+  box-shadow: 3px 3px 6px rgba(var(--sd),.45),
+              -2px -2px 5px var(--bg-surface1),
+              inset 0 1px 0 var(--bg-surface2);
 }
 .settings-row:active {
   transform: scale(0.98);
-  box-shadow: inset 2px 2px 5px rgba(17,17,27,.5),
-              inset -1px -1px 3px rgba(69,71,90,.1);
+  box-shadow: inset 2px 2px 5px rgba(var(--sd),.5),
+              inset -1px -1px 3px var(--bg-surface1);
 }
 .settings-row .sr-left { display: flex; align-items: center; gap: 10px; }
 .settings-row .sr-icon { font-size: 18px; }
@@ -1000,7 +1005,7 @@ body:has(textarea:focus) .navbar {
 }
 .gh-form .field input {
   padding: 8px 12px;
-  background: linear-gradient(145deg, rgba(49,50,68,.4), rgba(30,30,46,.6));
+  background: linear-gradient(145deg, var(--bg-surface0), var(--bg-base));
   border: 1px solid rgba(137,180,250,.08);
   border-radius: 10px;
   color: var(--text); font-size: 13px; font-family: inherit; outline: none;
@@ -1033,13 +1038,13 @@ body:has(textarea:focus) .navbar {
 
 .field input, .field select {
   padding: 10px;
-  background: linear-gradient(145deg, rgba(49,50,68,.5), rgba(30,30,46,.7));
+  background: linear-gradient(145deg, var(--bg-surface0), var(--bg-base));
   border: 1px solid rgba(137,180,250,.06);
   border-radius: 14px;
   color: var(--text);
   font-size: 1rem;
-  box-shadow: inset 2px 2px 4px rgba(17,17,27,.4),
-              inset -1px -1px 3px rgba(69,71,90,.08);
+  box-shadow: inset 2px 2px 4px rgba(var(--sd),.4),
+              inset -1px -1px 3px var(--bg-surface1);
 }
 
 .field select {
@@ -1068,16 +1073,16 @@ body:has(textarea:focus) .navbar {
   font-size: 0.9rem;
   font-weight: 600;
   margin-top: 8px;
-  background: linear-gradient(145deg, rgba(49,50,68,.6), rgba(30,30,46,.75));
-  box-shadow: 3px 3px 6px rgba(17,17,27,.5),
-              -2px -2px 5px rgba(69,71,90,.18),
-              inset 0 1px 0 rgba(88,91,112,.1);
+  background: linear-gradient(145deg, var(--bg-surface0), var(--bg-base));
+  box-shadow: 3px 3px 6px rgba(var(--sd),.5),
+              -2px -2px 5px var(--bg-surface1),
+              inset 0 1px 0 var(--bg-surface2);
   transition: all .15s;
 }
 .primary-btn:active {
   transform: scale(0.97);
-  box-shadow: inset 2px 2px 5px rgba(17,17,27,.5),
-              inset -1px -1px 3px rgba(69,71,90,.1);
+  box-shadow: inset 2px 2px 5px rgba(var(--sd),.5),
+              inset -1px -1px 3px var(--bg-surface1);
 }
 
 .danger-btn {
@@ -1088,23 +1093,23 @@ body:has(textarea:focus) .navbar {
   color: #f38ba8;
   font-size: 0.9rem;
   font-weight: 600;
-  background: linear-gradient(145deg, rgba(49,50,68,.6), rgba(30,30,46,.75));
-  box-shadow: 3px 3px 6px rgba(17,17,27,.5),
-              -2px -2px 5px rgba(69,71,90,.18);
+  background: linear-gradient(145deg, var(--bg-surface0), var(--bg-base));
+  box-shadow: 3px 3px 6px rgba(var(--sd),.5),
+              -2px -2px 5px var(--bg-surface1);
 }
 .danger-btn:active {
   transform: scale(0.97);
-  box-shadow: inset 2px 2px 5px rgba(17,17,27,.5),
-              inset -1px -1px 3px rgba(69,71,90,.1);
+  box-shadow: inset 2px 2px 5px rgba(var(--sd),.5),
+              inset -1px -1px 3px var(--bg-surface1);
 }
 
 .connected-info {
-  background: linear-gradient(145deg, rgba(49,50,68,.4), rgba(30,30,46,.6));
+  background: linear-gradient(145deg, var(--bg-surface0), var(--bg-base));
   padding: 16px;
   border-radius: 14px;
   border: 1px solid rgba(137,180,250,.06);
-  box-shadow: 3px 3px 6px rgba(17,17,27,.4),
-              -2px -2px 4px rgba(69,71,90,.12);
+  box-shadow: 3px 3px 6px rgba(var(--sd),.4),
+              -2px -2px 4px var(--bg-surface1);
 }
 
 .connected-info p {
@@ -1137,8 +1142,8 @@ body:has(textarea:focus) .navbar {
   background: linear-gradient(145deg, #353647, #2d2d3f);
   border-radius: 14px;
   border: 1px solid rgba(137,180,250,.04);
-  box-shadow: 3px 3px 6px rgba(17,17,27,.4),
-              -2px -2px 4px rgba(69,71,90,.12);
+  box-shadow: 3px 3px 6px rgba(var(--sd),.4),
+              -2px -2px 4px var(--bg-surface1);
   gap: 8px;
   user-select: none;
 }
@@ -1176,14 +1181,14 @@ body:has(textarea:focus) .navbar {
   font-size: 1rem;
   font-weight: 600;
   flex-shrink: 0;
-  background: linear-gradient(145deg, rgba(49,50,68,.5), rgba(30,30,46,.7));
-  box-shadow: 2px 2px 4px rgba(17,17,27,.4),
-              -1px -1px 3px rgba(69,71,90,.12);
+  background: linear-gradient(145deg, var(--bg-surface0), var(--bg-base));
+  box-shadow: 2px 2px 4px rgba(var(--sd),.4),
+              -1px -1px 3px var(--bg-surface1);
 }
 .del-btn:active {
   transform: scale(0.93);
-  box-shadow: inset 2px 2px 4px rgba(17,17,27,.5),
-              inset -1px -1px 3px rgba(69,71,90,.1);
+  box-shadow: inset 2px 2px 4px rgba(var(--sd),.5),
+              inset -1px -1px 3px var(--bg-surface1);
 }
 
 .add-btn {
@@ -1194,14 +1199,14 @@ body:has(textarea:focus) .navbar {
   color: var(--text-sub);
   font-size: 0.9rem;
   margin-top: 8px;
-  background: linear-gradient(145deg, rgba(49,50,68,.3), rgba(30,30,46,.5));
-  box-shadow: 3px 3px 6px rgba(17,17,27,.35),
-              -2px -2px 5px rgba(69,71,90,.12);
+  background: linear-gradient(145deg, var(--bg-surface0), var(--bg-base));
+  box-shadow: 3px 3px 6px rgba(var(--sd),.35),
+              -2px -2px 5px var(--bg-surface1);
 }
 .add-btn:active {
   transform: scale(0.97);
-  box-shadow: inset 2px 2px 4px rgba(17,17,27,.5),
-              inset -1px -1px 3px rgba(69,71,90,.1);
+  box-shadow: inset 2px 2px 4px rgba(var(--sd),.5),
+              inset -1px -1px 3px var(--bg-surface1);
 }
 
 /* Modal */
@@ -1228,8 +1233,8 @@ body:has(textarea:focus) .navbar {
   border: 1px solid rgba(137,180,250,.08);
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 8px 8px 20px rgba(17,17,27,.7),
-              -4px -4px 10px rgba(69,71,90,.15),
+  box-shadow: 8px 8px 20px rgba(var(--sd),.7),
+              -4px -4px 10px var(--bg-surface1),
               0 0 30px rgba(0,0,0,.4);
 }
 
@@ -1713,15 +1718,15 @@ body:has(textarea:focus) .navbar {
 .stats-subtabs { display: flex; gap: 8px; margin-bottom: 14px; justify-content: center; }
 .stats-subtabs button { flex: 0 1 auto; color: var(--text-sub); border: 1px solid rgba(137,180,250,.06); border-radius: 50px; padding: 7px 16px;
   font-size: 12px; font-weight: 600; cursor: pointer;
-  background: linear-gradient(145deg, rgba(49,50,68,.5), rgba(30,30,46,.7));
-  box-shadow: 3px 3px 6px rgba(17,17,27,.45), -2px -2px 5px rgba(69,71,90,.15);
+  background: linear-gradient(145deg, var(--bg-surface0), var(--bg-base));
+  box-shadow: 3px 3px 6px rgba(var(--sd),.45), -2px -2px 5px var(--bg-surface1);
   transition: all .2s; }
 .stats-subtabs button.active { color: #89b4fa;
-  box-shadow: 3px 3px 6px rgba(17,17,27,.45), -2px -2px 5px rgba(69,71,90,.15),
+  box-shadow: 3px 3px 6px rgba(var(--sd),.45), -2px -2px 5px var(--bg-surface1),
               0 0 12px rgba(137,180,250,.15), inset 0 0 6px rgba(137,180,250,.08);
   border-color: rgba(137,180,250,.2); }
 .stats-subtabs button:active { transform: scale(0.95);
-  box-shadow: inset 2px 2px 4px rgba(17,17,27,.5), inset -1px -1px 3px rgba(69,71,90,.1); }
+  box-shadow: inset 2px 2px 4px rgba(var(--sd),.5), inset -1px -1px 3px var(--bg-surface1); }
 
 .hero-quad { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
 .hero-card { background: var(--bg-surface0); border: 1px solid var(--bg-surface1); border-radius: 10px; padding: 12px; }
@@ -2015,8 +2020,8 @@ body:has(textarea:focus) .tabbar {
     rgba(30,30,46, calc(.85 + var(--glow) * .1))
   );
   box-shadow:
-    calc(4px + var(--glow) * 1px) calc(4px + var(--glow) * 1px) calc(10px + var(--glow) * 2px) rgba(17,17,27,.6),
-    -3px -3px calc(7px + var(--glow) * 1px) rgba(69,71,90, calc(.2 + var(--glow) * .02)),
+    calc(4px + var(--glow) * 1px) calc(4px + var(--glow) * 1px) calc(10px + var(--glow) * 2px) rgba(var(--sd),.6),
+    -3px -3px calc(7px + var(--glow) * 1px) rgba(var(--su), calc(.2 + var(--glow) * .02)),
     inset 0 0 10px rgba(137,180,250, calc(var(--glow) * .1)),
     0 0 18px rgba(137,180,250, calc(var(--glow) * .25)),
     0 0 6px rgba(137,180,250, calc(var(--glow) * .15));
@@ -2027,8 +2032,8 @@ body:has(textarea:focus) .tabbar {
 .tabbar button.swiping { transition: transform .12s ease; }
 .tabbar button:active {
   transform: scale(0.93);
-  box-shadow: inset 3px 3px 6px rgba(17,17,27,.7),
-              inset -2px -2px 4px rgba(69,71,90,.12);
+  box-shadow: inset 3px 3px 6px rgba(var(--sd),.7),
+              inset -2px -2px 4px var(--bg-surface1);
 }
 .tabbar .glyph {
   font-size: 20px;
@@ -2062,16 +2067,16 @@ body:has(textarea:focus) .tabbar {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(145deg, rgba(49,50,68,.5), rgba(30,30,46,.7));
-  box-shadow: 3px 3px 7px rgba(17,17,27,.5),
-              -2px -2px 5px rgba(69,71,90,.15),
-              inset 0 1px 0 rgba(88,91,112,.1);
+  background: linear-gradient(145deg, var(--bg-surface0), var(--bg-base));
+  box-shadow: 3px 3px 7px rgba(var(--sd),.5),
+              -2px -2px 5px var(--bg-surface1),
+              inset 0 1px 0 var(--bg-surface2);
   transition: all .2s ease;
 }
 .log-header button:active {
   transform: scale(0.9);
-  box-shadow: inset 3px 3px 5px rgba(17,17,27,.6),
-              inset -1px -1px 3px rgba(69,71,90,.1);
+  box-shadow: inset 3px 3px 5px rgba(var(--sd),.6),
+              inset -1px -1px 3px var(--bg-surface1);
 }
 .log-header button:disabled {
   opacity: 0.3;
@@ -2262,7 +2267,7 @@ body:has(textarea:focus) .tabbar {
 .planet.pending .p-name { color: var(--text-overlay); }
 .planet.na {
   background: transparent;
-  border: 1px dashed rgba(69,71,90,.3);
+  border: 1px dashed var(--bg-surface1);
   box-shadow: none;
   opacity: .3;
   cursor: default;
@@ -2351,16 +2356,16 @@ body:has(textarea:focus) .tabbar {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(145deg, rgba(49,50,68,.45), rgba(30,30,46,.6));
-  box-shadow: 3px 3px 7px rgba(17,17,27,.45),
-              -2px -2px 5px rgba(69,71,90,.15),
-              inset 0 1px 0 rgba(88,91,112,.1);
+  background: linear-gradient(145deg, var(--bg-surface0), var(--bg-base));
+  box-shadow: 3px 3px 7px rgba(var(--sd),.45),
+              -2px -2px 5px var(--bg-surface1),
+              inset 0 1px 0 var(--bg-surface2);
   transition: all .2s ease;
 }
 .log-metric .lm-btn:active {
   transform: scale(0.92);
-  box-shadow: inset 3px 3px 6px rgba(17,17,27,.6),
-              inset -1px -1px 3px rgba(69,71,90,.1);
+  box-shadow: inset 3px 3px 6px rgba(var(--sd),.6),
+              inset -1px -1px 3px var(--bg-surface1);
 }
 .log-metric .lm-val {
   font-size: 22px;
@@ -2438,10 +2443,10 @@ body:has(textarea:focus) .tabbar {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(145deg, rgba(49,50,68,.55), rgba(30,30,46,.7));
-  box-shadow: 4px 4px 9px rgba(17,17,27,.55),
-              -2px -2px 6px rgba(69,71,90,.18),
-              inset 0 1px 0 rgba(88,91,112,.12);
+  background: linear-gradient(145deg, var(--bg-surface0), var(--bg-base));
+  box-shadow: 4px 4px 9px rgba(var(--sd),.55),
+              -2px -2px 6px var(--bg-surface1),
+              inset 0 1px 0 var(--bg-surface2);
   transition: all .15s ease;
   -webkit-user-select: none;
   user-select: none;
@@ -2449,8 +2454,8 @@ body:has(textarea:focus) .tabbar {
 }
 .water-btn:active {
   transform: scale(0.93);
-  box-shadow: inset 3px 3px 7px rgba(17,17,27,.6),
-              inset -1px -1px 3px rgba(69,71,90,.1);
+  box-shadow: inset 3px 3px 7px rgba(var(--sd),.6),
+              inset -1px -1px 3px var(--bg-surface1);
 }
 
 /* Habit chips (toggles below measurements) */
@@ -2470,21 +2475,21 @@ body:has(textarea:focus) .tabbar {
   cursor: pointer;
   user-select: none;
   transition: all .2s;
-  background: linear-gradient(145deg, rgba(49,50,68,.6), rgba(30,30,46,.8));
-  box-shadow: 3px 3px 6px rgba(17,17,27,.5),
-              -2px -2px 5px rgba(69,71,90,.2),
-              inset 0 1px 0 rgba(88,91,112,.12);
+  background: linear-gradient(145deg, var(--bg-surface0), var(--bg-base));
+  box-shadow: 3px 3px 6px rgba(var(--sd),.5),
+              -2px -2px 5px var(--bg-surface1),
+              inset 0 1px 0 var(--bg-surface2);
   color: var(--text-overlay);
 }
 .habit-chip:active:not(.disabled) {
   transform: scale(0.96);
-  box-shadow: inset 2px 2px 5px rgba(17,17,27,.55),
-              inset -1px -1px 3px rgba(69,71,90,.1);
+  box-shadow: inset 2px 2px 5px rgba(var(--sd),.55),
+              inset -1px -1px 3px var(--bg-surface1);
 }
 .habit-chip.active {
-  background: linear-gradient(145deg, rgba(49,50,68,.7), rgba(30,30,46,.9));
-  box-shadow: 3px 3px 6px rgba(17,17,27,.5),
-              -2px -2px 5px rgba(69,71,90,.2),
+  background: linear-gradient(145deg, var(--bg-surface0), var(--bg-base));
+  box-shadow: 3px 3px 6px rgba(var(--sd),.5),
+              -2px -2px 5px var(--bg-surface1),
               inset 0 0 14px color-mix(in srgb, var(--c) 15%, transparent),
               0 0 12px color-mix(in srgb, var(--c) 25%, transparent);
   color: var(--text);
@@ -2540,21 +2545,21 @@ body:has(textarea:focus) .tabbar {
   transition: all .25s;
   letter-spacing: .5px;
   border-radius: 50px;
-  background: linear-gradient(145deg, rgba(49,50,68,.65), rgba(30,30,46,.8));
-  box-shadow: 4px 4px 8px rgba(17,17,27,.5),
-              -2px -2px 5px rgba(69,71,90,.18),
-              inset 0 1px 0 rgba(88,91,112,.1);
+  background: linear-gradient(145deg, var(--bg-surface0), var(--bg-base));
+  box-shadow: 4px 4px 8px rgba(var(--sd),.5),
+              -2px -2px 5px var(--bg-surface1),
+              inset 0 1px 0 var(--bg-surface2);
 }
 .stats-nav button:active {
   transform: scale(0.95);
-  box-shadow: inset 3px 3px 5px rgba(17,17,27,.6),
-              inset -1px -1px 3px rgba(69,71,90,.1);
+  box-shadow: inset 3px 3px 5px rgba(var(--sd),.6),
+              inset -1px -1px 3px var(--bg-surface1);
 }
 .stats-nav button.active {
-  background: linear-gradient(145deg, rgba(49,50,68,.8), rgba(30,30,46,.95));
+  background: linear-gradient(145deg, var(--bg-surface0), var(--bg-base));
   color: var(--text);
-  box-shadow: 4px 4px 8px rgba(17,17,27,.5),
-              -2px -2px 5px rgba(69,71,90,.18),
+  box-shadow: 4px 4px 8px rgba(var(--sd),.5),
+              -2px -2px 5px var(--bg-surface1),
               0 0 14px rgba(137,180,250,.15),
               0 0 5px rgba(137,180,250,.1),
               inset 0 0 8px rgba(137,180,250,.08);
@@ -2776,10 +2781,10 @@ body:has(textarea:focus) .tabbar {
   -webkit-appearance: none;
   appearance: none;
   background-color: transparent;
-  background: linear-gradient(145deg, rgba(49,50,68,.5), rgba(30,30,46,.7));
-  box-shadow: 3px 3px 6px rgba(17,17,27,.45),
-              -2px -2px 5px rgba(69,71,90,.18),
-              inset 0 1px 0 rgba(88,91,112,.1);
+  background: linear-gradient(145deg, var(--bg-surface0), var(--bg-base));
+  box-shadow: 3px 3px 6px rgba(var(--sd),.45),
+              -2px -2px 5px var(--bg-surface1),
+              inset 0 1px 0 var(--bg-surface2);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 5l3 3 3-3' stroke='%237080a0' fill='none' stroke-width='1.5'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 10px center;
@@ -3064,9 +3069,9 @@ body:has(textarea:focus) .tabbar {
   font-weight: 600;
   font-family: inherit;
   cursor: pointer;
-  background: linear-gradient(145deg, rgba(49,50,68,.6), rgba(30,30,46,.8));
-  box-shadow: 2px 2px 5px rgba(17,17,27,.45),
-              -1px -1px 3px rgba(69,71,90,.18);
+  background: linear-gradient(145deg, var(--bg-surface0), var(--bg-base));
+  box-shadow: 2px 2px 5px rgba(var(--sd),.45),
+              -1px -1px 3px var(--bg-surface1);
   color: var(--text);
   transition: all .2s;
 }
@@ -3075,8 +3080,8 @@ body:has(textarea:focus) .tabbar {
 }
 .phase-card .pc-actions button:active {
   transform: scale(0.95);
-  box-shadow: inset 2px 2px 4px rgba(17,17,27,.5),
-              inset -1px -1px 2px rgba(69,71,90,.1);
+  box-shadow: inset 2px 2px 4px rgba(var(--sd),.5),
+              inset -1px -1px 2px var(--bg-surface1);
 }
 .phase-card .pc-actions button.del { color: #f38ba8; }
 
@@ -3117,16 +3122,16 @@ body:has(textarea:focus) .tabbar {
   font-size: 13px;
   font-family: inherit;
   cursor: pointer;
-  background: linear-gradient(145deg, rgba(49,50,68,.4), rgba(30,30,46,.6));
-  box-shadow: 3px 3px 6px rgba(17,17,27,.4),
-              -2px -2px 5px rgba(69,71,90,.15),
-              inset 0 1px 0 rgba(88,91,112,.1);
+  background: linear-gradient(145deg, var(--bg-surface0), var(--bg-base));
+  box-shadow: 3px 3px 6px rgba(var(--sd),.4),
+              -2px -2px 5px var(--bg-surface1),
+              inset 0 1px 0 var(--bg-surface2);
   transition: all .2s;
 }
 .add-phase-btn:active {
   transform: scale(0.97);
-  box-shadow: inset 2px 2px 5px rgba(17,17,27,.5),
-              inset -1px -1px 3px rgba(69,71,90,.1);
+  box-shadow: inset 2px 2px 5px rgba(var(--sd),.5),
+              inset -1px -1px 3px var(--bg-surface1);
 }
 
 /* Settings rows (GitHub sync, etc.) */
@@ -3140,15 +3145,15 @@ body:has(textarea:focus) .tabbar {
   margin-bottom: 8px;
   cursor: pointer;
   transition: all .2s;
-  background: linear-gradient(145deg, rgba(49,50,68,.5), rgba(30,30,46,.7));
-  box-shadow: 3px 3px 6px rgba(17,17,27,.45),
-              -2px -2px 5px rgba(69,71,90,.18),
-              inset 0 1px 0 rgba(88,91,112,.1);
+  background: linear-gradient(145deg, var(--bg-surface0), var(--bg-base));
+  box-shadow: 3px 3px 6px rgba(var(--sd),.45),
+              -2px -2px 5px var(--bg-surface1),
+              inset 0 1px 0 var(--bg-surface2);
 }
 .settings-row:active {
   transform: scale(0.98);
-  box-shadow: inset 2px 2px 5px rgba(17,17,27,.5),
-              inset -1px -1px 3px rgba(69,71,90,.1);
+  box-shadow: inset 2px 2px 5px rgba(var(--sd),.5),
+              inset -1px -1px 3px var(--bg-surface1);
 }
 .settings-row .sr-left { display: flex; align-items: center; gap: 10px; }
 .settings-row .sr-icon { font-size: 18px; }
@@ -3177,7 +3182,7 @@ body:has(textarea:focus) .tabbar {
 }
 .gh-form .field input {
   padding: 8px 12px;
-  background: linear-gradient(145deg, rgba(49,50,68,.4), rgba(30,30,46,.6));
+  background: linear-gradient(145deg, var(--bg-surface0), var(--bg-base));
   border: 1px solid rgba(137,180,250,.08);
   border-radius: 10px;
   color: var(--text);
@@ -3204,18 +3209,18 @@ body:has(textarea:focus) .tabbar {
   font-family: inherit;
   font-weight: 600;
   cursor: pointer;
-  background: linear-gradient(145deg, rgba(49,50,68,.6), rgba(30,30,46,.8));
-  box-shadow: 4px 4px 8px rgba(17,17,27,.5),
-              -2px -2px 5px rgba(69,71,90,.2),
+  background: linear-gradient(145deg, var(--bg-surface0), var(--bg-base));
+  box-shadow: 4px 4px 8px rgba(var(--sd),.5),
+              -2px -2px 5px var(--bg-surface1),
               0 0 10px rgba(137,180,250,.12),
-              inset 0 1px 0 rgba(88,91,112,.12);
+              inset 0 1px 0 var(--bg-surface2);
   transition: all .2s;
   margin-top: 8px;
 }
 .primary-btn:active {
   transform: scale(0.97);
-  box-shadow: inset 3px 3px 6px rgba(17,17,27,.6),
-              inset -1px -1px 3px rgba(69,71,90,.1);
+  box-shadow: inset 3px 3px 6px rgba(var(--sd),.6),
+              inset -1px -1px 3px var(--bg-surface1);
 }
 .primary-btn:disabled {
   opacity: 0.4;
@@ -3232,16 +3237,16 @@ body:has(textarea:focus) .tabbar {
   font-weight: 600;
   cursor: pointer;
   margin-top: 8px;
-  background: linear-gradient(145deg, rgba(49,50,68,.5), rgba(30,30,46,.7));
-  box-shadow: 3px 3px 6px rgba(17,17,27,.45),
-              -2px -2px 5px rgba(69,71,90,.18),
-              inset 0 1px 0 rgba(88,91,112,.1);
+  background: linear-gradient(145deg, var(--bg-surface0), var(--bg-base));
+  box-shadow: 3px 3px 6px rgba(var(--sd),.45),
+              -2px -2px 5px var(--bg-surface1),
+              inset 0 1px 0 var(--bg-surface2);
   transition: all .2s;
 }
 .danger-btn:active {
   transform: scale(0.97);
-  box-shadow: inset 3px 3px 6px rgba(17,17,27,.6),
-              inset -1px -1px 3px rgba(69,71,90,.1);
+  box-shadow: inset 3px 3px 6px rgba(var(--sd),.6),
+              inset -1px -1px 3px var(--bg-surface1);
 }
 
 /* Progress bars in phase detail */
@@ -3314,7 +3319,7 @@ body:has(textarea:focus) .tabbar {
 }
 .modal .field input {
   padding: 8px 12px;
-  background: linear-gradient(145deg, rgba(49,50,68,.4), rgba(30,30,46,.6));
+  background: linear-gradient(145deg, var(--bg-surface0), var(--bg-base));
   border: 1px solid rgba(137,180,250,.08);
   border-radius: 10px;
   color: var(--text);
@@ -3341,14 +3346,14 @@ body:has(textarea:focus) .tabbar {
   font-family: inherit;
   font-weight: 600;
   cursor: pointer;
-  background: linear-gradient(145deg, rgba(49,50,68,.5), rgba(30,30,46,.7));
-  box-shadow: 3px 3px 6px rgba(17,17,27,.45),
-              -2px -2px 5px rgba(69,71,90,.18);
+  background: linear-gradient(145deg, var(--bg-surface0), var(--bg-base));
+  box-shadow: 3px 3px 6px rgba(var(--sd),.45),
+              -2px -2px 5px var(--bg-surface1);
 }
 .cancel-btn:active {
   transform: scale(0.97);
-  box-shadow: inset 2px 2px 5px rgba(17,17,27,.5),
-              inset -1px -1px 3px rgba(69,71,90,.1);
+  box-shadow: inset 2px 2px 5px rgba(var(--sd),.5),
+              inset -1px -1px 3px var(--bg-surface1);
 }
 
 /* ---- Measurements table ---- */
@@ -3436,9 +3441,9 @@ body:has(textarea:focus) .tabbar {
 }
 .stats-view-toggle button svg { display: block; }
 .stats-view-toggle button.active {
-  background: linear-gradient(145deg, rgba(49,50,68,.9), rgba(30,30,46,.95));
+  background: linear-gradient(145deg, var(--bg-surface0), var(--bg-base));
   color: #89b4fa;
-  box-shadow: inset 2px 2px 4px rgba(17,17,27,.35), inset -1px -1px 3px rgba(69,71,90,.12);
+  box-shadow: inset 2px 2px 4px rgba(var(--sd),.35), inset -1px -1px 3px var(--bg-surface1);
 }
 .stats-phase-picker select {
   background: var(--bg-mantle);
@@ -3479,9 +3484,9 @@ body:has(textarea:focus) .tabbar {
   transition: all .15s;
 }
 .settings-subnav button.active {
-  background: linear-gradient(145deg, rgba(49,50,68,.9), rgba(30,30,46,.95));
+  background: linear-gradient(145deg, var(--bg-surface0), var(--bg-base));
   color: #89b4fa;
-  box-shadow: inset 2px 2px 4px rgba(17,17,27,.35), inset -1px -1px 3px rgba(69,71,90,.12);
+  box-shadow: inset 2px 2px 4px rgba(var(--sd),.35), inset -1px -1px 3px var(--bg-surface1);
 }
 
 /* Phase type pills (in phase modal) */
@@ -3584,7 +3589,7 @@ body:has(textarea:focus) .tabbar {
   padding: 0;
   border: 0;
   border-radius: 50%;
-  background: linear-gradient(145deg, rgba(49,50,68,.6), rgba(30,30,46,.75));
+  background: linear-gradient(145deg, var(--bg-surface0), var(--bg-base));
   color: #f38ba8;
   font-size: 14px;
   line-height: 1;
@@ -3593,14 +3598,14 @@ body:has(textarea:focus) .tabbar {
   justify-content: center;
   cursor: pointer;
   flex-shrink: 0;
-  box-shadow: 2px 2px 4px rgba(17,17,27,.4),
-              -1px -1px 3px rgba(69,71,90,.12);
+  box-shadow: 2px 2px 4px rgba(var(--sd),.4),
+              -1px -1px 3px var(--bg-surface1);
   transition: all .12s;
 }
 .x-btn:active {
   transform: scale(0.93);
-  box-shadow: inset 2px 2px 4px rgba(17,17,27,.5),
-              inset -1px -1px 2px rgba(69,71,90,.1);
+  box-shadow: inset 2px 2px 4px rgba(var(--sd),.5),
+              inset -1px -1px 2px var(--bg-surface1);
 }
 
 /* Tall modal with stable size — reserves space so content changes don't cause jumps */
@@ -3653,7 +3658,7 @@ body:has(textarea:focus) .tabbar {
 .weekday-row .wr-circles button.taken {
   background: #0e0e17;
   color: var(--bg-surface2);
-  border-color: rgba(69,71,90,.3);
+  border-color: var(--bg-surface1);
 }
 
 /* Cycle row */
@@ -3719,7 +3724,7 @@ body:has(textarea:focus) .tabbar {
   text-align: center;
 }
 .day-picker .dp-option {
-  background: linear-gradient(145deg, rgba(49,50,68,.6), rgba(30,30,46,.75));
+  background: linear-gradient(145deg, var(--bg-surface0), var(--bg-base));
   border: 1px solid rgba(137,180,250,.08);
   color: var(--text);
   padding: 10px 14px;
@@ -3728,8 +3733,8 @@ body:has(textarea:focus) .tabbar {
   font-weight: 600;
   font-family: inherit;
   cursor: pointer;
-  box-shadow: 3px 3px 6px rgba(17,17,27,.5),
-              -1px -1px 3px rgba(69,71,90,.12);
+  box-shadow: 3px 3px 6px rgba(var(--sd),.5),
+              -1px -1px 3px var(--bg-surface1);
 }
 .day-picker .dp-option.active {
   color: #89b4fa;
@@ -3825,7 +3830,7 @@ body:has(textarea:focus) .tabbar {
   border-radius: 24px;
   cursor: pointer;
   transition: background .2s;
-  box-shadow: inset 1px 1px 3px rgba(17,17,27,.55);
+  box-shadow: inset 1px 1px 3px rgba(var(--sd),.55);
 }
 .toggle-switch .slider::before {
   content: '';
@@ -3837,7 +3842,7 @@ body:has(textarea:focus) .tabbar {
   background: var(--text);
   border-radius: 50%;
   transition: transform .2s;
-  box-shadow: 1px 1px 3px rgba(17,17,27,.4);
+  box-shadow: 1px 1px 3px rgba(var(--sd),.4);
 }
 .toggle-switch input:checked + .slider {
   background: #a6e3a1;
@@ -3894,7 +3899,7 @@ body:has(textarea:focus) .tabbar {
   padding: 6px 12px;
   border: 1px solid rgba(137,180,250,.15);
   border-radius: 8px;
-  background: linear-gradient(145deg, rgba(49,50,68,.6), rgba(30,30,46,.75));
+  background: linear-gradient(145deg, var(--bg-surface0), var(--bg-base));
   color: #89b4fa;
   font-size: 12px;
   font-weight: 600;
@@ -4091,7 +4096,7 @@ body:has(textarea:focus) .tabbar {
   border: 1px solid rgba(137,180,250,.08);
   border-bottom: none;
   box-shadow: 0 -8px 24px rgba(0,0,0,.55),
-              0 -2px 6px rgba(69,71,90,.12);
+              0 -2px 6px var(--bg-surface1);
   padding: 14px 14px calc(20px + env(safe-area-inset-bottom, 0));
   display: flex;
   flex-direction: column;
@@ -4161,16 +4166,16 @@ body:has(textarea:focus) .tabbar {
   font-size: 16px;
   color: var(--text);
   cursor: pointer;
-  background: linear-gradient(145deg, rgba(49,50,68,.5), rgba(30,30,46,.7));
-  box-shadow: 2px 2px 5px rgba(17,17,27,.5),
-              -1px -1px 3px rgba(69,71,90,.15),
-              inset 0 1px 0 rgba(88,91,112,.1);
+  background: linear-gradient(145deg, var(--bg-surface0), var(--bg-base));
+  box-shadow: 2px 2px 5px rgba(var(--sd),.5),
+              -1px -1px 3px var(--bg-surface1),
+              inset 0 1px 0 var(--bg-surface2);
   transition: transform .1s;
 }
 .kp-backspace:active {
   transform: scale(0.94);
-  box-shadow: inset 2px 2px 4px rgba(17,17,27,.5),
-              inset -1px -1px 2px rgba(69,71,90,.1);
+  box-shadow: inset 2px 2px 4px rgba(var(--sd),.5),
+              inset -1px -1px 2px var(--bg-surface1);
 }
 
 /* 3-col grid of keys */
@@ -4188,10 +4193,10 @@ body:has(textarea:focus) .tabbar {
   font-weight: 600;
   color: var(--text);
   height: 56px;
-  background: linear-gradient(145deg, rgba(49,50,68,.6), rgba(30,30,46,.75));
-  box-shadow: 3px 3px 6px rgba(17,17,27,.55),
-              -2px -2px 5px rgba(69,71,90,.18),
-              inset 0 1px 0 rgba(88,91,112,.1);
+  background: linear-gradient(145deg, var(--bg-surface0), var(--bg-base));
+  box-shadow: 3px 3px 6px rgba(var(--sd),.55),
+              -2px -2px 5px var(--bg-surface1),
+              inset 0 1px 0 var(--bg-surface2);
   cursor: pointer;
   font-variant-numeric: tabular-nums;
   touch-action: manipulation;
@@ -4199,8 +4204,8 @@ body:has(textarea:focus) .tabbar {
 }
 .kp-key:active {
   transform: scale(0.95);
-  box-shadow: inset 2px 2px 5px rgba(17,17,27,.5),
-              inset -1px -1px 3px rgba(69,71,90,.1);
+  box-shadow: inset 2px 2px 5px rgba(var(--sd),.5),
+              inset -1px -1px 3px var(--bg-surface1);
 }
 .kp-key:disabled {
   opacity: 0.35;
@@ -4237,16 +4242,16 @@ body:has(textarea:focus) .tabbar {
 .kp-cancel {
   border: 1px solid rgba(166,173,200,.15);
   color: var(--text-sub);
-  background: linear-gradient(145deg, rgba(49,50,68,.45), rgba(30,30,46,.6));
-  box-shadow: 2px 2px 5px rgba(17,17,27,.4),
-              -1px -1px 3px rgba(69,71,90,.12);
+  background: linear-gradient(145deg, var(--bg-surface0), var(--bg-base));
+  box-shadow: 2px 2px 5px rgba(var(--sd),.4),
+              -1px -1px 3px var(--bg-surface1);
 }
 .kp-save {
   border: 1px solid rgba(137,180,250,.35);
   color: #89b4fa;
   background: linear-gradient(145deg, rgba(137,180,250,.22), rgba(137,180,250,.08));
-  box-shadow: 2px 2px 5px rgba(17,17,27,.45),
-              -1px -1px 3px rgba(69,71,90,.15);
+  box-shadow: 2px 2px 5px rgba(var(--sd),.45),
+              -1px -1px 3px var(--bg-surface1);
 }
 .kp-cancel:active,
 .kp-save:active {
@@ -4312,7 +4317,7 @@ body:has(textarea:focus) .tabbar {
   display: inline-flex;
   align-items: center;
   padding: 8px 12px;
-  background: linear-gradient(145deg, rgba(49,50,68,.4), rgba(30,30,46,.6));
+  background: linear-gradient(145deg, var(--bg-surface0), var(--bg-base));
   border: 1px solid rgba(137,180,250,.08);
   border-radius: 10px;
   color: var(--text);
@@ -4335,85 +4340,14 @@ body:has(textarea:focus) .tabbar {
 [data-theme="light"] .app {
   background: radial-gradient(ellipse at 50% 30%, rgba(136, 57, 239, .04) 0%, var(--bg-base) 60%);
 }
-[data-theme="light"] .modal-overlay { background: rgba(76, 79, 105, .25); }
-/* Neumorphic surfaces: soft outer shadow + subtle inner highlight, no harsh dark crust */
-[data-theme="light"] .card,
-[data-theme="light"] .chart-card,
-[data-theme="light"] .stats-block,
-[data-theme="light"] .hero-card,
-[data-theme="light"] .comp-cell,
-[data-theme="light"] .streak-row,
-[data-theme="light"] .pr-info,
-[data-theme="light"] .last-workout,
-[data-theme="light"] .day-picker,
-[data-theme="light"] .modal-content,
-[data-theme="light"] .add-btn-wide,
-[data-theme="light"] .x-btn,
-[data-theme="light"] .adj-btn,
-[data-theme="light"] .set-row,
-[data-theme="light"] .warmup-block,
-[data-theme="light"] .exercise-nav button,
-[data-theme="light"] .calendar-day,
-[data-theme="light"] .heatmap-cell,
-[data-theme="light"] .stat-section-title,
-[data-theme="light"] .lm-row,
-[data-theme="light"] .water-section,
-[data-theme="light"] .water-btn,
-[data-theme="light"] .keypad-trigger,
-[data-theme="light"] .keypad-sheet,
-[data-theme="light"] .toggle-row,
-[data-theme="light"] .ph-row,
-[data-theme="light"] .gh-row,
-[data-theme="light"] .dp-option,
-[data-theme="light"] .stats-row > div,
-[data-theme="light"] .compliance-grid > div,
-[data-theme="light"] button {
-  box-shadow:
-    2px 2px 6px rgba(76, 79, 105, .08),
-    -1px -1px 4px rgba(255, 255, 255, .9) !important;
-}
-[data-theme="light"] .chart-card,
-[data-theme="light"] .stats-block,
-[data-theme="light"] .hero-card,
-[data-theme="light"] .comp-cell,
-[data-theme="light"] .pr-info,
-[data-theme="light"] .last-workout,
-[data-theme="light"] .day-picker,
-[data-theme="light"] .modal-content,
-[data-theme="light"] .toggle-row,
-[data-theme="light"] .ph-row,
-[data-theme="light"] .gh-row,
-[data-theme="light"] .dp-option,
-[data-theme="light"] .lm-row,
-[data-theme="light"] .water-section {
-  background: linear-gradient(145deg, #f5f6f8, #e8eaef) !important;
-}
-[data-theme="light"] .add-btn-wide,
-[data-theme="light"] .keypad-trigger,
-[data-theme="light"] .water-btn,
-[data-theme="light"] .adj-btn {
-  background: linear-gradient(145deg, #f5f6f8, #e0e3e9) !important;
-  color: var(--text) !important;
-}
+[data-theme="light"] .modal-overlay { background: rgba(var(--sd), .25); }
+/* Tabbar in light mode reads the base bg directly. */
 [data-theme="light"] .tabbar {
   background: rgba(239, 241, 245, .92) !important;
-  border-top: 1px solid rgba(76, 79, 105, .1) !important;
-  box-shadow: 0 -4px 14px rgba(76, 79, 105, .06) !important;
-}
-[data-theme="light"] .tabbar button {
-  background: transparent !important;
-  color: var(--text-overlay) !important;
-  box-shadow: none !important;
+  border-top: 1px solid rgba(var(--sd), .1) !important;
 }
 [data-theme="light"] .tabbar button.active { color: #1e66f5 !important; }
-[data-theme="light"] .keypad-sheet {
-  background: linear-gradient(180deg, #f5f6f8, #e6e9ef) !important;
-}
-[data-theme="light"] .keypad-key {
-  background: linear-gradient(145deg, #ffffff, #e6e9ef) !important;
-  color: var(--text) !important;
-  box-shadow: 2px 2px 4px rgba(76, 79, 105, .1), -1px -1px 3px #ffffff !important;
-}
+/* Inputs need an opaque pale fill so text is readable. */
 [data-theme="light"] input,
 [data-theme="light"] textarea,
 [data-theme="light"] select {
