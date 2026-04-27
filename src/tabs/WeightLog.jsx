@@ -4,7 +4,7 @@ import { METRICS, getActiveMetrics, ensureHabits, habitApplies, makeEmptyEntry }
 import { BlackHoleIcon } from '../components/icons'
 import KeypadInput from '../components/KeypadInput'
 
-export default function WeightLog({ entries, setEntries, autoHabitsByDate, habits, settings, water, setWater }) {
+export default function WeightLog({ entries, setEntries, autoHabitsByDate, habits, settings, water, setWater, waterLog, setWaterLog }) {
   const activeMetrics = getActiveMetrics(settings)
   const today = todayKey()
   const [date, setDate] = useState(today)
@@ -16,6 +16,8 @@ export default function WeightLog({ entries, setEntries, autoHabitsByDate, habit
   const celebRafRef = useRef(null)
   const waterLongPressRef = useRef(null)
   const waterLongFiredRef = useRef(false)
+  const waterSectionLongPressRef = useRef(null)
+  const [waterTimelineOpen, setWaterTimelineOpen] = useState(false)
 
   const waterEnabled = settings?.waterEnabled !== false
   const waterGoal = Math.max(1, parseInt(settings?.waterGoalML, 10) || 2500)
@@ -29,6 +31,25 @@ export default function WeightLog({ entries, setEntries, autoHabitsByDate, habit
       const next = Math.max(0, cur + ml)
       return { ...(prev || {}), [date]: next }
     })
+    setWaterLog(prev => {
+      const dayEvents = (prev && prev[date]) || []
+      return { ...(prev || {}), [date]: [...dayEvents, { at: Date.now(), ml }] }
+    })
+  }
+  const openWaterTimeline = () => setWaterTimelineOpen(true)
+  const closeWaterTimeline = () => setWaterTimelineOpen(false)
+  const sectionLongPressDown = () => {
+    if (waterSectionLongPressRef.current) clearTimeout(waterSectionLongPressRef.current)
+    waterSectionLongPressRef.current = setTimeout(() => {
+      openWaterTimeline()
+      waterSectionLongPressRef.current = null
+    }, 500)
+  }
+  const sectionLongPressCancel = () => {
+    if (waterSectionLongPressRef.current) {
+      clearTimeout(waterSectionLongPressRef.current)
+      waterSectionLongPressRef.current = null
+    }
   }
   // Long-press (≥500ms): release subtracts the button's amount.
   // Short tap: release adds the amount.
@@ -298,7 +319,13 @@ export default function WeightLog({ entries, setEntries, autoHabitsByDate, habit
       {waterEnabled && (
         <>
           <div className="log-section-title">Water</div>
-          <div className="water-section">
+          <div
+            className="water-section"
+            onPointerDown={sectionLongPressDown}
+            onPointerUp={sectionLongPressCancel}
+            onPointerLeave={sectionLongPressCancel}
+            onPointerCancel={sectionLongPressCancel}
+          >
             <div className="water-progress-row">
               <span className={`wpr-left ${waterAtGoal ? 'over' : ''}`}>
                 {waterToday} / {waterGoal} ml
@@ -347,6 +374,104 @@ export default function WeightLog({ entries, setEntries, autoHabitsByDate, habit
           )}
         </div>
       )}
+
+      {waterTimelineOpen && (
+        <WaterTimeline
+          events={(waterLog && waterLog[date]) || []}
+          isToday={isToday}
+          onClose={closeWaterTimeline}
+        />
+      )}
     </>
+  )
+}
+
+// Vertical water timeline. Range 6:00-24:00. Past portion of day rendered
+// in the accent color with a "now" marker. Each logged event becomes a dot
+// + label. Same-button bursts (matching ml within 60s) collapse into one
+// dot showing the summed amount; mixed-amount bursts list values comma-
+// separated.
+function WaterTimeline({ events, isToday, onClose }) {
+  const START_HOUR = 6
+  const END_HOUR = 24
+  const totalMin = (END_HOUR - START_HOUR) * 60
+  // Recompute "now" each render (modal stays open briefly).
+  const now = new Date()
+  const nowMin = now.getHours() * 60 + now.getMinutes()
+  const nowFrac = isToday
+    ? Math.min(1, Math.max(0, (nowMin - START_HOUR * 60) / totalMin))
+    : 1
+  // Group events within 60s of each other.
+  const sorted = [...events].sort((a, b) => a.at - b.at)
+  const groups = []
+  for (const ev of sorted) {
+    const last = groups[groups.length - 1]
+    if (last && Math.abs(ev.at - last.lastAt) <= 60_000) {
+      last.events.push(ev)
+      last.lastAt = ev.at
+    } else {
+      groups.push({ events: [ev], lastAt: ev.at })
+    }
+  }
+  const hours = []
+  for (let h = START_HOUR; h <= END_HOUR; h += 3) hours.push(h)
+  const fmtTime = (ms) => {
+    const d = new Date(ms)
+    return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+  }
+  const groupLabel = (g) => {
+    const sums = new Map()
+    for (const ev of g.events) sums.set(ev.ml, (sums.get(ev.ml) || 0) + 1)
+    const parts = []
+    for (const [ml, count] of sums.entries()) {
+      const total = ml * count
+      const sign = total >= 0 ? '+' : '−'
+      parts.push(`${sign}${Math.abs(total)}ml`)
+    }
+    return parts.join(', ')
+  }
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="water-timeline-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="wtm-head">Water timeline</div>
+        <div className="wtm-line-wrap">
+          <div className="wtm-line">
+            <div className="wtm-line-bg"></div>
+            <div className="wtm-line-fill" style={{ height: (nowFrac * 100) + '%' }}></div>
+            {isToday && <div className="wtm-now" style={{ top: (nowFrac * 100) + '%' }}>
+              <div className="wtm-now-dot"></div>
+              <div className="wtm-now-label">{fmtTime(now.getTime())}</div>
+            </div>}
+            {hours.map(h => {
+              const top = ((h - START_HOUR) / (END_HOUR - START_HOUR)) * 100
+              return (
+                <div key={h} className="wtm-hour" style={{ top: top + '%' }}>
+                  <span>{String(h).padStart(2, '0')}:00</span>
+                </div>
+              )
+            })}
+            {groups.map((g, i) => {
+              const at = g.events[g.events.length - 1].at
+              const d = new Date(at)
+              const min = d.getHours() * 60 + d.getMinutes()
+              const top = Math.min(100, Math.max(0, ((min - START_HOUR * 60) / totalMin) * 100))
+              const negative = g.events.every(e => e.ml < 0)
+              return (
+                <div key={i} className={`wtm-event ${negative ? 'neg' : ''}`} style={{ top: top + '%' }}>
+                  <div className="wtm-event-dot"></div>
+                  <div className="wtm-event-label">
+                    {groupLabel(g)} <span className="wtm-event-time">at {fmtTime(at)}</span>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+        {events.length === 0 && (
+          <div className="wtm-empty">No water logged today.</div>
+        )}
+        <button className="wtm-close" onClick={onClose}>Close</button>
+      </div>
+    </div>
   )
 }

@@ -43,6 +43,7 @@ export default function App() {
     activeRoutineId, setActiveRoutineId,
     settings, setSettings,
     water, setWater,
+    waterLog, setWaterLog,
     autoHabitsByDate,
   } = store
 
@@ -196,7 +197,7 @@ export default function App() {
     >
       <main className={`content ${tab === 'weight' ? 'no-scroll' : ''}`} key={tab + ':' + themeKey}>
         {tab === 'weight' && (
-          <WeightLog entries={entries} setEntries={setEntries} autoHabitsByDate={autoHabitsByDate} habits={habits} settings={settings} water={water} setWater={setWater} />
+          <WeightLog entries={entries} setEntries={setEntries} autoHabitsByDate={autoHabitsByDate} habits={habits} settings={settings} water={water} setWater={setWater} waterLog={waterLog} setWaterLog={setWaterLog} />
         )}
         {tab === 'gym' && (
           <GymLog

@@ -73,6 +73,9 @@ export default function useStore() {
   const [activeRoutineId, setActiveRoutineId] = useLocalStorage('tracker_active_routine', null)
   const [settings, setSettings] = useLocalStorage('tracker_settings', { visceralEnabled: false, waterEnabled: true, waterGoalML: 2500 })
   const [water, setWater] = useLocalStorage('tracker_water', {})
+  // Per-day event log: { 'YYYY-MM-DD': [{ at: msEpoch, ml: number }, ...] }.
+  // ml is negative for removals. Used by the water timeline popup.
+  const [waterLog, setWaterLog] = useLocalStorage('tracker_water_log', {})
 
   const autoHabitsByDate = useMemo(() => {
     const out = {}
@@ -98,6 +101,7 @@ export default function useStore() {
     activeRoutineId, setActiveRoutineId,
     settings, setSettings,
     water, setWater,
+    waterLog, setWaterLog,
     autoHabitsByDate,
   }
 }
