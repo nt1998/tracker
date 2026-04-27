@@ -4327,3 +4327,104 @@ body:has(textarea:focus) .tabbar {
 }
 
 .content.no-scroll { overflow: hidden; overscroll-behavior: none; touch-action: none; }
+
+/* ===== LIGHT MODE OVERRIDES =====
+ * Catppuccin Latte. The base CSS is dark-tuned with neumorphic shadows that
+ * look terrible on a light background, so we soften shadows + flip a few
+ * gradient mixes to keep depth without going inverted-cinema look. */
+[data-theme="light"] .app {
+  background: radial-gradient(ellipse at 50% 30%, rgba(136, 57, 239, .04) 0%, var(--bg-base) 60%);
+}
+[data-theme="light"] .modal-overlay { background: rgba(76, 79, 105, .25); }
+/* Neumorphic surfaces: soft outer shadow + subtle inner highlight, no harsh dark crust */
+[data-theme="light"] .card,
+[data-theme="light"] .chart-card,
+[data-theme="light"] .stats-block,
+[data-theme="light"] .hero-card,
+[data-theme="light"] .comp-cell,
+[data-theme="light"] .streak-row,
+[data-theme="light"] .pr-info,
+[data-theme="light"] .last-workout,
+[data-theme="light"] .day-picker,
+[data-theme="light"] .modal-content,
+[data-theme="light"] .add-btn-wide,
+[data-theme="light"] .x-btn,
+[data-theme="light"] .adj-btn,
+[data-theme="light"] .set-row,
+[data-theme="light"] .warmup-block,
+[data-theme="light"] .exercise-nav button,
+[data-theme="light"] .calendar-day,
+[data-theme="light"] .heatmap-cell,
+[data-theme="light"] .stat-section-title,
+[data-theme="light"] .lm-row,
+[data-theme="light"] .water-section,
+[data-theme="light"] .water-btn,
+[data-theme="light"] .keypad-trigger,
+[data-theme="light"] .keypad-sheet,
+[data-theme="light"] .toggle-row,
+[data-theme="light"] .ph-row,
+[data-theme="light"] .gh-row,
+[data-theme="light"] .dp-option,
+[data-theme="light"] .stats-row > div,
+[data-theme="light"] .compliance-grid > div,
+[data-theme="light"] button {
+  box-shadow:
+    2px 2px 6px rgba(76, 79, 105, .08),
+    -1px -1px 4px rgba(255, 255, 255, .9) !important;
+}
+[data-theme="light"] .chart-card,
+[data-theme="light"] .stats-block,
+[data-theme="light"] .hero-card,
+[data-theme="light"] .comp-cell,
+[data-theme="light"] .pr-info,
+[data-theme="light"] .last-workout,
+[data-theme="light"] .day-picker,
+[data-theme="light"] .modal-content,
+[data-theme="light"] .toggle-row,
+[data-theme="light"] .ph-row,
+[data-theme="light"] .gh-row,
+[data-theme="light"] .dp-option,
+[data-theme="light"] .lm-row,
+[data-theme="light"] .water-section {
+  background: linear-gradient(145deg, #f5f6f8, #e8eaef) !important;
+}
+[data-theme="light"] .add-btn-wide,
+[data-theme="light"] .keypad-trigger,
+[data-theme="light"] .water-btn,
+[data-theme="light"] .adj-btn {
+  background: linear-gradient(145deg, #f5f6f8, #e0e3e9) !important;
+  color: var(--text) !important;
+}
+[data-theme="light"] .tabbar {
+  background: rgba(239, 241, 245, .92) !important;
+  border-top: 1px solid rgba(76, 79, 105, .1) !important;
+  box-shadow: 0 -4px 14px rgba(76, 79, 105, .06) !important;
+}
+[data-theme="light"] .tabbar button {
+  background: transparent !important;
+  color: var(--text-overlay) !important;
+  box-shadow: none !important;
+}
+[data-theme="light"] .tabbar button.active { color: #1e66f5 !important; }
+[data-theme="light"] .keypad-sheet {
+  background: linear-gradient(180deg, #f5f6f8, #e6e9ef) !important;
+}
+[data-theme="light"] .keypad-key {
+  background: linear-gradient(145deg, #ffffff, #e6e9ef) !important;
+  color: var(--text) !important;
+  box-shadow: 2px 2px 4px rgba(76, 79, 105, .1), -1px -1px 3px #ffffff !important;
+}
+[data-theme="light"] input,
+[data-theme="light"] textarea,
+[data-theme="light"] select {
+  background: rgba(255, 255, 255, .7) !important;
+  color: var(--text) !important;
+  border-color: rgba(76, 79, 105, .15) !important;
+}
+[data-theme="light"] .dot.miss { border-color: rgba(76, 79, 105, .25) !important; }
+[data-theme="light"] .dot.na { background: rgba(76, 79, 105, .08) !important; }
+[data-theme="light"] .heatmap-cell {
+  background: rgba(76, 79, 105, .06) !important;
+  box-shadow: none !important;
+}
+[data-theme="light"] .pct-bar { background: rgba(76, 79, 105, .12) !important; }

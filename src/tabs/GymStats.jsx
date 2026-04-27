@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Bar, Line } from 'react-chartjs-2'
 import { todayKey } from '../lib/dates'
 import { toKg } from '../lib/weights'
+import { themedChartColors } from '../lib/chartSetup'
 
 // Render kg value with unit, switching to tons above 1000 kg.
 const fmtKg = v => v >= 1000 ? `${(v / 1000).toFixed(1)} t` : `${Math.round(v)} kg`
@@ -331,14 +332,14 @@ export default function GymStats({ workouts, phases, exercises, routines, active
                       { label: 'Volume', data: weekly.map(w => Math.round(w.volume || 0)), backgroundColor: '#89b4fa', borderRadius: 4 },
                     ],
                   }}
-                  options={{
+                  options={(() => { const c = themedChartColors(); return {
                     responsive: true, maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
                     scales: {
-                      x: { ticks: { color: '#6c7086', font: { size: 9 } }, grid: { display: false } },
-                      y: { ticks: { color: '#6c7086', font: { size: 9 }, callback: v => fmtKg(v) }, grid: { color: '#313244' } },
+                      x: { ticks: { color: c.tick, font: { size: 9 } }, grid: { display: false } },
+                      y: { ticks: { color: c.tick, font: { size: 9 }, callback: v => fmtKg(v) }, grid: { color: c.grid } },
                     },
-                  }}
+                  }})()}
                 />
               </div>
             ) : <div className="empty-msg">No data</div>}
@@ -453,19 +454,19 @@ export default function GymStats({ workouts, phases, exercises, routines, active
                           { label: 'Top reps', data: e.sessions.map(s => s.topSet?.reps || 0), borderColor: '#cba6f7', backgroundColor: '#cba6f733', tension: 0.3, borderWidth: 2, pointRadius: 2.5, yAxisID: 'y2' },
                         ],
                       }}
-                      options={{
+                      options={(() => { const c = themedChartColors(); const r = getComputedStyle(document.documentElement); const text = r.getPropertyValue('--text').trim() || '#cdd6f4'; const sub = r.getPropertyValue('--text-sub').trim() || '#a6adc8'; const mantle = r.getPropertyValue('--bg-mantle').trim() || '#181825'; const surf1 = r.getPropertyValue('--bg-surface1').trim() || '#45475a'; return {
                         responsive: true, maintainAspectRatio: false,
                         interaction: { mode: 'index', intersect: false },
                         plugins: {
-                          legend: { position: 'bottom', labels: { color: '#a6adc8', boxWidth: 10, font: { size: 9 }, padding: 6, usePointStyle: true } },
-                          tooltip: { backgroundColor: '#181825', borderColor: '#45475a', borderWidth: 1, titleColor: '#cdd6f4', bodyColor: '#cdd6f4', padding: 8 },
+                          legend: { position: 'bottom', labels: { color: sub, boxWidth: 10, font: { size: 9 }, padding: 6, usePointStyle: true } },
+                          tooltip: { backgroundColor: mantle, borderColor: surf1, borderWidth: 1, titleColor: text, bodyColor: text, padding: 8 },
                         },
                         scales: {
-                          x: { ticks: { color: '#6c7086', font: { size: 8 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 6 }, grid: { display: false } },
-                          y: { position: 'left', ticks: { color: '#89b4fa', font: { size: 8 } }, grid: { color: '#31324480' }, title: { display: true, text: 'kg', color: '#89b4fa', font: { size: 9 } } },
+                          x: { ticks: { color: c.tick, font: { size: 8 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 6 }, grid: { display: false } },
+                          y: { position: 'left', ticks: { color: '#89b4fa', font: { size: 8 } }, grid: { color: c.grid }, title: { display: true, text: 'kg', color: '#89b4fa', font: { size: 9 } } },
                           y2: { position: 'right', min: 0, max: 15, ticks: { color: '#cba6f7', font: { size: 8 }, stepSize: 5 }, grid: { display: false }, title: { display: true, text: 'top reps', color: '#cba6f7', font: { size: 9 } } },
                         },
-                      }}
+                      }})()}
                     />
                   )}
                 </div>

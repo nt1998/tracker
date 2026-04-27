@@ -25,6 +25,9 @@ export default function App() {
     if (theme === 'light') document.documentElement.setAttribute('data-theme', 'light')
     else document.documentElement.removeAttribute('data-theme')
   }, [theme])
+  // Charts cache their theme-derived colors on mount; nudging key on theme
+  // change forces a remount so axis colors flip without a full reload.
+  const themeKey = theme
 
   useOrientationLock()
 
@@ -191,7 +194,7 @@ export default function App() {
       className={`app${isSwiping ? ' is-swiping' : ''}`}
       onClickCapture={onClickCapture}
     >
-      <main className={`content ${tab === 'weight' ? 'no-scroll' : ''}`} key={tab}>
+      <main className={`content ${tab === 'weight' ? 'no-scroll' : ''}`} key={tab + ':' + themeKey}>
         {tab === 'weight' && (
           <WeightLog entries={entries} setEntries={setEntries} autoHabitsByDate={autoHabitsByDate} habits={habits} settings={settings} water={water} setWater={setWater} />
         )}

@@ -66,7 +66,7 @@ const gapMarksPlugin = {
       // blank the gap column (remove phase fill + gridlines visually)
       ctx.clearRect(left, chartArea.top, right - left, chartArea.bottom - chartArea.top + 6)
       // draw zigzag across the gap span at the x-axis baseline
-      ctx.strokeStyle = '#6c7086'
+      ctx.strokeStyle = themedChartColors().tick
       ctx.lineWidth = 1.2
       ctx.beginPath()
       const y0 = chartArea.bottom
@@ -144,7 +144,7 @@ const yearMarkersPlugin = {
         const h = 14
         const rectX = x - w / 2
         const rectY = chartArea.top
-        ctx.fillStyle = '#1e1e2e'
+        ctx.fillStyle = (typeof document !== 'undefined' ? getComputedStyle(document.documentElement).getPropertyValue('--bg-base').trim() : '') || '#1e1e2e'
         ctx.strokeStyle = '#a6e3a1'
         ctx.lineWidth = 1
         ctx.beginPath()
@@ -195,7 +195,20 @@ export function buildPhaseBands(sortedDates, phases, isGap) {
   return bands
 }
 
+// Read themed chart colors from CSS variables so light/dark works without
+// duplicating palettes. Chart.js needs string colors; we compute fresh each
+// time options are built.
+export function themedChartColors() {
+  if (typeof document === 'undefined') return { tick: '#6c7086', grid: '#313244' }
+  const r = getComputedStyle(document.documentElement)
+  return {
+    tick: r.getPropertyValue('--text-overlay').trim() || '#6c7086',
+    grid: r.getPropertyValue('--bg-surface0').trim() || '#313244',
+  }
+}
+
 export function baseChartOpts(extraScales, phaseBands, dates, isGap) {
+  const c = themedChartColors()
   return {
     responsive: true,
     maintainAspectRatio: false,
@@ -207,8 +220,8 @@ export function baseChartOpts(extraScales, phaseBands, dates, isGap) {
       ...(isGap ? { gapMarks: { isGap } } : {}),
     },
     scales: {
-      x: { ticks: { color: '#6c7086', font: { size: 9 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 6 }, grid: { display: false } },
-      y: { ticks: { color: '#6c7086', font: { size: 9 } }, grid: { color: '#313244' } },
+      x: { ticks: { color: c.tick, font: { size: 9 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 6 }, grid: { display: false } },
+      y: { ticks: { color: c.tick, font: { size: 9 } }, grid: { color: c.grid } },
       ...extraScales,
     },
     elements: { point: { radius: 0 }, line: { tension: 0.35, borderWidth: 2 } },

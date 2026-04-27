@@ -92,7 +92,7 @@ export default function ScrubbableLine({
         ctx.arc(pt.x, pt.y, 4.5, 0, Math.PI * 2)
         ctx.fillStyle = ds.borderColor
         ctx.fill()
-        ctx.strokeStyle = '#1e1e2e'
+        ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--bg-base').trim() || '#1e1e2e'
         ctx.lineWidth = 2
         ctx.stroke()
       })
