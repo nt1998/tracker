@@ -585,8 +585,8 @@ export default function GymLog({ workouts, setWorkouts, exercises, routines, act
             <div className="last-workout">{timer}</div>
           ) : null}
 
-          {routineTemplate?.templateNotes && (
-            <div className="template-notes">{routineTemplate.templateNotes}</div>
+          {routineTemplate?.notes && (
+            <div className="template-notes">{routineTemplate.notes}</div>
           )}
 
           <div className="sets-section">
@@ -630,7 +630,7 @@ export default function GymLog({ workouts, setWorkouts, exercises, routines, act
                 type="text"
                 value={currentExercise.notes || ''}
                 onChange={(e) => updateExerciseNote(e.target.value)}
-                placeholder={routineTemplate?.templateNotes || '+ Add note'}
+                placeholder="+ Add note"
               />
             </div>
           </div>
