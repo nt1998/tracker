@@ -493,9 +493,7 @@ function WaterTimeline({ events, totalMl, isToday, onClose }) {
               return (
                 <div key={i} className={`wtm-event ${negative ? 'neg' : ''}`} style={{ top: top + '%' }}>
                   <div className="wtm-event-dot"></div>
-                  <div className="wtm-event-label">
-                    {groupLabel(g)} <span className="wtm-event-time">at {fmtTime(at)}</span>
-                  </div>
+                  <div className="wtm-event-label">{groupLabel(g)}</div>
                 </div>
               )
             })}
