@@ -93,7 +93,13 @@ export default function GymLog({ workouts, setWorkouts, exercises, routines, act
   // if its routineType matches a real key in the active routine. Otherwise
   // build a fresh template-based workout for today so the page renders.
   const loggedWorkout = workouts[date]
-  const useLoggedWorkout = loggedWorkout && routineWorkouts[loggedWorkout.routineType]
+  // Only reuse today's logged workout if its routineType is in the active
+  // routine AND it actually has exercises (rest workouts excluded). A bare
+  // shell with empty exercises (e.g. left over after a sync race) falls back
+  // to a fresh template so the page isn't stuck on "No exercises".
+  const useLoggedWorkout = loggedWorkout
+    && routineWorkouts[loggedWorkout.routineType]
+    && (loggedWorkout.isRest || (loggedWorkout.exercises && loggedWorkout.exercises.length > 0))
   const workout = useLoggedWorkout
     ? loggedWorkout
     : defaultGetWorkoutFromTemplate(currentRoutineType, currentRoutine, exercises, exerciseNotes)
