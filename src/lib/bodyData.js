@@ -87,14 +87,13 @@ export function ensureHabits(entry) {
     return { ...entry, habits: base }
   }
   const h = entry.habits
+  // Preserve every habit key (including user-added `h_<id>` habits) and only
+  // backfill legacy aliases. Earlier this enumerated a fixed list and silently
+  // dropped custom habits on read, making their toggles look broken.
   const migrated = {
     ...base,
+    ...h,
     morning: h.morning ?? h.am5 ?? false,
-    supsAM: h.supsAM ?? false,
-    d3k2: h.d3k2 ?? false,
-    supsPM: h.supsPM ?? false,
-    gymPush: h.gymPush ?? false,
-    gymPull: h.gymPull ?? false,
     hiit: h.hiit ?? h.cardio ?? false,
     rehab: h.rehab ?? h.stretch ?? false,
   }
