@@ -62,6 +62,39 @@ function migrateFirstCutStart() {
 }
 migrateFirstCutStart()
 
+// One-shot: rewrite the meal/sups habit descriptions to the polished version
+// (multi-line, divider + macros, no "× M" markers). Local app keeps auto-
+// pushing stale text over remote edits, so we patch localStorage instead.
+function migrateMealHabits() {
+  if (typeof localStorage === 'undefined') return
+  if (localStorage.getItem('tracker_mig_meals_v2') === '1') return
+  try {
+    const raw = localStorage.getItem('tracker_habits')
+    if (!raw) { localStorage.setItem('tracker_mig_meals_v2', '1'); return }
+    const habits = JSON.parse(raw)
+    if (!Array.isArray(habits)) { localStorage.setItem('tracker_mig_meals_v2', '1'); return }
+    const SEP = '─'.repeat(22)
+    const UPDATES = {
+      meal1: ['400g Quarkcreme', '200g Apple / Pear / Banana', '15g Nut butter', SEP, '482 kcal · 54 P · 8 F · 45 C'].join('\n'),
+      meal2: ['100g Chicken breast (raw)', '200g Vegetables', '80g Rice (raw)', '60g Avocado (1 small)', '55g Egg', '2g Salt', SEP, '635 kcal · 41 P · 17 F · 78 C'].join('\n'),
+      meal3pre: ['60g Oats', '40g Whey protein', '200g Apple / Pear / Banana', '15g Nut butter', '2g Salt', SEP, '590 kcal · 44 P · 13 F · 67 C'].join('\n'),
+      intra: ['20g Maltodextrin', '10g EAAs', SEP, '116 kcal · 10 P · 0 F · 19 C'].join('\n'),
+      meal4: ['80g Rice (raw)', '100g Chicken breast (raw)', '200g Vegetables', '10g Olive oil', '55g Egg', '2g Salt', SEP, '628 kcal · 40 P · 18 F · 73 C'].join('\n'),
+      sups: ['AM', '  1× D3+K2', '  1× Vitamin Complex', '  1× Zinc', '  2× Omega 3', 'PM', '  2× Magnesium', '  2× Omega 3'].join('\n'),
+    }
+    let changed = false
+    habits.forEach(h => {
+      if (h && UPDATES[h.key] && h.description !== UPDATES[h.key]) {
+        h.description = UPDATES[h.key]
+        changed = true
+      }
+    })
+    if (changed) localStorage.setItem('tracker_habits', JSON.stringify(habits))
+    localStorage.setItem('tracker_mig_meals_v2', '1')
+  } catch { /* ignore */ }
+}
+migrateMealHabits()
+
 export default function useStore() {
   const [entries, setEntries] = useLocalStorage('tracker_entries', {})
   const [phases, setPhases] = useLocalStorage('tracker_phases', [])
