@@ -9,14 +9,24 @@
     <link rel="icon" type="image/svg+xml" href="/tracker/v3/favicon.svg" />
     <link rel="icon" type="image/png" sizes="32x32" href="/tracker/v3/favicon-32.png" />
     <link rel="apple-touch-icon" href="/tracker/v3/apple-touch-icon.png" />
-    <meta name="theme-color" content="#1e1e2e" />
+    <meta name="theme-color" content="#1e1e2e" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#eff1f5" media="(prefers-color-scheme: light)" />
     <title>Tracker</title>
     <style>
-      html, body { background: #1e1e2e; color: #cdd6f4; margin: 0; height: 100%; }
-      #root { min-height: 100%; background: #1e1e2e; }
+      :root { --boot-bg: #1e1e2e; --boot-fg: #cdd6f4; }
+      html[data-theme="light"] { --boot-bg: #eff1f5; --boot-fg: #4c4f69; }
+      html, body { background: var(--boot-bg); color: var(--boot-fg); margin: 0; height: 100%; }
+      #root { min-height: 100%; background: var(--boot-bg); }
     </style>
-    <script type="module" crossorigin src="/tracker/v3/assets/index-DsJ1B2KO.js"></script>
-    <link rel="stylesheet" crossorigin href="/tracker/v3/assets/index-BAZcRKln.css">
+    <script>
+      // Apply theme before paint to avoid a flash.
+      try {
+        var t = localStorage.getItem('tracker_theme');
+        if (t === 'light') document.documentElement.setAttribute('data-theme', 'light');
+      } catch (e) {}
+    </script>
+    <script type="module" crossorigin src="/tracker/v3/assets/index-CSaodqFP.js"></script>
+    <link rel="stylesheet" crossorigin href="/tracker/v3/assets/index-DVgcaVAG.css">
   </head>
   <body>
     <div id="root"></div>
