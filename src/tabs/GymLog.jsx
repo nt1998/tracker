@@ -78,14 +78,25 @@ export default function GymLog({ workouts, setWorkouts, exercises, routines, act
   const routineWorkouts = activeRoutine?.workouts || {}
 
   const getTodaysRoutineType = () => {
-    if (workouts[date]?.routineType) return workouts[date].routineType
-    return templateKeyForDate(activeRoutine, date) || 'push'
+    // If today's logged workout uses a key the active routine no longer has
+    // (e.g. user did 'push' before switching to a UL routine), fall back to
+    // the schedule so the gym tab still shows something.
+    const logged = workouts[date]?.routineType
+    if (logged && routineWorkouts[logged]) return logged
+    return templateKeyForDate(activeRoutine, date) || Object.keys(routineWorkouts)[0] || 'push'
   }
 
   const currentRoutineType = getTodaysRoutineType()
   const currentRoutine = routineWorkouts[currentRoutineType]
 
-  const workout = workouts[date] || defaultGetWorkoutFromTemplate(currentRoutineType, currentRoutine, exercises, exerciseNotes)
+  // Same guard for the workout snapshot: only reuse today's logged workout
+  // if its routineType matches a real key in the active routine. Otherwise
+  // build a fresh template-based workout for today so the page renders.
+  const loggedWorkout = workouts[date]
+  const useLoggedWorkout = loggedWorkout && routineWorkouts[loggedWorkout.routineType]
+  const workout = useLoggedWorkout
+    ? loggedWorkout
+    : defaultGetWorkoutFromTemplate(currentRoutineType, currentRoutine, exercises, exerciseNotes)
   const warmups = currentRoutine?.warmups || []
   const hasWarmups = warmups.length > 0
   const isOnWarmup = hasWarmups && currentExerciseIdx === 0
