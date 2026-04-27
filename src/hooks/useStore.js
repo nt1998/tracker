@@ -77,6 +77,41 @@ function migrateRenameExerciseTitles() {
 }
 migrateRenameExerciseTitles()
 
+// One-shot: assign warmup sets per UL item — 2 for the first exercise of a
+// muscle group in that workout, 1 for subsequent ones.
+function migrateULWarmupSets() {
+  if (typeof localStorage === 'undefined') return
+  if (localStorage.getItem('tracker_mig_ul_warmupsets_v1') === '1') return
+  try {
+    const raw = localStorage.getItem('tracker_routines')
+    if (!raw) { localStorage.setItem('tracker_mig_ul_warmupsets_v1', '1'); return }
+    const routines = JSON.parse(raw)
+    if (!Array.isArray(routines)) { localStorage.setItem('tracker_mig_ul_warmupsets_v1', '1'); return }
+    const ul = routines.find(r => r && r.id === 'r_steppe_ul')
+    if (!ul) { localStorage.setItem('tracker_mig_ul_warmupsets_v1', '1'); return }
+    // Exercise id → muscle group key.
+    const MUSCLE = {
+      5: 'hamstrings', 7: 'triceps', 8: 'side-delts', 9: 'chest', 10: 'chest',
+      11: 'quads', 12: 'calves', 13: 'biceps', 15: 'back', 16: 'back',
+      18: 'core', 19: 'adductors', 20: 'abductors', 23: 'chest', 25: 'back',
+      26: 'back', 27: 'triceps', 29: 'side-delts', 31: 'traps', 40: 'quads',
+      43: 'glutes', 44: 'calves', 46: 'core',
+    }
+    Object.values(ul.workouts || {}).forEach(w => {
+      if (w?.isRest) return
+      const seen = new Set()
+      ;(w.items || []).forEach(it => {
+        const m = MUSCLE[it.exerciseId] || `id-${it.exerciseId}`
+        it.warmupSets = seen.has(m) ? 1 : 2
+        seen.add(m)
+      })
+    })
+    localStorage.setItem('tracker_routines', JSON.stringify(routines))
+    localStorage.setItem('tracker_mig_ul_warmupsets_v1', '1')
+  } catch { /* ignore */ }
+}
+migrateULWarmupSets()
+
 export default function useStore() {
   const [entries, setEntries] = useLocalStorage('tracker_entries', {})
   const [phases, setPhases] = useLocalStorage('tracker_phases', [])
