@@ -147,6 +147,76 @@ function migrateULWarmupsRest() {
 }
 migrateULWarmupsRest()
 
+// One-shot: dedupe UL exercises against canonical library ids; equipment
+// details fold into each item's note. Mirrors the dedupe done on the data
+// repo so the app's auto-push doesn't keep reverting it.
+function migrateULDedupe() {
+  if (typeof localStorage === 'undefined') return
+  if (localStorage.getItem('tracker_mig_ul_dedupe_v1') === '1') return
+  try {
+    const raw = localStorage.getItem('tracker_routines')
+    if (!raw) { localStorage.setItem('tracker_mig_ul_dedupe_v1', '1'); return }
+    const routines = JSON.parse(raw)
+    if (!Array.isArray(routines)) { localStorage.setItem('tracker_mig_ul_dedupe_v1', '1'); return }
+    const MAP = {
+      21: [13, 'Maschine · unilateral'],
+      22: [8,  'Gymleco · bilateral'],
+      24: [10, 'Cybex'],
+      28: [7,  'unilateral · Schlaufe nutzen, Schulter unter Kabel'],
+      30: [15, 'Kabel'],
+      32: [16, 'Hammer Iso Row'],
+      33: [10, 'Galileo · Arm 70° Abduktion'],
+      34: [9,  'Multipresse 45°'],
+      35: [13, 'KH · mit Bank'],
+      36: [5,  'Cybex'],
+      37: [20, ''],
+      38: [12, 'Multipresse'],
+      39: [11, 'Powerfit · unilateral'],
+      41: [19, ''],
+      42: [18, 'am Lattzug'],
+      45: [11, 'MYO Reps x1'],
+      6:  [20, ''],
+    }
+    routines.forEach(r => {
+      Object.values(r.workouts || {}).forEach(w => {
+        (w.items || []).forEach(it => {
+          const m = MAP[it.exerciseId]
+          if (!m) return
+          it.exerciseId = m[0]
+          if (m[1]) {
+            const cur = (it.notes || '').trim().replace(/\.$/, '')
+            const merged = [cur, m[1]].filter(Boolean).join('. ')
+            // dedupe sentence fragments so notes don't double up
+            const seen = new Set()
+            it.notes = merged.split('. ').map(s => s.trim().replace(/\.$/, ''))
+              .filter(s => {
+                const t = s.toLowerCase()
+                if (!s || seen.has(t)) return false
+                seen.add(t); return true
+              }).join('. ')
+          }
+        })
+      })
+    })
+    // Drop merged-away library entries that nothing references.
+    const referenced = new Set()
+    routines.forEach(r => Object.values(r.workouts || {}).forEach(w => (w.items || []).forEach(it => referenced.add(it.exerciseId))))
+    const exRaw = localStorage.getItem('tracker_exercises')
+    if (exRaw) {
+      const ex = JSON.parse(exRaw)
+      const dropIds = new Set(Object.keys(MAP).map(Number))
+      Object.keys(ex).forEach(k => {
+        const v = ex[k]
+        if (dropIds.has(Number(v.id)) && !referenced.has(Number(v.id))) delete ex[k]
+      })
+      localStorage.setItem('tracker_exercises', JSON.stringify(ex))
+    }
+    localStorage.setItem('tracker_routines', JSON.stringify(routines))
+    localStorage.setItem('tracker_mig_ul_dedupe_v1', '1')
+  } catch { /* ignore */ }
+}
+migrateULDedupe()
+
 export default function useStore() {
   const [entries, setEntries] = useLocalStorage('tracker_entries', {})
   const [phases, setPhases] = useLocalStorage('tracker_phases', [])
