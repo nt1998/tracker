@@ -114,6 +114,39 @@ function migrateActivateSteppeUL() {
 }
 migrateActivateSteppeUL()
 
+// One-shot: rewrite UL warmups + rest workout in localStorage. Auto-push
+// keeps reverting remote edits.
+function migrateULWarmupsRest() {
+  if (typeof localStorage === 'undefined') return
+  if (localStorage.getItem('tracker_mig_ul_warmups_v1') === '1') return
+  try {
+    const raw = localStorage.getItem('tracker_routines')
+    if (!raw) { localStorage.setItem('tracker_mig_ul_warmups_v1', '1'); return }
+    const routines = JSON.parse(raw)
+    if (!Array.isArray(routines)) { localStorage.setItem('tracker_mig_ul_warmups_v1', '1'); return }
+    const ul = routines.find(r => r && r.id === 'r_steppe_ul')
+    if (!ul) { localStorage.setItem('tracker_mig_ul_warmups_v1', '1'); return }
+    const UPPER = [
+      { id: 'wu_shoulder', name: 'Shoulder Circles', reps: '10', checks: ['Forward', 'Backward'] },
+      { id: 'wu_wrist', name: 'Wrist Circles', reps: '10', checks: ['Clockwise', 'Counterclockwise'] },
+    ]
+    const LOWER = [
+      { id: 'wu_ankle', name: 'Ankle Circles', reps: '10', checks: ['Clockwise', 'Counterclockwise'] },
+      { id: 'wu_hip', name: 'Hip Circles', reps: '10', checks: ['Clockwise', 'Counterclockwise'] },
+    ]
+    if (ul.workouts?.upperA) ul.workouts.upperA.warmups = UPPER
+    if (ul.workouts?.upperB) ul.workouts.upperB.warmups = UPPER
+    if (ul.workouts?.lowerA) ul.workouts.lowerA.warmups = LOWER
+    if (ul.workouts?.lowerB) ul.workouts.lowerB.warmups = LOWER
+    // Copy the old r_imported rest workout into UL.
+    const oldRest = routines.find(r => r && r.id === 'r_imported')?.workouts?.rest
+    if (oldRest && ul.workouts) ul.workouts.rest = JSON.parse(JSON.stringify(oldRest))
+    localStorage.setItem('tracker_routines', JSON.stringify(routines))
+    localStorage.setItem('tracker_mig_ul_warmups_v1', '1')
+  } catch { /* ignore */ }
+}
+migrateULWarmupsRest()
+
 export default function useStore() {
   const [entries, setEntries] = useLocalStorage('tracker_entries', {})
   const [phases, setPhases] = useLocalStorage('tracker_phases', [])
