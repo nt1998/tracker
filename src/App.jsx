@@ -172,6 +172,23 @@ export default function App() {
     if (github.connected) setNeedsSync(true)
   }, [entries, phases, workouts, exerciseNotes, habits, exercises, routines, activeRoutineId, settings, water, github.connected])
 
+  // Auto-pull on launch so remote edits (made directly to the user's data
+  // repo) propagate without needing a manual Pull. Runs once after mount
+  // and again whenever the tab becomes visible — covers PWA cold boots.
+  const initialPullDoneRef = useRef(false)
+  useEffect(() => {
+    if (!github.connected || initialPullDoneRef.current) return
+    initialPullDoneRef.current = true
+    doPull()
+  }, [github.connected, doPull])
+  useEffect(() => {
+    const onVis = () => {
+      if (document.visibilityState === 'visible' && github.connected) doPull()
+    }
+    document.addEventListener('visibilitychange', onVis)
+    return () => document.removeEventListener('visibilitychange', onVis)
+  }, [github.connected, doPull])
+
   // Debounced auto-push 5s after last change
   useEffect(() => {
     if (!needsSync || !github.connected) return
