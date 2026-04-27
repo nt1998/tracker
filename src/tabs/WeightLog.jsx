@@ -36,7 +36,32 @@ export default function WeightLog({ entries, setEntries, autoHabitsByDate, habit
       return { ...(prev || {}), [date]: [...dayEvents, { at: Date.now(), ml }] }
     })
   }
-  const openWaterTimeline = () => setWaterTimelineOpen(true)
+  // First time the timeline is opened on a day where water exists but no
+  // per-event log was captured (pre-feature data), back-fill plausible events
+  // spread between 06:00 and the current time. Greedy split into 1L / 330 /
+  // 250 chunks so totals match exactly.
+  const backfillIfNeeded = () => {
+    if (!isToday) return
+    const existing = (waterLog && waterLog[date]) || []
+    if (existing.length > 0) return
+    let remaining = waterToday
+    if (remaining <= 0) return
+    const chunks = []
+    while (remaining >= 1000) { chunks.push(1000); remaining -= 1000 }
+    while (remaining >= 330) { chunks.push(330); remaining -= 330 }
+    while (remaining >= 250) { chunks.push(250); remaining -= 250 }
+    if (remaining > 0) chunks.push(remaining)
+    const now = new Date()
+    const nowMs = now.getTime()
+    const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 6, 0).getTime()
+    const span = Math.max(60_000, nowMs - dayStart)
+    const synthesized = chunks.map((ml, i) => ({
+      at: Math.round(dayStart + (span * (i + 1)) / (chunks.length + 1)),
+      ml,
+    }))
+    setWaterLog(prev => ({ ...(prev || {}), [date]: synthesized }))
+  }
+  const openWaterTimeline = () => { backfillIfNeeded(); setWaterTimelineOpen(true) }
   const closeWaterTimeline = () => setWaterTimelineOpen(false)
   const sectionLongPressDown = () => {
     if (waterSectionLongPressRef.current) clearTimeout(waterSectionLongPressRef.current)
@@ -402,13 +427,8 @@ function WaterTimeline({ events, totalMl, isToday, onClose }) {
   const nowFrac = isToday
     ? Math.min(1, Math.max(0, (nowMin - START_HOUR * 60) / totalMin))
     : 1
-  // If the per-event log is empty but a total exists (pre-feature data), show
-  // a single synthetic dot pinned near the top so the timeline isn't blank.
-  const effectiveEvents = events.length === 0 && totalMl > 0
-    ? [{ at: new Date(now.getFullYear(), now.getMonth(), now.getDate(), START_HOUR, 30).getTime(), ml: totalMl, synthetic: true }]
-    : events
   // Group events within 60s of each other.
-  const sorted = [...effectiveEvents].sort((a, b) => a.at - b.at)
+  const sorted = [...events].sort((a, b) => a.at - b.at)
   const groups = []
   for (const ev of sorted) {
     const last = groups[groups.length - 1]
@@ -462,12 +482,11 @@ function WaterTimeline({ events, totalMl, isToday, onClose }) {
               const min = d.getHours() * 60 + d.getMinutes()
               const top = Math.min(100, Math.max(0, ((min - START_HOUR * 60) / totalMin) * 100))
               const negative = g.events.every(e => e.ml < 0)
-              const synthetic = g.events.every(e => e.synthetic)
               return (
-                <div key={i} className={`wtm-event ${negative ? 'neg' : ''} ${synthetic ? 'synthetic' : ''}`} style={{ top: top + '%' }}>
+                <div key={i} className={`wtm-event ${negative ? 'neg' : ''}`} style={{ top: top + '%' }}>
                   <div className="wtm-event-dot"></div>
                   <div className="wtm-event-label">
-                    {groupLabel(g)}{synthetic ? <span className="wtm-event-time"> total today</span> : <span className="wtm-event-time"> at {fmtTime(at)}</span>}
+                    {groupLabel(g)} <span className="wtm-event-time">at {fmtTime(at)}</span>
                   </div>
                 </div>
               )
