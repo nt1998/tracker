@@ -4522,6 +4522,11 @@ body:has(textarea:focus) .tabbar {
   flex-shrink: 0;
 }
 .wtm-event.neg .wtm-event-dot { background: var(--c-red); }
+.wtm-event.synthetic .wtm-event-dot {
+  background: var(--c-sky);
+  outline: 2px dashed rgba(var(--c-sky-rgb), .5);
+  outline-offset: 2px;
+}
 .wtm-event-label {
   position: absolute;
   left: 14px;
