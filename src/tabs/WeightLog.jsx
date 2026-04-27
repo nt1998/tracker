@@ -273,21 +273,29 @@ export default function WeightLog({ entries, setEntries, autoHabitsByDate, habit
             const pressStart = () => {
               if (celebPhase !== 'orbit') return
               if (longPressRef.current) clearTimeout(longPressRef.current)
-              longPressRef.current = setTimeout(() => {
-                setHabitDetail(h)
-                longPressRef.current = null
-              }, 500)
+              longPressRef.current = {
+                t: Date.now(),
+                fired: false,
+                timer: setTimeout(() => {
+                  if (longPressRef.current) longPressRef.current.fired = true
+                  setHabitDetail(h)
+                }, 500),
+              }
             }
             const pressEnd = () => {
               if (celebPhase !== 'orbit') return
-              if (longPressRef.current) {
-                clearTimeout(longPressRef.current)
-                longPressRef.current = null
-                updateHabit(h.key, !isDone)
-              }
+              const ref = longPressRef.current
+              if (!ref) return
+              clearTimeout(ref.timer)
+              longPressRef.current = null
+              if (!ref.fired) updateHabit(h.key, !isDone)
             }
+            // pointerLeave fires on iOS during a tap if the finger drifts even
+            // a couple pixels. Don't cancel — only the timer needs canceling so
+            // the long-press detail doesn't pop. Toggle still fires on pointerUp.
             const pressCancel = () => {
-              if (longPressRef.current) { clearTimeout(longPressRef.current); longPressRef.current = null }
+              const ref = longPressRef.current
+              if (ref && !ref.fired) clearTimeout(ref.timer)
             }
             if (hidden) return null
             return (
