@@ -60,6 +60,18 @@ export default function GymLog({ workouts, setWorkouts, exercises, routines, act
     return () => clearInterval(iv)
   }, [])
 
+  // App-level day picker fires this when the user picks a different workout
+  // type for today. Reset our stored exercise index so they land on the
+  // first warmup, not wherever they left off in the previous template.
+  useEffect(() => {
+    const onReset = (e) => {
+      const d = e?.detail?.date || todayKey()
+      setExIdxStore(prev => ({ ...(prev || {}), [d]: 0 }))
+    }
+    window.addEventListener('gym:reset-idx', onReset)
+    return () => window.removeEventListener('gym:reset-idx', onReset)
+  }, [setExIdxStore])
+
   // Keep date fresh across midnight + on tab focus
   useEffect(() => {
     const refresh = () => { const t = todayKey(); setDate(prev => prev === t ? prev : t) }
