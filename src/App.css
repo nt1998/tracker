@@ -18,6 +18,11 @@
   --bg-base-rgb: 30, 30, 46;
   --bg-mantle-rgb: 24, 24, 37;
   --bg-surface0-rgb: 49, 50, 68;
+  /* Accent-tinted surfaces (PR badges, committed set rows, etc.). */
+  --acc-amber-bg: linear-gradient(135deg, #4a3a2a 0%, #5a4020 100%);
+  --acc-blue-bg: linear-gradient(135deg, #2a3a4a 0%, #203050 100%);
+  --acc-green-bg: #1e3a2e;
+  --acc-blue-flat: #2a3a4a;
 }
 [data-theme="light"] {
   /* Catppuccin Latte */
@@ -35,6 +40,10 @@
   --bg-base-rgb: 239, 241, 245;
   --bg-mantle-rgb: 230, 233, 239;
   --bg-surface0-rgb: 204, 208, 218;
+  --acc-amber-bg: linear-gradient(135deg, #fef3d4 0%, #fce5a4 100%);
+  --acc-blue-bg: linear-gradient(135deg, #dde7ff 0%, #c4d4ff 100%);
+  --acc-green-bg: #dff2e1;
+  --acc-blue-flat: #dde7ff;
 }
 .app {
   height: 100%;
@@ -365,12 +374,12 @@ body:has(textarea:focus) .navbar {
 .pr-info .last-value { flex-shrink: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 
 .pr-info.new-weight-pr {
-  background: linear-gradient(135deg, #4a3a2a 0%, #5a4020 100%);
+  background: var(--acc-amber-bg);
   border-color: #f9e2af;
 }
 
 .pr-info.new-rep-pr {
-  background: linear-gradient(135deg, #2a3a4a 0%, #203050 100%);
+  background: var(--acc-blue-bg);
   border-color: #89b4fa;
 }
 
@@ -442,7 +451,7 @@ body:has(textarea:focus) .navbar {
 
 /* Committed: blue styling */
 .set-row.committed {
-  background: #2a3a4a;
+  background: var(--acc-blue-flat);
   border-color: #89b4fa;
 }
 
@@ -452,7 +461,7 @@ body:has(textarea:focus) .navbar {
 
 /* Weight PR: gold styling (overrides committed) */
 .set-row.weight-pr {
-  background: linear-gradient(135deg, #4a3a2a 0%, #5a4020 100%);
+  background: var(--acc-amber-bg);
   border-color: #f9e2af;
 }
 
@@ -462,7 +471,7 @@ body:has(textarea:focus) .navbar {
 
 /* Rep PR: blue styling (overrides committed) */
 .set-row.rep-pr {
-  background: linear-gradient(135deg, #2a3a4a 0%, #203050 100%);
+  background: var(--acc-blue-bg);
   border-color: #89b4fa;
 }
 
@@ -884,7 +893,7 @@ body:has(textarea:focus) .navbar {
 }
 
 .workout-exercise-row.weight-pr {
-  background: linear-gradient(135deg, #4a3a2a 0%, #5a4020 100%);
+  background: var(--acc-amber-bg);
   border: 1px solid #f9e2af;
 }
 
@@ -893,7 +902,7 @@ body:has(textarea:focus) .navbar {
 }
 
 .workout-exercise-row.rep-pr {
-  background: linear-gradient(135deg, #2a3a4a 0%, #203050 100%);
+  background: var(--acc-blue-bg);
   border: 1px solid #89b4fa;
 }
 
@@ -1315,7 +1324,7 @@ body:has(textarea:focus) .navbar {
 /* Template notes (shown during workout) */
 .template-notes {
   padding: 8px 12px;
-  background: #2a3a4a;
+  background: var(--acc-blue-flat);
   border-radius: 8px;
   font-size: 0.8rem;
   color: #89b4fa;
@@ -1326,7 +1335,7 @@ body:has(textarea:focus) .navbar {
 /* Warmup cards in carousel */
 .template-notes.warmup-notes {
   border-left-color: #a6e3a1;
-  background: #1e3a2e;
+  background: var(--acc-green-bg);
   color: #a6e3a1;
 }
 
@@ -1442,7 +1451,7 @@ body:has(textarea:focus) .navbar {
   justify-content: space-between;
   align-items: center;
   padding: 8px 12px;
-  background: #1e3a2e;
+  background: var(--acc-green-bg);
   border-radius: 8px 8px 0 0;
   font-size: 0.85rem;
   font-weight: 600;
@@ -1691,7 +1700,7 @@ body:has(textarea:focus) .navbar {
 }
 
 .exercise-item.warmup-type {
-  background: #1e3a2e;
+  background: var(--acc-green-bg);
   border-left: 3px solid #a6e3a1;
 }
 
@@ -2141,7 +2150,7 @@ body:has(textarea:focus) .tabbar {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  box-shadow: inset 0 0 20px rgba(0,0,0,.8),
+  box-shadow: inset 0 0 20px rgba(var(--sd), .35),
               0 0 15px rgba(137,180,250,.08),
               0 0 30px rgba(137,180,250,.06);
   border: 1px solid rgba(137,180,250,.1);
@@ -2150,14 +2159,14 @@ body:has(textarea:focus) .tabbar {
 }
 .orbit-center.celebrating {
   border-color: rgba(249, 226, 175, .5);
-  box-shadow: inset 0 0 20px rgba(0,0,0,.7),
+  box-shadow: inset 0 0 20px rgba(var(--sd), .3),
               0 0 20px rgba(249, 226, 175, .25),
               0 0 44px rgba(249, 226, 175, .18);
   animation: centerPulse 2.4s ease-in-out infinite;
 }
 .orbit-center.hidden {
   border-color: rgba(249, 226, 175, .75);
-  box-shadow: inset 0 0 18px rgba(0,0,0,.5),
+  box-shadow: inset 0 0 18px rgba(var(--sd), .25),
               0 0 30px rgba(249, 226, 175, .45),
               0 0 70px rgba(249, 226, 175, .3);
   transform: translate(-50%, -50%) scale(1.08);
@@ -2189,8 +2198,8 @@ body:has(textarea:focus) .tabbar {
   to   { transform: rotate(360deg); }
 }
 @keyframes centerPulse {
-  0%, 100% { box-shadow: inset 0 0 20px rgba(0,0,0,.7), 0 0 20px rgba(249, 226, 175, .25), 0 0 44px rgba(249, 226, 175, .18); }
-  50% { box-shadow: inset 0 0 20px rgba(0,0,0,.7), 0 0 30px rgba(249, 226, 175, .45), 0 0 60px rgba(249, 226, 175, .32); }
+  0%, 100% { box-shadow: inset 0 0 20px rgba(var(--sd), .3), 0 0 20px rgba(249, 226, 175, .25), 0 0 44px rgba(249, 226, 175, .18); }
+  50% { box-shadow: inset 0 0 20px rgba(var(--sd), .3), 0 0 30px rgba(249, 226, 175, .45), 0 0 60px rgba(249, 226, 175, .32); }
 }
 @keyframes centerBreathe {
   0%, 100% { transform: translate(-50%, -50%) scale(1.06); }
@@ -2199,13 +2208,13 @@ body:has(textarea:focus) .tabbar {
 @keyframes centerSuck {
   0%   { transform: translate(-50%, -50%) scale(1); }
   45%  { transform: translate(-50%, -50%) scale(.9); }
-  70%  { transform: translate(-50%, -50%) scale(1.15); box-shadow: inset 0 0 25px rgba(0,0,0,.9), 0 0 40px rgba(249, 226, 175, .5), 0 0 80px rgba(249, 226, 175, .35); }
-  100% { transform: translate(-50%, -50%) scale(1.08); box-shadow: inset 0 0 18px rgba(0,0,0,.5), 0 0 30px rgba(249, 226, 175, .45), 0 0 70px rgba(249, 226, 175, .3); }
+  70%  { transform: translate(-50%, -50%) scale(1.15); box-shadow: inset 0 0 25px rgba(var(--sd), .4), 0 0 40px rgba(249, 226, 175, .5), 0 0 80px rgba(249, 226, 175, .35); }
+  100% { transform: translate(-50%, -50%) scale(1.08); box-shadow: inset 0 0 18px rgba(var(--sd), .25), 0 0 30px rgba(249, 226, 175, .45), 0 0 70px rgba(249, 226, 175, .3); }
 }
 @keyframes centerBurst {
-  0%   { transform: translate(-50%, -50%) scale(1.08); box-shadow: inset 0 0 18px rgba(0,0,0,.5), 0 0 30px rgba(249, 226, 175, .45), 0 0 70px rgba(249, 226, 175, .3); }
-  40%  { transform: translate(-50%, -50%) scale(1.22); box-shadow: inset 0 0 25px rgba(0,0,0,.8), 0 0 50px rgba(249, 226, 175, .6), 0 0 100px rgba(249, 226, 175, .4); }
-  100% { transform: translate(-50%, -50%) scale(1); box-shadow: inset 0 0 20px rgba(0,0,0,.7), 0 0 20px rgba(249, 226, 175, .25), 0 0 44px rgba(249, 226, 175, .18); }
+  0%   { transform: translate(-50%, -50%) scale(1.08); box-shadow: inset 0 0 18px rgba(var(--sd), .25), 0 0 30px rgba(249, 226, 175, .45), 0 0 70px rgba(249, 226, 175, .3); }
+  40%  { transform: translate(-50%, -50%) scale(1.22); box-shadow: inset 0 0 25px rgba(var(--sd), .35), 0 0 50px rgba(249, 226, 175, .6), 0 0 100px rgba(249, 226, 175, .4); }
+  100% { transform: translate(-50%, -50%) scale(1); box-shadow: inset 0 0 20px rgba(var(--sd), .3), 0 0 20px rgba(249, 226, 175, .25), 0 0 44px rgba(249, 226, 175, .18); }
 }
 @keyframes iconBob {
   0%, 100% { transform: translateY(0); }
