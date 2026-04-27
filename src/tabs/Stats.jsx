@@ -54,7 +54,10 @@ export default function Stats({ entries, phases, workouts, exercises, autoHabits
           if (h.auto) val = !!autoHabitsByDate[d]?.[h.key]
           else {
             const ent = entries[d] ? ensureHabits(entries[d]) : null
-            val = ent ? !!ent.habits?.[h.key] : null
+            // undefined = habit didn't exist when entry was logged → treat as
+            // not tracked (na), not as a miss.
+            const raw = ent?.habits?.[h.key]
+            val = raw === undefined ? null : !!raw
           }
         }
         let cls = 'dot'
@@ -103,9 +106,16 @@ export default function Stats({ entries, phases, workouts, exercises, autoHabits
         // otherwise old days inflate the denominator. Auto habits derive
         // from workout data, so they always count when applicable.
         if (!h.auto && !entries[k]) return
-        const v = h.auto ? !!autoHabitsByDate[k]?.[h.key] : !!ensureHabits(entries[k]).habits?.[h.key]
-        total++
-        if (v) done++
+        // Skip days where the habit didn't exist yet (undefined value).
+        if (!h.auto) {
+          const raw = ensureHabits(entries[k]).habits?.[h.key]
+          if (raw === undefined) return
+          total++
+          if (raw) done++
+        } else {
+          total++
+          if (autoHabitsByDate[k]?.[h.key]) done++
+        }
       })
       const pct = total > 0 ? done / total : 0
       rows.push({ ...h, pct, done, total })
