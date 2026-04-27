@@ -28,7 +28,7 @@ export default function JourneyPanel({ entries, phases, sortedDates: allDates, h
       : buildTimeSeries(firstKey, lastKey, entries, 14)),
     [firstKey, lastKey, entries, loggedDates.length],
   )
-  if (loggedDates.length === 0) return <div style={{ color: '#45475a', textAlign: 'center', padding: 40 }}>No data yet</div>
+  if (loggedDates.length === 0) return <div style={{ color: 'var(--text-overlay)', textAlign: 'center', padding: 40 }}>No data yet</div>
 
   const firstE = ensureHabits(entries[firstKey])
   const lastE = ensureHabits(entries[lastKey])
@@ -182,8 +182,8 @@ export default function JourneyPanel({ entries, phases, sortedDates: allDates, h
             const pad = range * 0.15
             const fCenter = (fMin + fMax) / 2, mCenter = (mMin + mMax) / 2
             return journeyOpts({
-              y: { position: 'left', min: fCenter - range / 2 - pad, max: fCenter + range / 2 + pad, ticks: { color: '#fab387', font: { size: 9 } }, grid: { color: '#313244' } },
-              y2: { position: 'right', min: mCenter - range / 2 - pad, max: mCenter + range / 2 + pad, ticks: { color: '#a6e3a1', font: { size: 9 } }, grid: { display: false } },
+              y: { position: 'left', min: fCenter - range / 2 - pad, max: fCenter + range / 2 + pad, ticks: { color: 'var(--c-peach)', font: { size: 9 } }, grid: { color: 'var(--bg-surface0)' } },
+              y2: { position: 'right', min: mCenter - range / 2 - pad, max: mCenter + range / 2 + pad, ticks: { color: 'var(--c-green)', font: { size: 9 } }, grid: { display: false } },
             })
           })()}
           width={CANVAS_W} height={140}
@@ -230,7 +230,7 @@ export default function JourneyPanel({ entries, phases, sortedDates: allDates, h
           ...vo,
           scales: {
             x: { ...(vo.scales?.x || {}), display: false },
-            y: { ticks: { color: '#6c7086', font: { size: 9 }, stepSize: 1 }, grid: { color: '#313244' }, suggestedMin: 0, suggestedMax: 8 },
+            y: { ticks: { color: 'var(--text-overlay)', font: { size: 9 }, stepSize: 1 }, grid: { color: 'var(--bg-surface0)' }, suggestedMin: 0, suggestedMax: 8 },
           },
         }
         return (

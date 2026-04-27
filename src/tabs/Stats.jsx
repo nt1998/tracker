@@ -39,9 +39,9 @@ export default function Stats({ entries, phases, workouts, exercises, autoHabits
           cls += ' miss'
           if (isTodayDot) cls += ' today-dot pending'
         }
-        dots.push({ cls, color: '#89dceb' })
+        dots.push({ cls, color: 'var(--c-sky)' })
       }
-      rows.push({ key: '_water', icon: '💧', name: 'Water', color: '#89dceb', dots })
+      rows.push({ key: '_water', icon: '💧', name: 'Water', color: 'var(--c-sky)', dots })
     }
     habits.forEach(h => {
       const dots = []
@@ -95,7 +95,7 @@ export default function Stats({ entries, phases, workouts, exercises, autoHabits
         if (ml >= partialThresh) done++
       })
       const pct = total > 0 ? done / total : 0
-      rows.push({ key: '_water', icon: '💧', name: 'Water', color: '#89dceb', pct, done, total })
+      rows.push({ key: '_water', icon: '💧', name: 'Water', color: 'var(--c-sky)', pct, done, total })
     }
     habits.forEach(h => {
       // Window start = max(phase start, first day this habit was tracked).

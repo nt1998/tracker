@@ -259,7 +259,7 @@ export default function SettingsRoutines({
             <div className="field">
               <label>Days</label>
               {dayKeys.length === 0 && (
-                <div style={{ color: '#45475a', fontSize: 12, padding: '4px 0' }}>No days yet — add one below</div>
+                <div style={{ color: 'var(--text-overlay)', fontSize: 12, padding: '4px 0' }}>No days yet — add one below</div>
               )}
               {dayKeys.map(k => {
                 const w = editRoutine.workouts[k]
@@ -294,7 +294,7 @@ export default function SettingsRoutines({
               {editRoutine.schedule.mode === 'weekday' && (
                 <>
                   {dayKeys.length === 0 && (
-                    <div style={{ color: '#6c7086', fontSize: 12, padding: '4px 0' }}>
+                    <div style={{ color: 'var(--text-overlay)', fontSize: 12, padding: '4px 0' }}>
                       Add a day first, then pick weekdays for it.
                     </div>
                   )}
@@ -324,7 +324,7 @@ export default function SettingsRoutines({
               {editRoutine.schedule.mode === 'cycle' && (
                 <>
                   {(editRoutine.schedule.cycle || []).length === 0 && (
-                    <div style={{ color: '#6c7086', fontSize: 12, padding: '4px 0' }}>
+                    <div style={{ color: 'var(--text-overlay)', fontSize: 12, padding: '4px 0' }}>
                       Cycle is empty. Add days below.
                     </div>
                   )}
@@ -395,7 +395,7 @@ export default function SettingsRoutines({
               <div className="field">
                 <label>Blocks</label>
                 {(editWorkout.blocks || []).length === 0 && (
-                  <div style={{ color: '#45475a', fontSize: 12, padding: '4px 0' }}>No blocks yet</div>
+                  <div style={{ color: 'var(--text-overlay)', fontSize: 12, padding: '4px 0' }}>No blocks yet</div>
                 )}
                 {(editWorkout.blocks || []).map((b, bIdx) => (
                   <div key={bIdx} className="rest-block">
@@ -502,7 +502,7 @@ export default function SettingsRoutines({
                 <div className="field">
                   <label>Warmups</label>
                   {(editWorkout.warmups || []).length === 0 && (
-                    <div style={{ color: '#45475a', fontSize: 12, padding: '4px 0' }}>None</div>
+                    <div style={{ color: 'var(--text-overlay)', fontSize: 12, padding: '4px 0' }}>None</div>
                   )}
                   {(editWorkout.warmups || []).map((wu, idx) => (
                     <div key={wu.id ?? idx} className="ex-item">
@@ -543,7 +543,7 @@ export default function SettingsRoutines({
                 <div className="field">
                   <label>Exercises</label>
                 {(editWorkout.items || []).length === 0 && (
-                  <div style={{ color: '#45475a', fontSize: 12, padding: '4px 0' }}>None yet</div>
+                  <div style={{ color: 'var(--text-overlay)', fontSize: 12, padding: '4px 0' }}>None yet</div>
                 )}
                 {(editWorkout.items || []).map((item, idx) => {
                   const ex = exercises[item.exerciseId]

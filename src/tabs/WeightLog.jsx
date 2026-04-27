@@ -303,14 +303,14 @@ export default function WeightLog({ entries, setEntries, autoHabitsByDate, habit
               <span className={`wpr-left ${waterAtGoal ? 'over' : ''}`}>
                 {waterToday} / {waterGoal} ml
               </span>
-              <span className="wpr-right" style={{ color: '#89dceb' }}>
+              <span className="wpr-right" style={{ color: 'var(--c-sky)' }}>
                 {waterAtGoal ? '✓' : waterPct + '%'}
               </span>
             </div>
             <div className="progress-bar-track">
               <div
                 className="progress-bar-fill"
-                style={{ width: Math.min(100, waterPct) + '%', background: '#89dceb' }}
+                style={{ width: Math.min(100, waterPct) + '%', background: 'var(--c-sky)' }}
               ></div>
             </div>
             <div className="water-btn-row">

@@ -410,7 +410,7 @@ export default function GymLog({ workouts, setWorkouts, exercises, routines, act
       <div style={{ padding: '60px 20px', textAlign: 'center', color: '#888' }}>
         <div style={{ fontSize: 64, marginBottom: 12 }}>🗓️</div>
         <p style={{ marginBottom: 8 }}>No routine set up yet.</p>
-        <p style={{ fontSize: 12, color: '#6c7086' }}>Open Settings → Routines to add one.</p>
+        <p style={{ fontSize: 12, color: 'var(--text-overlay)' }}>Open Settings → Routines to add one.</p>
       </div>
     )
   }
@@ -471,7 +471,7 @@ export default function GymLog({ workouts, setWorkouts, exercises, routines, act
     return (
       <div style={{ padding: '40px 20px', textAlign: 'center', color: '#888' }}>
         <p style={{ marginBottom: 16 }}>No exercises configured for {currentRoutine?.name || 'this routine'}.</p>
-        <p style={{ fontSize: 11, color: '#6c7086' }}>Configure routines in Settings (coming soon).</p>
+        <p style={{ fontSize: 11, color: 'var(--text-overlay)' }}>Configure routines in Settings (coming soon).</p>
       </div>
     )
   }

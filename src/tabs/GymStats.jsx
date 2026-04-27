@@ -463,8 +463,8 @@ export default function GymStats({ workouts, phases, exercises, routines, active
                         },
                         scales: {
                           x: { ticks: { color: c.tick, font: { size: 8 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 6 }, grid: { display: false } },
-                          y: { position: 'left', ticks: { color: '#89b4fa', font: { size: 8 } }, grid: { color: c.grid }, title: { display: true, text: 'kg', color: '#89b4fa', font: { size: 9 } } },
-                          y2: { position: 'right', min: 0, max: 15, ticks: { color: '#cba6f7', font: { size: 8 }, stepSize: 5 }, grid: { display: false }, title: { display: true, text: 'top reps', color: '#cba6f7', font: { size: 9 } } },
+                          y: { position: 'left', ticks: { color: 'var(--c-blue)', font: { size: 8 } }, grid: { color: c.grid }, title: { display: true, text: 'kg', color: 'var(--c-blue)', font: { size: 9 } } },
+                          y2: { position: 'right', min: 0, max: 15, ticks: { color: 'var(--c-mauve)', font: { size: 8 }, stepSize: 5 }, grid: { display: false }, title: { display: true, text: 'top reps', color: 'var(--c-mauve)', font: { size: 9 } } },
                         },
                       }})()}
                     />

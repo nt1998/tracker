@@ -39,7 +39,7 @@ export default function SettingsGeneral({
     <>
       <div className="settings-section">Phases</div>
       <button className="primary-btn" onClick={openNewPhase}>Start new phase</button>
-      <p style={{ fontSize: 11, color: '#6c7086', margin: '6px 0 12px' }}>
+      <p style={{ fontSize: 11, color: 'var(--text-overlay)', margin: '6px 0 12px' }}>
         Starting a new phase auto-ends the current one.
       </p>
 
@@ -51,8 +51,8 @@ export default function SettingsGeneral({
           <div key={p.id} className={`phase-card ${isCurrent ? 'current' : ''}`} style={{ borderColor: color + '40' }}>
             <div className="pc-name" style={{ color }}>
               {p.name}
-              {typeLabel && <span style={{ fontSize: 10, color: '#6c7086', fontWeight: 500, marginLeft: 8 }}>· {typeLabel}</span>}
-              {isCurrent && <span style={{ fontSize: 10, color: '#89b4fa', fontWeight: 600, marginLeft: 8 }}>· current</span>}
+              {typeLabel && <span style={{ fontSize: 10, color: 'var(--text-overlay)', fontWeight: 500, marginLeft: 8 }}>· {typeLabel}</span>}
+              {isCurrent && <span style={{ fontSize: 10, color: 'var(--c-blue)', fontWeight: 600, marginLeft: 8 }}>· current</span>}
             </div>
             <div className="pc-dates">{p.start} → {p.end || 'ongoing'}</div>
             {p.goals && (
@@ -66,7 +66,7 @@ export default function SettingsGeneral({
           </div>
         )
       })}
-      {phases.length === 0 && <div style={{ color: '#45475a', fontSize: 12, padding: '8px 0' }}>No phases yet</div>}
+      {phases.length === 0 && <div style={{ color: 'var(--text-overlay)', fontSize: 12, padding: '8px 0' }}>No phases yet</div>}
 
       <div className="settings-section">Tracking</div>
       <div className="toggle-row">
@@ -174,7 +174,7 @@ export default function SettingsGeneral({
                 <input value={ghForm.repo} onChange={(e) => setGhForm({ ...ghForm, repo: e.target.value })} placeholder="repo-name (private)" />
               </div>
               <button className="primary-btn" onClick={() => onConnectGithub(ghForm)}>Connect &amp; Pull</button>
-              <p style={{ fontSize: 10, color: '#6c7086', marginTop: 6 }}>
+              <p style={{ fontSize: 10, color: 'var(--text-overlay)', marginTop: 6 }}>
                 Reads / writes tracker.json only.
               </p>
             </>

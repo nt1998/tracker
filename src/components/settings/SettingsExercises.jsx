@@ -50,7 +50,7 @@ export default function SettingsExercises({ exercises, setExercises }) {
           {ex.templateNotes && <div className="pc-goals" style={{ fontSize: 10 }}>{ex.templateNotes}</div>}
         </div>
       ))}
-      {list.length === 0 && <div style={{ color: '#45475a', fontSize: 12, padding: '8px 0' }}>No exercises yet</div>}
+      {list.length === 0 && <div style={{ color: 'var(--text-overlay)', fontSize: 12, padding: '8px 0' }}>No exercises yet</div>}
 
       <button className="primary-btn" style={{ marginTop: 12 }} onClick={openAdd}>+ Add exercise</button>
 

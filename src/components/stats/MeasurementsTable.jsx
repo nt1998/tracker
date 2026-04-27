@@ -7,10 +7,10 @@ export default function MeasurementsTable({ entries, dates, settings }) {
       <div className="card-head" style={{ marginBottom: 8 }}>Measurements</div>
       <div className="mt-header">
         <span className="mt-date">Date</span>
-        <span className="mt-val" style={{ color: '#f38ba8' }}>Wt</span>
-        <span className="mt-val" style={{ color: '#fab387' }}>BF%</span>
-        <span className="mt-val" style={{ color: '#a6e3a1' }}>Mu%</span>
-        {visceralEnabled && <span className="mt-val" style={{ color: '#cba6f7' }}>Vi</span>}
+        <span className="mt-val" style={{ color: 'var(--c-red)' }}>Wt</span>
+        <span className="mt-val" style={{ color: 'var(--c-peach)' }}>BF%</span>
+        <span className="mt-val" style={{ color: 'var(--c-green)' }}>Mu%</span>
+        {visceralEnabled && <span className="mt-val" style={{ color: 'var(--c-mauve)' }}>Vi</span>}
       </div>
       <div className="mt-body">
         {rows.map(d => {

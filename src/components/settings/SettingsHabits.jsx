@@ -62,7 +62,7 @@ export default function SettingsHabits({ habits, setHabits }) {
           {h.description && <div className="pc-goals">{h.description}</div>}
         </div>
       ))}
-      {habits.length === 0 && <div style={{ color: '#45475a', fontSize: 12, padding: '8px 0' }}>No habits yet</div>}
+      {habits.length === 0 && <div style={{ color: 'var(--text-overlay)', fontSize: 12, padding: '8px 0' }}>No habits yet</div>}
 
       <button className="primary-btn" style={{ marginTop: 12 }} onClick={openAdd}>+ Add habit</button>
 

@@ -11,7 +11,7 @@ export default function PhasePanel({ entries, phases, sortedDates, statsPhaseIdx
   const visceralEnabled = !!settings?.visceralEnabled
   const waterEnabled = settings?.waterEnabled !== false
   const waterGoal = Math.max(1, parseInt(settings?.waterGoalML, 10) || 2500)
-  if (phases.length === 0) return <div style={{ color: '#45475a', textAlign: 'center', padding: 40 }}>No phases yet</div>
+  if (phases.length === 0) return <div style={{ color: 'var(--text-overlay)', textAlign: 'center', padding: 40 }}>No phases yet</div>
 
   const currentIdx = phases.findIndex(p => !p.end)
   const selectedIdx = statsPhaseIdx >= 0 && statsPhaseIdx < phases.length ? statsPhaseIdx : (currentIdx >= 0 ? currentIdx : phases.length - 1)
@@ -28,7 +28,7 @@ export default function PhasePanel({ entries, phases, sortedDates, statsPhaseIdx
           ))}
         </select>
       </div>
-      <div style={{ color: '#45475a', textAlign: 'center', padding: 40 }}>Not enough data for this phase</div>
+      <div style={{ color: 'var(--text-overlay)', textAlign: 'center', padding: 40 }}>Not enough data for this phase</div>
     </>
   )
 
@@ -140,17 +140,17 @@ export default function PhasePanel({ entries, phases, sortedDates, statsPhaseIdx
         <div className="pd-dates">{days} days -- {p.start} to {p.end || 'ongoing'}{p.goals ? ` -- Goal: ${p.goals.weight || '?'}kg / ${p.goals.bodyFat || '?'}% BF / ${p.goals.musclePct || '?'}% Mu` : ''}</div>
         <div className="pd-stats">
           <div className="pd-stat">
-            <div className="pd-sv" style={{ color: '#f38ba8' }}>{lW.toFixed(1)}</div>
+            <div className="pd-sv" style={{ color: 'var(--c-red)' }}>{lW.toFixed(1)}</div>
             <div className="pd-sl">Weight</div>
             <div className="pd-sd" style={{ color: wtChange <= 0 ? '#a6e3a1' : '#f38ba8' }}>{wtChange >= 0 ? '+' : ''}{wtChange.toFixed(1)}</div>
           </div>
           <div className="pd-stat">
-            <div className="pd-sv" style={{ color: '#fab387' }}>{lBf.toFixed(1)}%</div>
+            <div className="pd-sv" style={{ color: 'var(--c-peach)' }}>{lBf.toFixed(1)}%</div>
             <div className="pd-sl">Body Fat</div>
             <div className="pd-sd" style={{ color: bfChange <= 0 ? '#a6e3a1' : '#f38ba8' }}>{bfChange >= 0 ? '+' : ''}{bfChange.toFixed(1)}</div>
           </div>
           <div className="pd-stat">
-            <div className="pd-sv" style={{ color: '#a6e3a1' }}>{lMu.toFixed(1)}%</div>
+            <div className="pd-sv" style={{ color: 'var(--c-green)' }}>{lMu.toFixed(1)}%</div>
             <div className="pd-sl">Muscle</div>
             <div className="pd-sd" style={{ color: muChange >= 0 ? '#a6e3a1' : '#f38ba8' }}>{muChange >= 0 ? '+' : ''}{muChange.toFixed(1)}</div>
           </div>
@@ -159,9 +159,9 @@ export default function PhasePanel({ entries, phases, sortedDates, statsPhaseIdx
         {isOngoing && p.goals && (
           <div style={{ marginTop: 10 }}>
             {[
-              { label: 'Weight', start: fW, current: lW, goal: parseFloat(p.goals.weight), unit: 'kg', color: '#f38ba8' },
-              { label: 'Body Fat', start: fBf, current: lBf, goal: parseFloat(p.goals.bodyFat), unit: '%', color: '#fab387' },
-              { label: 'Muscle', start: fMu, current: lMu, goal: parseFloat(p.goals.musclePct), unit: '%', color: '#a6e3a1' },
+              { label: 'Weight', start: fW, current: lW, goal: parseFloat(p.goals.weight), unit: 'kg', color: 'var(--c-red)' },
+              { label: 'Body Fat', start: fBf, current: lBf, goal: parseFloat(p.goals.bodyFat), unit: '%', color: 'var(--c-peach)' },
+              { label: 'Muscle', start: fMu, current: lMu, goal: parseFloat(p.goals.musclePct), unit: '%', color: 'var(--c-green)' },
             ].filter(m => !isNaN(m.goal)).map(m => {
               const pct = goalProgress(m.start, m.current, m.goal)
               return (
@@ -182,19 +182,19 @@ export default function PhasePanel({ entries, phases, sortedDates, statsPhaseIdx
 
       <div className="rate-row">
         <div className="rate-badge">
-          <div className="rb-val" style={{ color: '#f38ba8' }}>{wtChange >= 0 ? '+' : ''}{wtChange.toFixed(1)}</div>
+          <div className="rb-val" style={{ color: 'var(--c-red)' }}>{wtChange >= 0 ? '+' : ''}{wtChange.toFixed(1)}</div>
           <div className="rb-lbl">Weight delta kg</div>
-          <div className="rb-bar" style={{ background: '#f38ba8', width: Math.min(100, Math.abs(wtChange) / 3 * 100) + '%' }}></div>
+          <div className="rb-bar" style={{ background: 'var(--c-red)', width: Math.min(100, Math.abs(wtChange) / 3 * 100) + '%' }}></div>
         </div>
         <div className="rate-badge">
-          <div className="rb-val" style={{ color: '#fab387' }}>{fatMassChange >= 0 ? '+' : ''}{fatMassChange.toFixed(1)}</div>
+          <div className="rb-val" style={{ color: 'var(--c-peach)' }}>{fatMassChange >= 0 ? '+' : ''}{fatMassChange.toFixed(1)}</div>
           <div className="rb-lbl">Fat Mass kg</div>
-          <div className="rb-bar" style={{ background: '#fab387', width: Math.min(100, Math.abs(fatMassChange) / 3 * 100) + '%' }}></div>
+          <div className="rb-bar" style={{ background: 'var(--c-peach)', width: Math.min(100, Math.abs(fatMassChange) / 3 * 100) + '%' }}></div>
         </div>
         <div className="rate-badge">
-          <div className="rb-val" style={{ color: '#a6e3a1' }}>{lbmChange >= 0 ? '+' : ''}{lbmChange.toFixed(1)}</div>
+          <div className="rb-val" style={{ color: 'var(--c-green)' }}>{lbmChange >= 0 ? '+' : ''}{lbmChange.toFixed(1)}</div>
           <div className="rb-lbl">Lean Mass kg</div>
-          <div className="rb-bar" style={{ background: '#a6e3a1', width: Math.min(100, Math.abs(lbmChange) / 3 * 100) + '%' }}></div>
+          <div className="rb-bar" style={{ background: 'var(--c-green)', width: Math.min(100, Math.abs(lbmChange) / 3 * 100) + '%' }}></div>
         </div>
       </div>
 
@@ -234,8 +234,8 @@ export default function PhasePanel({ entries, phases, sortedDates, statsPhaseIdx
           options={(() => {
             const fv = pFatMass.filter(v => v !== null), mv = pMusMass.filter(v => v !== null)
             if (!fv.length || !mv.length) return phaseOpts({
-              y: { position: 'left', ticks: { color: '#fab387', font: { size: 9 } }, grid: { color: '#313244' } },
-              y2: { position: 'right', ticks: { color: '#a6e3a1', font: { size: 9 } }, grid: { display: false } },
+              y: { position: 'left', ticks: { color: 'var(--c-peach)', font: { size: 9 } }, grid: { color: 'var(--bg-surface0)' } },
+              y2: { position: 'right', ticks: { color: 'var(--c-green)', font: { size: 9 } }, grid: { display: false } },
             })
             const fMin = Math.min(...fv), fMax = Math.max(...fv)
             const mMin = Math.min(...mv), mMax = Math.max(...mv)
@@ -243,8 +243,8 @@ export default function PhasePanel({ entries, phases, sortedDates, statsPhaseIdx
             const pad = range * 0.15
             const fCenter = (fMin + fMax) / 2, mCenter = (mMin + mMax) / 2
             return phaseOpts({
-              y: { position: 'left', min: fCenter - range / 2 - pad, max: fCenter + range / 2 + pad, ticks: { color: '#fab387', font: { size: 9 } }, grid: { color: '#313244' } },
-              y2: { position: 'right', min: mCenter - range / 2 - pad, max: mCenter + range / 2 + pad, ticks: { color: '#a6e3a1', font: { size: 9 } }, grid: { display: false } },
+              y: { position: 'left', min: fCenter - range / 2 - pad, max: fCenter + range / 2 + pad, ticks: { color: 'var(--c-peach)', font: { size: 9 } }, grid: { color: 'var(--bg-surface0)' } },
+              y2: { position: 'right', min: mCenter - range / 2 - pad, max: mCenter + range / 2 + pad, ticks: { color: 'var(--c-green)', font: { size: 9 } }, grid: { display: false } },
             })
           })()}
           width={CANVAS_W} height={110}
@@ -287,7 +287,7 @@ export default function PhasePanel({ entries, phases, sortedDates, statsPhaseIdx
         <div className="chart-card">
           <ScrubbableLine
             data={{ labels, datasets: [{ data: pViVals, borderColor: '#cba6f7', backgroundColor: hexToRgba('#cba6f7', 0.2), fill: true }] }}
-            options={{ ...phaseOpts(), scales: { x: { ticks: { color: '#6c7086', font: { size: 9 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 6 }, grid: { display: false } }, y: { ticks: { color: '#6c7086', font: { size: 9 }, stepSize: 1 }, grid: { color: '#313244' }, suggestedMin: 0, suggestedMax: 8 } } }}
+            options={{ ...phaseOpts(), scales: { x: { ticks: { color: 'var(--text-overlay)', font: { size: 9 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 6 }, grid: { display: false } }, y: { ticks: { color: 'var(--text-overlay)', font: { size: 9 }, stepSize: 1 }, grid: { color: 'var(--bg-surface0)' }, suggestedMin: 0, suggestedMax: 8 } } }}
             width={CANVAS_W} height={90}
             style={{ width: CANVAS_W, height: 90 }}
             renderHead={(idx) => {
