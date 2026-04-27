@@ -2035,6 +2035,7 @@ body:has(textarea:focus) .tabbar {
   color: var(--text);
   line-height: 1.5;
   padding: 2px 0;
+  white-space: pre-line;
 }
 @keyframes hdFade {
   from { opacity: 0; transform: translateY(6px); }
