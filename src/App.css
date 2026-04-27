@@ -14,6 +14,10 @@
   /* Neumorphic shadow tints (used as `rgba(var(--sd), .5)` etc.). */
   --sd: 17, 17, 27;
   --su: 69, 71, 90;
+  /* RGB tuples so alpha-tinted backgrounds can theme via vars. */
+  --bg-base-rgb: 30, 30, 46;
+  --bg-mantle-rgb: 24, 24, 37;
+  --bg-surface0-rgb: 49, 50, 68;
 }
 [data-theme="light"] {
   /* Catppuccin Latte */
@@ -28,6 +32,9 @@
   --text-overlay: #8c8fa1;
   --sd: 76, 79, 105;
   --su: 255, 255, 255;
+  --bg-base-rgb: 239, 241, 245;
+  --bg-mantle-rgb: 230, 233, 239;
+  --bg-surface0-rgb: 204, 208, 218;
 }
 .app {
   height: 100%;
@@ -214,8 +221,8 @@ body:has(textarea:focus) .navbar {
   border-radius: 50%;
   color: color-mix(in srgb, var(--text-overlay), #89b4fa calc(var(--glow) * 100%));
   background: linear-gradient(145deg,
-    rgba(49,50,68, calc(.7 + var(--glow) * .1)),
-    rgba(30,30,46, calc(.85 + var(--glow) * .1))
+    rgba(var(--bg-surface0-rgb), calc(.7 + var(--glow) * .1)),
+    rgba(var(--bg-base-rgb), calc(.85 + var(--glow) * .1))
   );
   box-shadow:
     calc(4px + var(--glow) * 1px) calc(4px + var(--glow) * 1px) calc(10px + var(--glow) * 2px) rgba(var(--sd),.6),
@@ -288,7 +295,7 @@ body:has(textarea:focus) .navbar {
 }
 
 .commit-btn {
-  background: linear-gradient(145deg, var(--bg-surface1), rgba(49,50,68,.9)) !important;
+  background: linear-gradient(145deg, var(--bg-surface1), rgba(var(--bg-surface0-rgb),.9)) !important;
   color: var(--text-overlay) !important;
   font-weight: 600;
   font-size: 1.1rem !important;
@@ -991,7 +998,7 @@ body:has(textarea:focus) .navbar {
 
 /* GitHub form (matching body-tracker) */
 .gh-form {
-  background: rgba(30,30,46,0.85);
+  background: rgba(var(--bg-base-rgb),0.85);
   border: 1px solid rgba(137,180,250,.08);
   border-radius: 12px;
   padding: 14px;
@@ -2016,8 +2023,8 @@ body:has(textarea:focus) .tabbar {
   border-radius: 50%;
   color: color-mix(in srgb, var(--text-overlay), #89b4fa calc(var(--glow) * 100%));
   background: linear-gradient(145deg,
-    rgba(49,50,68, calc(.7 + var(--glow) * .1)),
-    rgba(30,30,46, calc(.85 + var(--glow) * .1))
+    rgba(var(--bg-surface0-rgb), calc(.7 + var(--glow) * .1)),
+    rgba(var(--bg-base-rgb), calc(.85 + var(--glow) * .1))
   );
   box-shadow:
     calc(4px + var(--glow) * 1px) calc(4px + var(--glow) * 1px) calc(10px + var(--glow) * 2px) rgba(var(--sd),.6),
@@ -2260,7 +2267,7 @@ body:has(textarea:focus) .tabbar {
   background: transparent;
   border: 1px dashed var(--bg-surface1);
   box-shadow: 0 0 0 4px transparent,
-              0 0 0 5px rgba(49,50,68,.15);
+              0 0 0 5px rgba(var(--bg-surface0-rgb),.15);
   opacity: .5;
 }
 .planet.pending .p-icon { filter: grayscale(.45); opacity: .78; }
@@ -2325,7 +2332,7 @@ body:has(textarea:focus) .tabbar {
   gap: 8px;
 }
 .log-metric {
-  background: rgba(30,30,46,0.85);
+  background: rgba(var(--bg-base-rgb),0.85);
   border: 1px solid rgba(137,180,250,.1);
   border-radius: 10px;
   padding: 14px 10px;
@@ -2397,7 +2404,7 @@ body:has(textarea:focus) .tabbar {
 
 /* ---- Water tracker ---- */
 .water-section {
-  background: rgba(30,30,46,0.85);
+  background: rgba(var(--bg-base-rgb),0.85);
   border: 1px solid rgba(137,220,235,.12);
   border-radius: 12px;
   padding: 14px 14px 16px;
@@ -2510,7 +2517,7 @@ body:has(textarea:focus) .tabbar {
 .sync-status {
   margin-top: 10px;
   padding: 6px 10px;
-  background: rgba(30,30,46,.85);
+  background: rgba(var(--bg-base-rgb),.85);
   border: 1px solid rgba(137,180,250,.08);
   border-radius: 8px;
   text-align: center;
@@ -2571,7 +2578,7 @@ body:has(textarea:focus) .tabbar {
   display: flex;
   align-items: center;
   gap: 10px;
-  background: rgba(30,30,46,0.85);
+  background: rgba(var(--bg-base-rgb),0.85);
   border: 1px solid rgba(137,180,250,.1);
   border-radius: 12px;
   padding: 12px;
@@ -2620,7 +2627,7 @@ body:has(textarea:focus) .tabbar {
   font-size: 11px;
 }
 .hero-card {
-  background: rgba(30,30,46,0.85);
+  background: rgba(var(--bg-base-rgb),0.85);
   border: 1px solid rgba(137,180,250,.1);
   border-radius: 12px;
   padding: 10px 8px;
@@ -2684,7 +2691,7 @@ body:has(textarea:focus) .tabbar {
 
 /* Chart cards */
 .chart-card {
-  background: rgba(30,30,46,0.85);
+  background: rgba(var(--bg-base-rgb),0.85);
   border: 1px solid rgba(137,180,250,.1);
   border-radius: 12px;
   padding: 12px;
@@ -2747,7 +2754,7 @@ body:has(textarea:focus) .tabbar {
   justify-content: space-between;
   align-items: center;
   padding: 9px 10px;
-  background: rgba(30,30,46,0.85);
+  background: rgba(var(--bg-base-rgb),0.85);
   border: 1px solid rgba(137,180,250,.08);
   border-radius: 10px;
   margin-bottom: 6px;
@@ -2792,7 +2799,7 @@ body:has(textarea:focus) .tabbar {
 
 /* Phase detail card */
 .phase-detail {
-  background: rgba(30,30,46,0.85);
+  background: rgba(var(--bg-base-rgb),0.85);
   border: 1px solid rgba(137,180,250,.1);
   border-radius: 12px;
   padding: 14px;
@@ -2842,7 +2849,7 @@ body:has(textarea:focus) .tabbar {
 }
 .rate-badge {
   flex: 1;
-  background: rgba(30,30,46,0.85);
+  background: rgba(var(--bg-base-rgb),0.85);
   border: 1px solid rgba(137,180,250,.08);
   border-radius: 10px;
   padding: 10px 8px;
@@ -2976,7 +2983,7 @@ body:has(textarea:focus) .tabbar {
   gap: 8px;
 }
 .comp-cell {
-  background: rgba(30,30,46,0.85);
+  background: rgba(var(--bg-base-rgb),0.85);
   border: 1px solid rgba(137,180,250,.08);
   border-radius: 10px;
   padding: 10px;
@@ -3024,7 +3031,7 @@ body:has(textarea:focus) .tabbar {
 
 /* Phase cards in settings */
 .phase-card {
-  background: rgba(30,30,46,0.85);
+  background: rgba(var(--bg-base-rgb),0.85);
   border: 1px solid rgba(137,180,250,.08);
   border-radius: 10px;
   padding: 12px;
@@ -3087,7 +3094,7 @@ body:has(textarea:focus) .tabbar {
 
 /* Phase summary (current phase) */
 .phase-delta {
-  background: rgba(30,30,46,0.85);
+  background: rgba(var(--bg-base-rgb),0.85);
   border: 1px solid rgba(137,180,250,.08);
   border-radius: 10px;
   padding: 12px;
@@ -3162,7 +3169,7 @@ body:has(textarea:focus) .tabbar {
 
 /* GitHub connect form in settings */
 .gh-form {
-  background: rgba(30,30,46,0.85);
+  background: rgba(var(--bg-base-rgb),0.85);
   border: 1px solid rgba(137,180,250,.08);
   border-radius: 12px;
   padding: 14px;
@@ -3359,7 +3366,7 @@ body:has(textarea:focus) .tabbar {
 /* ---- Measurements table ---- */
 .measurements-table {
   margin-top: 16px;
-  background: rgba(24,24,37,.6);
+  background: rgba(var(--bg-mantle-rgb),.6);
   border-radius: 12px;
   padding: 12px;
   border: 1px solid var(--bg-surface0);
@@ -3383,7 +3390,7 @@ body:has(textarea:focus) .tabbar {
 .mt-row {
   font-size: 12px;
   color: var(--text-sub);
-  border-bottom: 1px solid rgba(49,50,68,.4);
+  border-bottom: 1px solid rgba(var(--bg-surface0-rgb),.4);
   font-variant-numeric: tabular-nums;
 }
 .mt-row:last-child { border-bottom: 0; }
@@ -3786,7 +3793,7 @@ body:has(textarea:focus) .tabbar {
   justify-content: space-between;
   gap: 12px;
   padding: 10px 12px;
-  background: rgba(30,30,46,0.85);
+  background: rgba(var(--bg-base-rgb),0.85);
   border: 1px solid rgba(137,180,250,.08);
   border-radius: 10px;
   margin-bottom: 8px;
@@ -3868,7 +3875,7 @@ body:has(textarea:focus) .tabbar {
   align-items: center;
   gap: 10px;
   padding: 10px 12px;
-  background: rgba(30,30,46,0.85);
+  background: rgba(var(--bg-base-rgb),0.85);
   border: 1px solid rgba(137,180,250,.08);
   border-radius: 10px;
   margin-bottom: 6px;
@@ -3947,7 +3954,7 @@ body:has(textarea:focus) .tabbar {
 /* Exercise item inside workout edit */
 .ex-item {
   padding: 10px 12px;
-  background: rgba(30,30,46,0.85);
+  background: rgba(var(--bg-base-rgb),0.85);
   border: 1px solid rgba(137,180,250,.08);
   border-radius: 10px;
   margin-bottom: 6px;
@@ -3988,7 +3995,7 @@ body:has(textarea:focus) .tabbar {
 
 /* Rest-day block editor */
 .rest-block {
-  background: rgba(24,24,37,.5);
+  background: rgba(var(--bg-mantle-rgb),.5);
   border: 1px solid rgba(137,180,250,.06);
   border-radius: 12px;
   padding: 10px 10px 6px;
