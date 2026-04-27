@@ -38,6 +38,45 @@ function migrateRoutinesShape() {
 }
 migrateRoutinesShape()
 
+// One-shot: clean up exercise names that still carry brand/equipment info
+// (the original Excel import packed those into the name). Matches strictly
+// against the German names so other users' libraries aren't touched.
+function migrateRenameExerciseTitles() {
+  if (typeof localStorage === 'undefined') return
+  if (localStorage.getItem('tracker_mig_ex_rename_v1') === '1') return
+  try {
+    const raw = localStorage.getItem('tracker_exercises')
+    if (!raw) { localStorage.setItem('tracker_mig_ex_rename_v1', '1'); return }
+    const ex = JSON.parse(raw)
+    if (!ex || typeof ex !== 'object') { localStorage.setItem('tracker_mig_ex_rename_v1', '1'); return }
+    const RENAMES = {
+      'Chestpress liegend Hammer Strength': { name: 'Flat Chest Press', tnote: 'Hammer Strength · liegend' },
+      'Iliac Pulldown Kabel':                { name: 'Iliac Pulldown',         tnote: 'Kabel' },
+      'Trizeps Extension Kabel liegend':     { name: 'Lying Triceps Extension', tnote: 'Kabel' },
+      'Seitheben Kabel unilateral':          { name: 'Cable Lateral Raise',    tnote: 'unilateral' },
+      'Kelso Shrugs liegend':                { name: 'Kelso Shrugs',           tnote: 'liegend' },
+      'Hack Squat Precore':                  { name: 'Hack Squat',             tnote: 'Precore' },
+      'Hip Thrusts Multipresse':             { name: 'Hip Thrust',             tnote: 'Multipresse' },
+      'Donkey Wadenheben':                   { name: 'Donkey Calf Raise',      tnote: '' },
+      'Upper Back Row (gray)':               { name: 'Upper Back Row',         tnote: '' },
+    }
+    let changed = false
+    Object.values(ex).forEach(v => {
+      const r = RENAMES[v?.name]
+      if (!r) return
+      v.name = r.name
+      const cur = (v.templateNotes || '').trim()
+      if (r.tnote && !cur.toLowerCase().includes(r.tnote.toLowerCase())) {
+        v.templateNotes = (cur ? cur + '. ' : '') + r.tnote
+      }
+      changed = true
+    })
+    if (changed) localStorage.setItem('tracker_exercises', JSON.stringify(ex))
+    localStorage.setItem('tracker_mig_ex_rename_v1', '1')
+  } catch { /* ignore */ }
+}
+migrateRenameExerciseTitles()
+
 export default function useStore() {
   const [entries, setEntries] = useLocalStorage('tracker_entries', {})
   const [phases, setPhases] = useLocalStorage('tracker_phases', [])
