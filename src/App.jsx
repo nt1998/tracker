@@ -18,7 +18,13 @@ const TABS = ['weight', 'gym', 'stats', 'settings']
 
 export default function App() {
   const [tab, setTab] = useLocalStorage('tracker_tab', 'weight')
+  const [theme, setTheme] = useLocalStorage('tracker_theme', 'dark')
   const appRef = useRef(null)
+
+  useEffect(() => {
+    if (theme === 'light') document.documentElement.setAttribute('data-theme', 'light')
+    else document.documentElement.removeAttribute('data-theme')
+  }, [theme])
 
   useOrientationLock()
 
@@ -222,6 +228,7 @@ export default function App() {
             routines={routines} setRoutines={setRoutines}
             activeRoutineId={activeRoutineId} setActiveRoutineId={setActiveRoutineId}
             settings={settings} setSettings={setSettings}
+            theme={theme} setTheme={setTheme}
             github={github} onConnectGithub={connectGithub} onDisconnectGithub={disconnectGithub}
             onSyncNow={() => doPush()} onPull={() => doPull()}
             syncStatus={syncStatus} lastSyncAt={lastSyncAt} needsSync={needsSync}

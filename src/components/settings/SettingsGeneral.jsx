@@ -6,6 +6,7 @@ import KeypadInput from '../KeypadInput'
 export default function SettingsGeneral({
   phases, setPhases,
   settings, setSettings,
+  theme, setTheme,
   github, onConnectGithub, onDisconnectGithub,
   onSyncNow, onPull, syncStatus, lastSyncAt, needsSync,
 }) {
@@ -93,6 +94,21 @@ export default function SettingsGeneral({
             type="checkbox"
             checked={settings?.swipeNavEnabled !== false}
             onChange={(e) => setSettings({ ...settings, swipeNavEnabled: e.target.checked })}
+          />
+          <span className="slider"></span>
+        </label>
+      </div>
+
+      <div className="toggle-row">
+        <span>
+          <div className="tr-title">Light mode</div>
+          <div className="tr-sub">Catppuccin Latte palette.</div>
+        </span>
+        <label className="toggle-switch">
+          <input
+            type="checkbox"
+            checked={theme === 'light'}
+            onChange={(e) => setTheme(e.target.checked ? 'light' : 'dark')}
           />
           <span className="slider"></span>
         </label>
