@@ -176,27 +176,16 @@ export default function App() {
     if (github.connected) setNeedsSync(true)
   }, [entries, phases, workouts, exerciseNotes, habits, exercises, routines, activeRoutineId, settings, water, github.connected])
 
-  // Auto-pull on launch so remote edits (made directly to the user's data
-  // repo) propagate without needing a manual Pull. Always flush any pending
-  // local changes first so a stale remote can't overwrite unsaved work.
+  // Auto-pull only on initial mount. Visibility-change pulls were racing
+  // with pending pushes (stale needsSync closure) and clobbering local
+  // workout-day picks with the previous remote state. To pick up remote
+  // edits made by me, just reload the app — pull always fires on boot.
   const initialPullDoneRef = useRef(false)
-  const safeAutoPull = useCallback(async () => {
-    if (!github.connected) return
-    if (needsSync) { try { await doPush() } catch (e) { return } }
-    doPull()
-  }, [github.connected, needsSync, doPush, doPull])
   useEffect(() => {
     if (!github.connected || initialPullDoneRef.current) return
     initialPullDoneRef.current = true
-    safeAutoPull()
-  }, [github.connected, safeAutoPull])
-  useEffect(() => {
-    const onVis = () => {
-      if (document.visibilityState === 'visible') safeAutoPull()
-    }
-    document.addEventListener('visibilitychange', onVis)
-    return () => document.removeEventListener('visibilitychange', onVis)
-  }, [safeAutoPull])
+    doPull()
+  }, [github.connected, doPull])
 
   // Debounced auto-push 5s after last change
   useEffect(() => {
