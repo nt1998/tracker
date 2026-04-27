@@ -71,13 +71,20 @@ export default function Stats({ entries, phases, workouts, exercises, autoHabits
     return rows
   }, [entries, today, autoHabitsByDate, habits, water, waterEnabled, waterGoal])
 
+  // Compliance is scored over the current phase only (or all time if no
+  // active phase). Days the user didn't open the app at all are excluded.
+  // Today is always excluded since it's still in progress.
+  const curPhaseForScore = useMemo(() => phases.find(p => !p.end), [phases])
+  const scoreDates = useMemo(() => {
+    if (!curPhaseForScore) return sortedDates
+    return sortedDates.filter(k => k >= curPhaseForScore.start && (!curPhaseForScore.end || k <= curPhaseForScore.end))
+  }, [sortedDates, curPhaseForScore])
   const habitScores = useMemo(() => {
     const rows = []
     if (waterEnabled) {
       let done = 0, total = 0
       const partialThresh = waterGoal * 0.9
-      // Only count days actually logged (skip blanks and current day).
-      sortedDates.forEach(k => {
+      scoreDates.forEach(k => {
         if (k === today) return
         const ml = water && water[k] != null ? parseFloat(water[k]) : null
         if (ml == null || ml <= 0) return
@@ -89,8 +96,13 @@ export default function Stats({ entries, phases, workouts, exercises, autoHabits
     }
     habits.forEach(h => {
       let done = 0, total = 0
-      sortedDates.forEach(k => {
+      scoreDates.forEach(k => {
+        if (k === today) return
         if (!habitApplies(h, k, entries)) return
+        // For manual habits, skip days the user never opened the app —
+        // otherwise old days inflate the denominator. Auto habits derive
+        // from workout data, so they always count when applicable.
+        if (!h.auto && !entries[k]) return
         const v = h.auto ? !!autoHabitsByDate[k]?.[h.key] : !!ensureHabits(entries[k]).habits?.[h.key]
         total++
         if (v) done++
@@ -99,7 +111,7 @@ export default function Stats({ entries, phases, workouts, exercises, autoHabits
       rows.push({ ...h, pct, done, total })
     })
     return rows
-  }, [entries, sortedDates, autoHabitsByDate, habits, water, waterEnabled, waterGoal])
+  }, [entries, scoreDates, today, autoHabitsByDate, habits, water, waterEnabled, waterGoal])
 
   const phaseOpts = useMemo(() => {
     return [...phases].sort((a, b) => (b.start || '').localeCompare(a.start || ''))

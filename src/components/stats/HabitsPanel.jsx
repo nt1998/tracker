@@ -37,7 +37,7 @@ export default function HabitsPanel({ trailsData, habitScores, entries, phases, 
         ))}
       </div>
 
-      <div className="stat-section-title">Habit compliance -- all time</div>
+      <div className="stat-section-title">Habit compliance ({curPhase ? 'current phase' : 'all time'})</div>
       <div className="compliance-grid">
         {habitScores.map(hs => {
           const pctVal = Math.round(hs.pct * 100)
