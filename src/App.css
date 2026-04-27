@@ -4436,88 +4436,87 @@ body:has(textarea:focus) .tabbar {
 .water-timeline-modal {
   background: linear-gradient(145deg, var(--bg-surface0), var(--bg-base));
   border-radius: 16px;
-  padding: 18px 20px 20px;
-  width: min(360px, 92vw);
+  padding: 16px 14px;
+  width: min(260px, 86vw);
   max-height: 80vh;
   overflow-y: auto;
   box-shadow: 0 12px 40px rgba(var(--sd), .35);
 }
 .wtm-head {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--text);
   letter-spacing: .4px;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
   text-align: center;
 }
-.wtm-line-wrap { padding: 8px 0 0; min-height: 380px; }
+.wtm-line-wrap { padding: 4px 0 0; }
 .wtm-line {
   position: relative;
   width: 100%;
-  height: 380px;
+  height: 340px;
   margin: 0 auto;
 }
+/* Line offset left so hour labels sit immediately to its left and event
+   labels extend to the right with room for the text. */
 .wtm-line-bg {
   position: absolute;
-  left: 50%;
+  left: 44px;
   top: 0;
   bottom: 0;
   width: 2px;
-  transform: translateX(-50%);
   background: var(--bg-surface1);
   border-radius: 2px;
 }
 .wtm-line-fill {
   position: absolute;
-  left: 50%;
+  left: 43px;
   top: 0;
   width: 4px;
-  transform: translateX(-50%);
   background: var(--c-sky);
   box-shadow: 0 0 8px rgba(var(--c-sky-rgb), .5);
   border-radius: 2px;
 }
 .wtm-hour {
   position: absolute;
-  left: 0;
+  left: 8px;
   transform: translateY(-50%);
   font-size: 9px;
   color: var(--text-overlay);
-  letter-spacing: .5px;
+  letter-spacing: .3px;
 }
 .wtm-now {
   position: absolute;
-  left: 50%;
+  left: 44px;
   transform: translate(-50%, -50%);
   display: flex;
   align-items: center;
-  gap: 8px;
 }
 .wtm-now-dot {
-  width: 14px;
-  height: 14px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
   background: var(--c-sky);
-  box-shadow: 0 0 0 3px rgba(var(--c-sky-rgb), .25), 0 0 12px rgba(var(--c-sky-rgb), .6);
+  box-shadow: 0 0 0 3px rgba(var(--c-sky-rgb), .25), 0 0 10px rgba(var(--c-sky-rgb), .6);
 }
 .wtm-now-label {
   position: absolute;
-  left: 24px;
-  font-size: 10px;
+  left: 16px;
+  font-size: 9px;
   color: var(--c-sky);
   font-weight: 600;
   white-space: nowrap;
 }
 .wtm-event {
   position: absolute;
-  left: 50%;
+  left: 44px;
   transform: translate(-50%, -50%);
   display: flex;
   align-items: center;
 }
 .wtm-event-dot {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background: var(--c-sky);
   flex-shrink: 0;
@@ -4525,7 +4524,7 @@ body:has(textarea:focus) .tabbar {
 .wtm-event.neg .wtm-event-dot { background: var(--c-red); }
 .wtm-event-label {
   position: absolute;
-  left: 18px;
+  left: 14px;
   font-size: 10px;
   color: var(--text);
   white-space: nowrap;

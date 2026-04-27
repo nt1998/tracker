@@ -378,6 +378,7 @@ export default function WeightLog({ entries, setEntries, autoHabitsByDate, habit
       {waterTimelineOpen && (
         <WaterTimeline
           events={(waterLog && waterLog[date]) || []}
+          totalMl={waterToday}
           isToday={isToday}
           onClose={closeWaterTimeline}
         />
@@ -391,7 +392,7 @@ export default function WeightLog({ entries, setEntries, autoHabitsByDate, habit
 // + label. Same-button bursts (matching ml within 60s) collapse into one
 // dot showing the summed amount; mixed-amount bursts list values comma-
 // separated.
-function WaterTimeline({ events, isToday, onClose }) {
+function WaterTimeline({ events, totalMl, isToday, onClose }) {
   const START_HOUR = 6
   const END_HOUR = 24
   const totalMin = (END_HOUR - START_HOUR) * 60
@@ -467,7 +468,10 @@ function WaterTimeline({ events, isToday, onClose }) {
             })}
           </div>
         </div>
-        {events.length === 0 && (
+        {events.length === 0 && totalMl > 0 && (
+          <div className="wtm-empty">{totalMl} ml logged today (no per-event history before this update).</div>
+        )}
+        {events.length === 0 && totalMl <= 0 && (
           <div className="wtm-empty">No water logged today.</div>
         )}
         <button className="wtm-close" onClick={onClose}>Close</button>
