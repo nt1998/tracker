@@ -95,6 +95,25 @@ function migrateMealHabits() {
 }
 migrateMealHabits()
 
+// One-shot: activate the imported Steppe UL routine if present and the
+// active routine still points at the old r_imported. App's auto-push keeps
+// reverting remote changes to activeRoutineId.
+function migrateActivateSteppeUL() {
+  if (typeof localStorage === 'undefined') return
+  if (localStorage.getItem('tracker_mig_active_steppe_ul') === '1') return
+  try {
+    const routinesRaw = localStorage.getItem('tracker_routines')
+    if (!routinesRaw) { localStorage.setItem('tracker_mig_active_steppe_ul', '1'); return }
+    const routines = JSON.parse(routinesRaw)
+    if (!Array.isArray(routines)) { localStorage.setItem('tracker_mig_active_steppe_ul', '1'); return }
+    const hasSteppe = routines.some(r => r && r.id === 'r_steppe_ul')
+    if (!hasSteppe) { localStorage.setItem('tracker_mig_active_steppe_ul', '1'); return }
+    localStorage.setItem('tracker_active_routine', JSON.stringify('r_steppe_ul'))
+    localStorage.setItem('tracker_mig_active_steppe_ul', '1')
+  } catch { /* ignore */ }
+}
+migrateActivateSteppeUL()
+
 export default function useStore() {
   const [entries, setEntries] = useLocalStorage('tracker_entries', {})
   const [phases, setPhases] = useLocalStorage('tracker_phases', [])
