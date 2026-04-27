@@ -98,15 +98,33 @@ export default function Stats({ entries, phases, workouts, exercises, autoHabits
       rows.push({ key: '_water', icon: '💧', name: 'Water', color: '#89dceb', pct, done, total })
     }
     habits.forEach(h => {
+      // Window start = max(phase start, first day this habit was tracked).
+      // No createdAt field exists, so derive habit creation from data: the
+      // first entry where the habit key shows up at all.
+      let firstSeen = null
+      if (h.auto) {
+        for (const k of sortedDates) {
+          if (autoHabitsByDate[k] && Object.prototype.hasOwnProperty.call(autoHabitsByDate[k], h.key)) {
+            firstSeen = k
+            break
+          }
+        }
+      } else {
+        for (const k of sortedDates) {
+          const raw = entries[k]?.habits?.[h.key]
+          if (raw !== undefined) { firstSeen = k; break }
+        }
+      }
+      const winStart = firstSeen && (!curPhaseForScore || firstSeen > curPhaseForScore.start)
+        ? firstSeen
+        : (curPhaseForScore ? curPhaseForScore.start : (sortedDates[0] || ''))
+
       let done = 0, total = 0
       scoreDates.forEach(k => {
         if (k === today) return
+        if (k < winStart) return
         if (!habitApplies(h, k, entries)) return
-        // For manual habits, skip days the user never opened the app —
-        // otherwise old days inflate the denominator. Auto habits derive
-        // from workout data, so they always count when applicable.
         if (!h.auto && !entries[k]) return
-        // Skip days where the habit didn't exist yet (undefined value).
         if (!h.auto) {
           const raw = ensureHabits(entries[k]).habits?.[h.key]
           if (raw === undefined) return
