@@ -1411,8 +1411,10 @@ body:has(textarea:focus) .navbar {
   gap: 10px;
   background: var(--bg-surface0);
   border-radius: 8px;
-  padding: 10px 12px;
-  border-left: 3px solid var(--c-green);
+  padding: 10px 12px 10px 15px;
+  /* Inset stripe respects border-radius (border-left would draw a flat edge
+     against the rounded corner, looking like a cut-off bar). */
+  box-shadow: inset 3px 0 0 var(--c-green);
   cursor: pointer;
 }
 
