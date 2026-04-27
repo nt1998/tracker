@@ -81,14 +81,14 @@ migrateRenameExerciseTitles()
 // muscle group in that workout, 1 for subsequent ones.
 function migrateULWarmupSets() {
   if (typeof localStorage === 'undefined') return
-  if (localStorage.getItem('tracker_mig_ul_warmupsets_v1') === '1') return
+  if (localStorage.getItem('tracker_mig_ul_warmupsets_v2') === '1') return
   try {
     const raw = localStorage.getItem('tracker_routines')
-    if (!raw) { localStorage.setItem('tracker_mig_ul_warmupsets_v1', '1'); return }
+    if (!raw) { localStorage.setItem('tracker_mig_ul_warmupsets_v2', '1'); return }
     const routines = JSON.parse(raw)
-    if (!Array.isArray(routines)) { localStorage.setItem('tracker_mig_ul_warmupsets_v1', '1'); return }
+    if (!Array.isArray(routines)) { localStorage.setItem('tracker_mig_ul_warmupsets_v2', '1'); return }
     const ul = routines.find(r => r && r.id === 'r_steppe_ul')
-    if (!ul) { localStorage.setItem('tracker_mig_ul_warmupsets_v1', '1'); return }
+    if (!ul) { localStorage.setItem('tracker_mig_ul_warmupsets_v2', '1'); return }
     const MUSCLE = {
       5: 'hamstrings', 7: 'triceps', 8: 'side-delts', 9: 'chest', 10: 'chest',
       11: 'quads', 12: 'calves', 13: 'biceps', 15: 'back', 16: 'back',
@@ -106,7 +106,7 @@ function migrateULWarmupSets() {
       })
     })
     localStorage.setItem('tracker_routines', JSON.stringify(routines))
-    localStorage.setItem('tracker_mig_ul_warmupsets_v1', '1')
+    localStorage.setItem('tracker_mig_ul_warmupsets_v2', '1')
   } catch { /* ignore */ }
 }
 migrateULWarmupSets()
