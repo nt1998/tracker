@@ -99,6 +99,14 @@ export default function App() {
       }
     }
     setWorkouts(prev => ({ ...prev, [today]: makeFresh() }))
+    // Reset GymLog's stored exercise position so the new day starts from
+    // the first warmup, not whatever we were on in the previous routine.
+    try {
+      const raw = localStorage.getItem('tracker_gym_exidx')
+      const m = raw ? JSON.parse(raw) : {}
+      m[today] = 0
+      localStorage.setItem('tracker_gym_exidx', JSON.stringify(m))
+    } catch { /* ignore */ }
     setTab('gym')
     setDayPickerOpen(false)
   }
