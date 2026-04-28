@@ -271,8 +271,14 @@ export default function GymLog({ workouts, setWorkouts, exercises, routines, act
     writeExercise(exId, (_next, ex) => {
       const sets = type === 'warmup' ? ex.warmupSets : ex.workSets
       sets[setIdx] = { ...sets[setIdx], [field]: value }
-      if (field === 'weight' && value) sets[setIdx].unit = unit
-      if (autoCommit) {
+      if (field === 'weight' && value !== '') sets[setIdx].unit = unit
+      // Auto-commit once both weight and reps are set (treats "0" as a valid
+      // weight — bodyweight, deload, paused). Templates start sets with
+      // committed:false, which previously blocked the hasValues fallback.
+      const s = sets[setIdx]
+      const hasW = s.weight !== '' && s.weight != null
+      const hasR = s.reps !== '' && s.reps != null
+      if (autoCommit || (hasW && hasR)) {
         sets[setIdx].committed = true
         markCommit(ex.id)
       }
