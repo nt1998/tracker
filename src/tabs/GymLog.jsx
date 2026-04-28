@@ -117,7 +117,9 @@ export default function GymLog({ workouts, setWorkouts, exercises, routines, act
   // from 2 → 1) reflects in today's ongoing session. Committed workouts and
   // sets that already have logged values are preserved.
   const reconcileWithTemplate = (w) => {
-    if (!w || w.committed || w.isRest) return w
+    // Run even on committed workouts: only trailing empty/uncommitted sets
+    // get trimmed. Sets that already hold logged data are kept untouched.
+    if (!w || w.isRest) return w
     const tmpl = routineWorkouts[w.routineType]
     if (!tmpl?.items) return w
     const next = { ...w, exercises: w.exercises.map(ex => ({ ...ex })) }
