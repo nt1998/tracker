@@ -321,17 +321,12 @@ export default function GymLog({ workouts, setWorkouts, exercises, routines, act
     if (equipType === 'plates') {
       newWeight = Math.max(0, Math.round((currentWeight + delta * increment) * 10) / 10)
     } else {
-      const steps = generateWeightSteps(startWeight, increment)
-      const currentIdx = steps.findIndex(s => Math.abs(s - currentWeight) < 0.1)
-      if (currentIdx === -1) {
-        const closest = steps.reduce((a, b) => Math.abs(b - currentWeight) < Math.abs(a - currentWeight) ? b : a)
-        const closestIdx = steps.indexOf(closest)
-        const newIdx = Math.max(0, Math.min(steps.length - 1, closestIdx + delta))
-        newWeight = steps[newIdx]
-      } else {
-        const newIdx = Math.max(0, Math.min(steps.length - 1, currentIdx + delta))
-        newWeight = steps[newIdx]
-      }
+      // Step-based: anchor on startWeight + n*increment. Allow stepping below
+      // startWeight (down to 0) so users can dial back without being clamped.
+      const stepFloat = (currentWeight - startWeight) / increment
+      const curStep = Math.round(stepFloat)
+      const newStep = curStep + delta
+      newWeight = Math.max(0, Math.round((startWeight + newStep * increment) * 10) / 10)
     }
 
     writeExercise(exId, (_next, ex) => {
