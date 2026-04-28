@@ -112,8 +112,42 @@ export default function GymLog({ workouts, setWorkouts, exercises, routines, act
   const useLoggedWorkout = loggedWorkout
     && routineWorkouts[loggedWorkout.routineType]
     && (loggedWorkout.isRest || (loggedWorkout.exercises && loggedWorkout.exercises.length > 0))
+  // Reconcile an uncommitted in-progress workout with the current routine
+  // template's set counts so editing the routine (e.g. reducing warmupSets
+  // from 2 → 1) reflects in today's ongoing session. Committed workouts and
+  // sets that already have logged values are preserved.
+  const reconcileWithTemplate = (w) => {
+    if (!w || w.committed || w.isRest) return w
+    const tmpl = routineWorkouts[w.routineType]
+    if (!tmpl?.items) return w
+    const next = { ...w, exercises: w.exercises.map(ex => ({ ...ex })) }
+    next.exercises.forEach(ex => {
+      const item = tmpl.items.find(it => it.exerciseId === ex.id)
+      if (!item) return
+      const reshape = (sets, target) => {
+        const cur = sets || []
+        if (cur.length === target) return cur
+        if (cur.length > target) {
+          // Trim from the end, but keep any sets that already have data.
+          const out = cur.slice()
+          while (out.length > target) {
+            const last = out[out.length - 1]
+            if (last && (last.weight || last.reps || last.committed)) break
+            out.pop()
+          }
+          return out
+        }
+        const out = cur.slice()
+        while (out.length < target) out.push({ weight: '', reps: '', committed: false })
+        return out
+      }
+      ex.warmupSets = reshape(ex.warmupSets, item.warmupSets || 0)
+      ex.workSets = reshape(ex.workSets, item.workSets || 0)
+    })
+    return next
+  }
   const workout = useLoggedWorkout
-    ? loggedWorkout
+    ? reconcileWithTemplate(loggedWorkout)
     : defaultGetWorkoutFromTemplate(currentRoutineType, currentRoutine, exercises, exerciseNotes)
   const warmups = currentRoutine?.warmups || []
   const hasWarmups = warmups.length > 0
