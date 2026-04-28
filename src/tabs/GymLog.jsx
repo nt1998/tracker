@@ -126,19 +126,16 @@ export default function GymLog({ workouts, setWorkouts, exercises, routines, act
       if (!item) return
       const reshape = (sets, target) => {
         const cur = sets || []
-        if (cur.length === target) return cur
-        if (cur.length > target) {
-          // Trim from the end, but keep any sets that already have data.
-          const out = cur.slice()
-          while (out.length > target) {
-            const last = out[out.length - 1]
-            if (last && (last.weight || last.reps || last.committed)) break
-            out.pop()
-          }
-          return out
-        }
+        // Only TRIM trailing empty sets when the template has fewer sets than
+        // the in-progress workout. Never pad — adding back sets the user just
+        // removed in this session is exactly the bug we're fixing.
+        if (cur.length <= target) return cur
         const out = cur.slice()
-        while (out.length < target) out.push({ weight: '', reps: '', committed: false })
+        while (out.length > target) {
+          const last = out[out.length - 1]
+          if (last && (last.weight || last.reps || last.committed)) break
+          out.pop()
+        }
         return out
       }
       ex.warmupSets = reshape(ex.warmupSets, item.warmupSets || 0)
