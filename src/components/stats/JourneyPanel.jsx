@@ -164,37 +164,41 @@ export default function JourneyPanel({ entries, phases, sortedDates: allDates, h
       <WeightTrendChart keys={sortedDates} entries={entries} opts={journeyOpts()} />
 
       <div className="stat-section-title">Body composition</div>
-      <div className="chart-card">
-        <ScrubbableLine
-          data={{
-            labels,
-            datasets: [
-              { data: fatMass, borderColor: '#fab387', backgroundColor: hexToRgba('#fab387', 0.1), fill: true, yAxisID: 'y' },
-              { data: muMass, borderColor: '#a6e3a1', backgroundColor: hexToRgba('#a6e3a1', 0.1), fill: true, yAxisID: 'y2' },
-            ],
-          }}
-          options={(() => {
-            const fv = fatMass.filter(v => v !== null), mv = muMass.filter(v => v !== null)
-            if (!fv.length || !mv.length) return journeyOpts()
-            const fMin = Math.min(...fv), fMax = Math.max(...fv)
-            const mMin = Math.min(...mv), mMax = Math.max(...mv)
-            const range = Math.max(fMax - fMin, mMax - mMin, 2)
-            const pad = range * 0.15
-            const fCenter = (fMin + fMax) / 2, mCenter = (mMin + mMax) / 2
-            return journeyOpts({
-              y: { position: 'left', min: fCenter - range / 2 - pad, max: fCenter + range / 2 + pad, ticks: { color: 'var(--c-peach)', font: { size: 9 } }, grid: { color: 'var(--bg-surface0)' } },
-              y2: { position: 'right', min: mCenter - range / 2 - pad, max: mCenter + range / 2 + pad, ticks: { color: 'var(--c-green)', font: { size: 9 } }, grid: { display: false } },
-            })
-          })()}
-          width={CANVAS_W} height={140}
-          style={{ width: CANVAS_W, height: 140 }}
-          renderHead={(idx) => {
-            const i = idx ?? pickLast(fatMass)
-            const f = fatMass[i], m = muMass[i]
-            return <div className="card-head">Fat vs Lean (kg) <span className="v">{f != null ? f.toFixed(1) : '--'} / {m != null ? m.toFixed(1) : '--'} {idx != null && <span className="d">{sortedDates[i]}</span>}</span></div>
-          }}
-        />
-      </div>
+      {(() => {
+        // Stacked area: muscle (bottom, green) → unknown gap (transparent)
+        // → fat (top, orange). Heights sum to total body weight.
+        const unknownMass = sortedDates.map((k, i) => {
+          if (k === '__gap__') return null
+          const w = parseFloat(entries[k]?.weight)
+          if (isNaN(w) || muMass[i] == null || fatMass[i] == null) return null
+          return +(w - muMass[i] - fatMass[i]).toFixed(2)
+        })
+        const compOpts = journeyOpts({
+          y: { stacked: true, ticks: { color: 'var(--text-overlay)', font: { size: 9 } }, grid: { color: 'var(--bg-surface0)' } },
+        })
+        return (
+          <div className="chart-card">
+            <ScrubbableLine
+              data={{
+                labels,
+                datasets: [
+                  { label: 'Muscle', data: muMass, borderColor: '#a6e3a1', backgroundColor: hexToRgba('#a6e3a1', 0.35), fill: 'origin', pointRadius: 0 },
+                  { label: 'Unknown', data: unknownMass, borderColor: 'transparent', backgroundColor: 'transparent', fill: '-1', pointRadius: 0 },
+                  { label: 'Fat', data: fatMass, borderColor: '#fab387', backgroundColor: hexToRgba('#fab387', 0.45), fill: '-1', pointRadius: 0 },
+                ],
+              }}
+              options={compOpts}
+              width={CANVAS_W} height={140}
+              style={{ width: CANVAS_W, height: 140 }}
+              renderHead={(idx) => {
+                const i = idx ?? pickLast(fatMass)
+                const f = fatMass[i], m = muMass[i], u = unknownMass[i]
+                return <div className="card-head">Body comp (kg) <span className="v">M {m != null ? m.toFixed(1) : '--'} · ? {u != null ? u.toFixed(1) : '--'} · F {f != null ? f.toFixed(1) : '--'} {idx != null && <span className="d">{sortedDates[i]}</span>}</span></div>
+              }}
+            />
+          </div>
+        )
+      })()}
 
       <div className="chart-card">
         <ScrubbableLine
