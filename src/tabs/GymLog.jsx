@@ -659,6 +659,14 @@ export default function GymLog({ workouts, setWorkouts, exercises, routines, act
               )
             })()}
 
+            <div className="notes-section">
+              <input
+                type="text"
+                value={currentExercise.notes || ''}
+                onChange={(e) => updateExerciseNote(e.target.value)}
+                placeholder="+ Add note (seat height, etc.)"
+              />
+            </div>
           </div>
         </>
       )}
