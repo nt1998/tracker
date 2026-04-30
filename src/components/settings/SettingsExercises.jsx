@@ -69,8 +69,23 @@ export default function SettingsExercises({ exercises, setExercises }) {
               <select value={editing.unit} onChange={(e) => update({ unit: e.target.value })}>
                 <option value="kg">kg</option>
                 <option value="lbs">lbs</option>
+                <option value="pin">pin (stack)</option>
               </select>
             </div>
+
+            {editing.unit === 'pin' && (
+              <div className="field">
+                <label>kg per pin</label>
+                <KeypadInput
+                  mode="decimal"
+                  min={0}
+                  value={editing.kgPerUnit ?? 5}
+                  onChange={(next) => update({ kgPerUnit: parseFloat(next) || 0 })}
+                  label="kg per pin"
+                  unit="kg"
+                />
+              </div>
+            )}
 
             <div className="field">
               <label>Equipment</label>
