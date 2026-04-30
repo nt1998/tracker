@@ -136,11 +136,6 @@ export default function SettingsExercises({ exercises, setExercises }) {
               </div>
             )}
 
-            <div className="field">
-              <label>Notes (form cues)</label>
-              <input value={editing.templateNotes || ''} onChange={(e) => update({ templateNotes: e.target.value })} />
-            </div>
-
             <div className="modal-actions">
               {!isNew && <button className="danger-btn" onClick={del}>Delete</button>}
               <button className="cancel-btn" onClick={close}>Cancel</button>

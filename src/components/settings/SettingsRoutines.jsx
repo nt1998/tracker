@@ -596,6 +596,47 @@ export default function SettingsRoutines({
                           />
                         </label>
                       </div>
+                      <div className="ei-grid">
+                        <label>
+                          Cadence
+                          <input
+                            type="text"
+                            value={item.cadence || ''}
+                            placeholder="1-1-3-1"
+                            onChange={(e) => updateItem(editWorkoutKey, idx, { cadence: e.target.value })}
+                          />
+                        </label>
+                        <label>
+                          RIR
+                          <input
+                            type="text"
+                            value={item.rir || ''}
+                            placeholder="1 / 0"
+                            onChange={(e) => updateItem(editWorkoutKey, idx, { rir: e.target.value })}
+                          />
+                        </label>
+                        <label>
+                          Rest min
+                          <KeypadInput
+                            mode="decimal"
+                            min={0}
+                            value={item.restMin ?? ''}
+                            onChange={(next) => {
+                              const n = parseFloat(next)
+                              updateItem(editWorkoutKey, idx, { restMin: isNaN(n) ? null : n })
+                            }}
+                            label="Rest min"
+                          />
+                        </label>
+                      </div>
+                      <label className="ei-notes">
+                        Notes
+                        <input
+                          type="text"
+                          value={item.notes || ''}
+                          onChange={(e) => updateItem(editWorkoutKey, idx, { notes: e.target.value })}
+                        />
+                      </label>
                     </div>
                   )
                 })}
