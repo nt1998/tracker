@@ -597,27 +597,22 @@ export default function GymLog({ workouts, setWorkouts, exercises, routines, act
         </div>
       ) : (
         <>
-          {(pr.maxWeight > 0 || isAnyPR) ? (
-            <div className={`pr-info ${isWeightPR ? 'new-weight-pr' : ''} ${isRepPR ? 'new-rep-pr' : ''}`}>
-              <span className="pr-label">{isAnyPR ? 'NEW PR' : 'PR'}</span>
-              <span className="pr-value">
-                {isAnyPR
-                  ? `${bestThis.weightKg}kg×${bestThis.reps}`
-                  : `${pr.maxWeight}kg×${pr.maxRepsAtMaxWeight}`}
-              </span>
-              {lastData && !isAnyPR && (
-                <span className="last-value">Last {lastData.weight}{unit}×{lastData.reps}</span>
-              )}
-              {timer}
-            </div>
-          ) : lastData ? (
-            <div className="last-workout">
-              Last: {lastData.weight}{unit} {unit !== 'kg' ? `(${lastDataKg}kg)` : ''} × {lastData.reps}
-              {timer}
-            </div>
-          ) : timer ? (
-            <div className="last-workout">{timer}</div>
-          ) : null}
+          {/* Top bar always rendered so the layout stays put. Falls back to
+              an em-dash when no PR / last data exists. */}
+          <div className={`pr-info ${isWeightPR ? 'new-weight-pr' : ''} ${isRepPR ? 'new-rep-pr' : ''}`}>
+            <span className="pr-label">{isAnyPR ? 'NEW PR' : 'PR'}</span>
+            <span className="pr-value">
+              {isAnyPR
+                ? `${bestThis.weightKg}kg×${bestThis.reps}`
+                : pr.maxWeight > 0
+                  ? `${pr.maxWeight}kg×${pr.maxRepsAtMaxWeight}`
+                  : '—'}
+            </span>
+            {lastData && !isAnyPR && (
+              <span className="last-value">Last {lastData.weight}{unit}×{lastData.reps}</span>
+            )}
+            {timer}
+          </div>
 
           {routineTemplate?.notes && (
             <div className="template-notes">{routineTemplate.notes}</div>
