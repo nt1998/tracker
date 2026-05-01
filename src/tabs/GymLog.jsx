@@ -163,17 +163,29 @@ export default function GymLog({ workouts, setWorkouts, exercises, routines, act
   const restExercises = currentRoutine?.isRest ? (currentRoutine.blocks || []).flatMap(b => b.exercises) : []
   const totalItems = currentRoutine?.isRest ? restExercises.length : ((hasWarmups ? 1 : 0) + workout.exercises.length)
 
-  const getExerciseConfig = (exerciseName) => {
-    const ex = Object.values(exercises).find(e => e.name === exerciseName)
+  const getExerciseConfig = (exerciseName, exerciseId) => {
+    // Match by id first (rename-safe), fall back to name for legacy data.
+    const ex = (exerciseId != null && exercises[exerciseId])
+      || Object.values(exercises).find(e => e.name === exerciseName)
     return ex || { unit: 'kg', equipmentType: 'machine', startWeight: 5, increment: 5 }
   }
 
-  const getLastExerciseValues = (exerciseName) => {
+  // Find an exercise in a logged workout by id (preferred) or name.
+  const findExerciseInWorkout = (w, exerciseId, exerciseName) => {
+    if (!w || !w.exercises) return null
+    if (exerciseId != null) {
+      const m = w.exercises.find(e => e.id === exerciseId)
+      if (m) return m
+    }
+    return w.exercises.find(e => e.name === exerciseName) || null
+  }
+
+  const getLastExerciseValues = (exerciseName, exerciseId) => {
     const sortedDates = Object.keys(workouts).filter(d => d < date && workouts[d].committed).sort().reverse()
     const hasAny = (sets) => (sets || []).some(s => s && (s.weight || s.reps))
     for (const d of sortedDates) {
       const w = workouts[d]
-      const ex = w.exercises?.find(e => e.name === exerciseName)
+      const ex = findExerciseInWorkout(w, exerciseId, exerciseName)
       if (!ex) continue
       if (!hasAny(ex.warmupSets) && !hasAny(ex.workSets)) continue
       return { warmupSets: ex.warmupSets || [], workSets: ex.workSets || [] }
@@ -181,11 +193,11 @@ export default function GymLog({ workouts, setWorkouts, exercises, routines, act
     return { warmupSets: [], workSets: [] }
   }
 
-  const getLastExerciseData = (exerciseName) => {
+  const getLastExerciseData = (exerciseName, exerciseId) => {
     const sortedDates = Object.keys(workouts).filter(d => d < date && workouts[d].committed).sort().reverse()
     for (const d of sortedDates) {
       const w = workouts[d]
-      const ex = w.exercises?.find(e => e.name === exerciseName)
+      const ex = findExerciseInWorkout(w, exerciseId, exerciseName)
       if (ex) {
         const lastWorkSet = ex.workSets?.filter(s => s.weight)?.pop()
         if (lastWorkSet) return lastWorkSet
@@ -194,13 +206,13 @@ export default function GymLog({ workouts, setWorkouts, exercises, routines, act
     return null
   }
 
-  const getExercisePR = (exerciseName) => {
+  const getExercisePR = (exerciseName, exerciseId) => {
     let maxWeight = 0
     let maxRepsAtMaxWeight = 0
-    const config = getExerciseConfig(exerciseName)
+    const config = getExerciseConfig(exerciseName, exerciseId)
     Object.entries(workouts).forEach(([d, w]) => {
       if (d >= date || !w.committed) return
-      const ex = w.exercises?.find(e => e.name === exerciseName)
+      const ex = findExerciseInWorkout(w, exerciseId, exerciseName)
       if (ex) {
         ex.workSets?.forEach(set => {
           if (set.committed === false) return
@@ -220,8 +232,8 @@ export default function GymLog({ workouts, setWorkouts, exercises, routines, act
     return { maxWeight: Math.round(maxWeight * 10) / 10, maxRepsAtMaxWeight }
   }
 
-  const lastExerciseValues = currentExercise ? getLastExerciseValues(currentExercise.name) : { warmupSets: [], workSets: [] }
-  const lastData = currentExercise ? getLastExerciseData(currentExercise.name) : null
+  const lastExerciseValues = currentExercise ? getLastExerciseValues(currentExercise.name, currentExercise.id) : { warmupSets: [], workSets: [] }
+  const lastData = currentExercise ? getLastExerciseData(currentExercise.name, currentExercise.id) : null
 
   // Single best work set today (by weight then reps). Used to highlight only
   // the one set that pushes the PR, instead of every set tied at the same load.
@@ -323,7 +335,10 @@ export default function GymLog({ workouts, setWorkouts, exercises, routines, act
     const startWeight = routineTemplate?.startWeight || 5
 
     let newWeight
-    if (equipType === 'plates') {
+    if (!increment || increment <= 0) {
+      // Bodyweight / no-increment exercises: nothing to step. Hold at start.
+      newWeight = currentWeight || startWeight || 0
+    } else if (equipType === 'plates') {
       newWeight = Math.max(0, Math.round((currentWeight + delta * increment) * 10) / 10)
     } else {
       // Step-based: anchor on startWeight + n*increment. Allow stepping below
@@ -539,7 +554,7 @@ export default function GymLog({ workouts, setWorkouts, exercises, routines, act
     )
   }
 
-  const pr = currentExercise ? getExercisePR(currentExercise.name) : { maxWeight: 0, maxRepsAtMaxWeight: 0 }
+  const pr = currentExercise ? getExercisePR(currentExercise.name, currentExercise.id) : { maxWeight: 0, maxRepsAtMaxWeight: 0 }
   const unit = routineTemplate?.unit || 'kg'
   const kgPerUnit = routineTemplate?.kgPerUnit
   const bestThis = currentExercise ? todayBestSet(currentExercise.workSets, { unit, kgPerUnit }) : null
@@ -558,7 +573,7 @@ export default function GymLog({ workouts, setWorkouts, exercises, routines, act
       <div className="exercise-nav">
         <button onClick={prevExercise} disabled={currentExerciseIdx === 0}>&lt;</button>
         <div className="exercise-info-center">
-          <h2 className="exercise-name">{isOnWarmup ? 'Warm-up' : currentExercise.name}</h2>
+          <h2 className="exercise-name">{isOnWarmup ? 'Warm-up' : (exercises[currentExercise.id]?.name || currentExercise.name)}</h2>
           <span className="exercise-count">
             {isOnWarmup ? '' : `${exerciseIdx + 1} / ${workout.exercises.length}`}
             {!isOnWarmup && routineTemplate?.reps && ` · ${routineTemplate.reps} reps`}

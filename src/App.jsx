@@ -246,6 +246,7 @@ export default function App() {
             exercises={exercises} setExercises={setExercises}
             routines={routines} setRoutines={setRoutines}
             activeRoutineId={activeRoutineId} setActiveRoutineId={setActiveRoutineId}
+            workouts={workouts} setWorkouts={setWorkouts}
             settings={settings} setSettings={setSettings}
             theme={theme} setTheme={setTheme}
             github={github} onConnectGithub={connectGithub} onDisconnectGithub={disconnectGithub}

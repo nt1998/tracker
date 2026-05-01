@@ -16,11 +16,47 @@ function joinReps(min, max) {
   return a || b || ''
 }
 
+function todayKey() {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+function makeFreshExercise(item, exercises) {
+  const ex = exercises[item.exerciseId]
+  return {
+    id: ex?.id ?? item.exerciseId,
+    name: ex?.name ?? '(missing)',
+    warmupSets: Array(item.warmupSets || 0).fill().map(() => ({ weight: '', reps: '', committed: false })),
+    workSets: Array(item.workSets || 0).fill().map(() => ({ weight: '', reps: '', committed: false })),
+    notes: '',
+  }
+}
+
 export default function SettingsRoutines({
   routines, setRoutines,
   activeRoutineId, setActiveRoutineId,
   exercises,
+  workouts, setWorkouts,
 }) {
+  // Propagate a routine-template edit into today's uncommitted workout so
+  // changes (set count, add/remove/swap exercise) reflect immediately in
+  // the active session. Logged sets are preserved.
+  const propagateToToday = (routineId, workoutKey, applyToWorkout) => {
+    if (!setWorkouts) return
+    if (routineId !== activeRoutineId) return
+    const today = todayKey()
+    const w = workouts?.[today]
+    if (!w || w.committed) return
+    if (w.routineType !== workoutKey) return
+    setWorkouts(prev => {
+      const cur = prev?.[today]
+      if (!cur || cur.committed || cur.routineType !== workoutKey) return prev
+      const next = { ...cur, exercises: (cur.exercises || []).map(e => ({ ...e, warmupSets: [...(e.warmupSets || [])], workSets: [...(e.workSets || [])] })) }
+      applyToWorkout(next)
+      return { ...prev, [today]: next }
+    })
+  }
+
   const [editRoutineId, setEditRoutineId] = useState(null)
   const [editWorkoutKey, setEditWorkoutKey] = useState(null)
   const [addExerciseToKey, setAddExerciseToKey] = useState(null)
@@ -93,21 +129,72 @@ export default function SettingsRoutines({
   const addItem = (key, exerciseId) => {
     if (!editRoutine) return
     const w = editRoutine.workouts[key]
-    updateWorkout(key, { items: [...(w.items || []), { exerciseId, warmupSets: 1, workSets: 3, reps: '8-12' }] })
+    const newItem = { exerciseId, warmupSets: 1, workSets: 3, reps: '8-12' }
+    updateWorkout(key, { items: [...(w.items || []), newItem] })
     setAddExerciseToKey(null)
+    // Today's session: append the new exercise.
+    propagateToToday(editRoutine.id, key, (todayWorkout) => {
+      todayWorkout.exercises.push(makeFreshExercise(newItem, exercises))
+    })
   }
   const updateItem = (key, idx, patch) => {
     if (!editRoutine) return
     const w = editRoutine.workouts[key]
     const items = [...(w.items || [])]
-    items[idx] = { ...items[idx], ...patch }
+    const oldItem = items[idx]
+    const newItem = { ...oldItem, ...patch }
+    items[idx] = newItem
     updateWorkout(key, { items })
+    // Today's session: keep the exercise array in sync with the template.
+    propagateToToday(editRoutine.id, key, (todayWorkout) => {
+      const exs = todayWorkout.exercises
+      // Preferred match: same array index AND same exerciseId. Falls back to
+      // exerciseId match elsewhere in the list.
+      let target = exs[idx]?.id === oldItem.exerciseId ? exs[idx] : exs.find(e => e.id === oldItem.exerciseId)
+      if (!target) {
+        // No matching exercise — insert fresh from new template.
+        exs.splice(idx, 0, makeFreshExercise(newItem, exercises))
+        return
+      }
+      // Swap exerciseId / name if the item now points at a different exercise.
+      if (newItem.exerciseId !== oldItem.exerciseId) {
+        const ex = exercises[newItem.exerciseId]
+        target.id = ex?.id ?? newItem.exerciseId
+        target.name = ex?.name ?? '(missing)'
+      }
+      // Reshape warmup / work set arrays to the new counts. Preserve any
+      // logged data; pad with empty when growing, trim trailing empty when
+      // shrinking. Sets with data block a trim from going below their slot.
+      const reshape = (arr, target) => {
+        const cur = arr || []
+        if (cur.length === target) return cur
+        if (cur.length < target) {
+          const out = cur.slice()
+          while (out.length < target) out.push({ weight: '', reps: '', committed: false })
+          return out
+        }
+        const out = cur.slice()
+        while (out.length > target) {
+          const last = out[out.length - 1]
+          if (last && (last.weight || last.reps || last.committed)) break
+          out.pop()
+        }
+        return out
+      }
+      target.warmupSets = reshape(target.warmupSets, newItem.warmupSets || 0)
+      target.workSets = reshape(target.workSets, newItem.workSets || 0)
+    })
   }
   const removeItem = (key, idx) => {
     if (!editRoutine) return
     if (!confirm('Remove this exercise?')) return
     const w = editRoutine.workouts[key]
+    const removed = w.items[idx]
     updateWorkout(key, { items: (w.items || []).filter((_, i) => i !== idx) })
+    // Today's session: remove that exercise too if present.
+    propagateToToday(editRoutine.id, key, (todayWorkout) => {
+      todayWorkout.exercises = todayWorkout.exercises.filter(e => e.id !== removed.exerciseId)
+    })
   }
 
   // ---------- Rest-day block + rehab item CRUD ----------
@@ -229,7 +316,27 @@ export default function SettingsRoutines({
                 <input
                   type="checkbox"
                   checked={isActive}
-                  onChange={() => { if (!isActive) setActiveRoutineId(r.id) }}
+                  onChange={() => {
+                    if (isActive) return
+                    setActiveRoutineId(r.id)
+                    // If today's logged workout uses a routineType that the
+                    // newly-active routine doesn't have, drop it so the gym
+                    // tab rebuilds from the new routine's schedule.
+                    if (setWorkouts) {
+                      const today = todayKey()
+                      const w = workouts?.[today]
+                      if (w && !w.committed && r.workouts && !r.workouts[w.routineType]) {
+                        setWorkouts(prev => {
+                          const cur = prev?.[today]
+                          if (!cur || cur.committed) return prev
+                          if (r.workouts && r.workouts[cur.routineType]) return prev
+                          const next = { ...prev }
+                          delete next[today]
+                          return next
+                        })
+                      }
+                    }
+                  }}
                 />
                 <span className="slider"></span>
               </label>
