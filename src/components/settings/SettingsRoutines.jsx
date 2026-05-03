@@ -705,15 +705,6 @@ export default function SettingsRoutines({
                       </div>
                       <div className="ei-grid">
                         <label>
-                          Cadence
-                          <input
-                            type="text"
-                            value={item.cadence || ''}
-                            placeholder="1-1-3-1"
-                            onChange={(e) => updateItem(editWorkoutKey, idx, { cadence: e.target.value })}
-                          />
-                        </label>
-                        <label>
                           RIR
                           <input
                             type="text"
@@ -762,27 +753,35 @@ export default function SettingsRoutines({
       {/* ============================================================
           EXERCISE PICKER
           ============================================================ */}
-      {addExerciseToKey && editRoutine && (
-        <div className="modal-overlay" onClick={() => setAddExerciseToKey(null)}>
-          <div className="modal modal-tall" onClick={e => e.stopPropagation()}>
-            <h3>Add exercise</h3>
-            {Object.values(exercises).sort((a, b) => a.name.localeCompare(b.name)).map(ex => (
-              <div
-                key={ex.id}
-                className="phase-card"
-                style={{ cursor: 'pointer', marginBottom: 4 }}
-                onClick={() => addItem(addExerciseToKey, ex.id)}
-              >
-                <div className="pc-name" style={{ fontSize: 13 }}>{ex.name}</div>
-                <div className="pc-dates">{ex.equipmentType} · {ex.unit}</div>
+      {addExerciseToKey && editRoutine && (() => {
+        const pickList = Object.values(exercises || {}).sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+        return (
+          <div className="modal-overlay" onClick={() => setAddExerciseToKey(null)}>
+            <div className="modal modal-tall" onClick={e => e.stopPropagation()}>
+              <h3>Add exercise</h3>
+              {pickList.length === 0 && (
+                <div style={{ color: 'var(--text-overlay)', fontSize: 12, padding: '8px 0' }}>
+                  No exercises in your library yet — add one in Settings → Exercises.
+                </div>
+              )}
+              {pickList.map(ex => (
+                <div
+                  key={ex.id}
+                  className="phase-card"
+                  style={{ cursor: 'pointer', marginBottom: 4 }}
+                  onClick={() => addItem(addExerciseToKey, ex.id)}
+                >
+                  <div className="pc-name" style={{ fontSize: 13 }}>{ex.name}</div>
+                  <div className="pc-dates">{ex.equipmentType} · {ex.unit}</div>
+                </div>
+              ))}
+              <div className="modal-actions">
+                <button className="cancel-btn" onClick={() => setAddExerciseToKey(null)}>Cancel</button>
               </div>
-            ))}
-            <div className="modal-actions">
-              <button className="cancel-btn" onClick={() => setAddExerciseToKey(null)}>Cancel</button>
             </div>
           </div>
-        </div>
-      )}
+        )
+      })()}
     </>
   )
 }
