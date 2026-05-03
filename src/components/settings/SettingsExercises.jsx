@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import KeypadInput from '../KeypadInput'
 
+const EQUIPMENT_TYPES = ['machine', 'cable', 'plates', 'dumbbell', 'bodyweight', 'pin']
+
 const EMPTY = () => ({
   id: Date.now(),
   name: '',
@@ -8,33 +10,90 @@ const EMPTY = () => ({
   equipmentType: 'machine',
   startWeight: 5,
   increment: 5,
-  barWeight: 20,
   templateNotes: '',
 })
 
-export default function SettingsExercises({ exercises, setExercises }) {
+// Legacy data stored pin as `unit: 'pin'` while equipmentType was 'machine'.
+// Surface it as an equipment type so kgPerUnit hangs off equipmentType like
+// every other type-dependent field. Idempotent.
+function normalize(ex) {
+  const next = { ...ex }
+  if (next.unit === 'pin') next.equipmentType = 'pin'
+  return next
+}
+
+export default function SettingsExercises({ exercises, setExercises, routines, setRoutines }) {
   const [editing, setEditing] = useState(null)
   const [isNew, setIsNew] = useState(false)
 
   const list = Object.values(exercises || {}).sort((a, b) => (a.name || '').localeCompare(b.name || ''))
 
   const openAdd = () => { setEditing(EMPTY()); setIsNew(true) }
-  const openEdit = (ex) => { setEditing({ ...ex }); setIsNew(false) }
+  const openEdit = (ex) => { setEditing(normalize(ex)); setIsNew(false) }
   const close = () => { setEditing(null); setIsNew(false) }
+
+  // Equipment switch needs to keep unit consistent: pin equipment forces pin
+  // unit; switching away from pin restores the most recent kg/lbs choice (or
+  // default kg if it was pin before).
+  const setEquipment = (type) => {
+    setEditing(s => {
+      const next = { ...s, equipmentType: type }
+      if (type === 'pin') next.unit = 'pin'
+      else if (s.unit === 'pin') next.unit = 'kg'
+      return next
+    })
+  }
 
   const save = () => {
     if (!editing.name.trim()) { alert('Name required'); return }
-    setExercises(prev => ({ ...prev, [editing.id]: editing }))
+    // Strip type-dependent fields that don't apply, so stale values can't
+    // resurface if equipment type changes again later.
+    const out = { ...editing }
+    if (out.equipmentType !== 'plates') delete out.barWeight
+    else if (out.barWeight == null) out.barWeight = 20
+    if (out.equipmentType !== 'pin') delete out.kgPerUnit
+    else if (out.kgPerUnit == null) out.kgPerUnit = 5
+    setExercises(prev => ({ ...prev, [out.id]: out }))
     close()
   }
 
+  // Find every routine + day that references this exercise, so we can warn
+  // before deleting and offer to scrub the dangling refs.
+  const findUsage = (exerciseId) => {
+    const usage = []
+    ;(routines || []).forEach(r => {
+      Object.entries(r.workouts || {}).forEach(([_dk, w]) => {
+        if ((w.items || []).some(it => it.exerciseId === exerciseId)) {
+          usage.push(`${r.name} / ${w.name}`)
+        }
+      })
+    })
+    return usage
+  }
+
   const del = () => {
-    if (!confirm(`Delete "${editing.name}"? Workout templates referencing it will break.`)) return
+    const usage = findUsage(editing.id)
+    let msg = `Delete "${editing.name}"?`
+    if (usage.length) {
+      msg = `"${editing.name}" is used in:\n\n${usage.join('\n')}\n\nDelete it and remove from these routines?`
+    }
+    if (!confirm(msg)) return
     setExercises(prev => {
       const next = { ...prev }
       delete next[editing.id]
       return next
     })
+    if (usage.length && setRoutines) {
+      setRoutines(prev => prev.map(r => ({
+        ...r,
+        workouts: Object.fromEntries(
+          Object.entries(r.workouts || {}).map(([dk, w]) => [
+            dk,
+            { ...w, items: (w.items || []).filter(it => it.exerciseId !== editing.id) },
+          ])
+        ),
+      })))
+    }
     close()
   }
 
@@ -65,15 +124,23 @@ export default function SettingsExercises({ exercises, setExercises }) {
             </div>
 
             <div className="field">
-              <label>Unit</label>
-              <select value={editing.unit} onChange={(e) => update({ unit: e.target.value })}>
-                <option value="kg">kg</option>
-                <option value="lbs">lbs</option>
-                <option value="pin">pin (stack)</option>
+              <label>Equipment</label>
+              <select value={editing.equipmentType} onChange={(e) => setEquipment(e.target.value)}>
+                {EQUIPMENT_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
             </div>
 
-            {editing.unit === 'pin' && (
+            {editing.equipmentType !== 'pin' && (
+              <div className="field">
+                <label>Unit</label>
+                <select value={editing.unit} onChange={(e) => update({ unit: e.target.value })}>
+                  <option value="kg">kg</option>
+                  <option value="lbs">lbs</option>
+                </select>
+              </div>
+            )}
+
+            {editing.equipmentType === 'pin' && (
               <div className="field">
                 <label>kg per pin</label>
                 <KeypadInput
@@ -86,17 +153,6 @@ export default function SettingsExercises({ exercises, setExercises }) {
                 />
               </div>
             )}
-
-            <div className="field">
-              <label>Equipment</label>
-              <select value={editing.equipmentType} onChange={(e) => update({ equipmentType: e.target.value })}>
-                <option value="plates">plates (barbell)</option>
-                <option value="machine">machine</option>
-                <option value="cable">cable</option>
-                <option value="dumbbell">dumbbell</option>
-                <option value="bodyweight">bodyweight</option>
-              </select>
-            </div>
 
             <div className="field">
               <label>Start weight</label>
