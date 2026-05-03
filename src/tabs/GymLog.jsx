@@ -128,10 +128,16 @@ export default function GymLog({ workouts, setWorkouts, exercises, routines, act
       if (!item) return
       const reshape = (sets, target) => {
         const cur = sets || []
-        // Only TRIM trailing empty sets when the template has fewer sets than
-        // the in-progress workout. Never pad — adding back sets the user just
-        // removed in this session is exactly the bug we're fixing.
-        if (cur.length <= target) return cur
+        if (cur.length === target) return cur
+        if (cur.length < target) {
+          // Pad up to template count so a stale workout snapshot from when the
+          // template was smaller picks up the extra slots (prefill placeholders
+          // come from prev-session lookup at render time).
+          const out = cur.slice()
+          while (out.length < target) out.push({ weight: '', reps: '', committed: false })
+          return out
+        }
+        // Trim trailing empty sets only — preserve any logged data.
         const out = cur.slice()
         while (out.length > target) {
           const last = out[out.length - 1]
