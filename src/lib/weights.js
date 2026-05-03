@@ -5,7 +5,10 @@ export const lbsToKg = (lbs) => Math.round(lbs * 0.453592 * 10) / 10
 export function toKg(weight, unit, kgPerUnit = null) {
   if (!weight) return 0
   const w = parseFloat(weight) || 0
-  if (kgPerUnit) return w * kgPerUnit
+  // kgPerUnit only applies to pin-stack unit. A per-set `unit: "kg"` tag
+  // means the value is literal kg even if the exercise library defines a
+  // kgPerUnit (e.g. machine was changed to pin retroactively).
+  if (unit === 'pin' && kgPerUnit) return w * kgPerUnit
   if (unit === 'lbs') return lbsToKg(w)
   return w
 }
