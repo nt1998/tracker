@@ -17,7 +17,9 @@ export default function SettingsHabits({ habits, setHabits }) {
   const [isNew, setIsNew] = useState(false)
 
   const openAdd = () => { setEditing(EMPTY()); setIsNew(true) }
-  const openEdit = (h) => { setEditing({ ...h, schedule: { ...h.schedule } }); setIsNew(false) }
+  // Legacy habits may lack a schedule entirely — default to daily so the
+  // schedule pills always show an active selection.
+  const openEdit = (h) => { setEditing({ ...h, schedule: { mode: 'daily', ...(h.schedule || {}) } }); setIsNew(false) }
   const close = () => { setEditing(null); setIsNew(false) }
 
   const save = () => {
@@ -160,7 +162,9 @@ export default function SettingsHabits({ habits, setHabits }) {
             </div>
 
             <div className="modal-actions">
-              {!isNew && <button className="danger-btn" onClick={del}>Delete</button>}
+              {/* Auto habits are derived from workout data — deleting one would
+                  just reappear on the next sync, so block it here. */}
+              {!isNew && !editing.auto && <button className="danger-btn" onClick={del}>Delete</button>}
               <button className="cancel-btn" onClick={close}>Cancel</button>
               <button className="primary-btn" style={{ marginTop: 0 }} onClick={save}>Save</button>
             </div>
