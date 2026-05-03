@@ -219,16 +219,12 @@ export default function KeypadInput({
                   onPointerDown={(e) => { e.preventDefault(); press('.') }}
                 >.</button>
               )}
+              {/* 0 spans the last 2 cols — Save lives in kp-actions only */}
               <button
                 type="button"
-                className="kp-key"
+                className="kp-key kp-key-zero"
                 onPointerDown={(e) => { e.preventDefault(); press('0') }}
               >0</button>
-              <button
-                type="button"
-                className="kp-key kp-commit"
-                onPointerDown={(e) => { e.preventDefault(); commit() }}
-              >✓</button>
             </div>
 
             <div className="kp-actions">

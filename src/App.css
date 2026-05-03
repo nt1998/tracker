@@ -4289,6 +4289,10 @@ body:has(textarea:focus) .tabbar {
 .kp-key.kp-key-sign {
   font-size: 18px;
 }
+/* 0 takes the freed slot where ✓ used to live (Save dedupe) */
+.kp-key.kp-key-zero {
+  grid-column: span 2;
+}
 
 /* Cancel / Save row */
 .kp-actions {
