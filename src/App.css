@@ -22,6 +22,8 @@
   --acc-amber-bg: linear-gradient(135deg, #4a3a2a 0%, #5a4020 100%);
   --acc-blue-bg: linear-gradient(135deg, #2a3a4a 0%, #203050 100%);
   --acc-green-bg: #1e3a2e;
+  --acc-green-bg-grad: linear-gradient(135deg, #1e3a2e 0%, #194d2e 100%);
+  --acc-red-bg: linear-gradient(135deg, #4a2a32 0%, #5a2030 100%);
   --acc-blue-flat: #2a3a4a;
   /* Catppuccin Mocha accents (vibrant on dark). */
   --c-blue: #89b4fa;
@@ -69,6 +71,8 @@
   --acc-amber-bg: linear-gradient(135deg, #fef3d4 0%, #fce5a4 100%);
   --acc-blue-bg: linear-gradient(135deg, #dde7ff 0%, #c4d4ff 100%);
   --acc-green-bg: #dff2e1;
+  --acc-green-bg-grad: linear-gradient(135deg, #dff2e1 0%, #c5ecd0 100%);
+  --acc-red-bg: linear-gradient(135deg, #fbd5dd 0%, #f7b8c5 100%);
   --acc-blue-flat: #dde7ff;
   /* Catppuccin Latte accents (saturated, darker — readable on light bg). */
   --c-blue: #1e66f5;
@@ -424,14 +428,21 @@ body:has(textarea:focus) .navbar {
 .pr-info > * { flex-shrink: 0; }
 .pr-info .last-value { flex-shrink: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 
-.pr-info.new-weight-pr {
+/* Tiered PR styling — red = all-time, yellow = current phase, green = same
+   weight more reps. */
+.pr-info.new-overall-pr {
+  background: var(--acc-red-bg);
+  border-color: var(--c-red);
+}
+
+.pr-info.new-phase-pr {
   background: var(--acc-amber-bg);
   border-color: var(--c-yellow);
 }
 
 .pr-info.new-rep-pr {
-  background: var(--acc-blue-bg);
-  border-color: var(--c-blue);
+  background: var(--acc-green-bg-grad);
+  border-color: var(--c-green);
 }
 
 .pr-label {
@@ -444,10 +455,9 @@ body:has(textarea:focus) .navbar {
   letter-spacing: 0.3px;
 }
 
-.pr-info.new-weight-pr .pr-label,
-.pr-info.new-rep-pr .pr-label {
-  background: var(--c-green);
-}
+.pr-info.new-overall-pr .pr-label { background: var(--c-red); }
+.pr-info.new-phase-pr .pr-label { background: var(--c-yellow); }
+.pr-info.new-rep-pr .pr-label { background: var(--c-green); }
 
 .pr-value {
   color: var(--c-yellow);
@@ -510,24 +520,34 @@ body:has(textarea:focus) .navbar {
   color: var(--text);
 }
 
-/* Weight PR: gold styling (overrides committed) */
-.set-row.weight-pr {
+/* Overall (all-time) PR: red styling (overrides committed) */
+.set-row.overall-pr {
+  background: var(--acc-red-bg);
+  border-color: var(--c-red);
+}
+
+.set-row.overall-pr .set-label {
+  color: var(--c-red);
+}
+
+/* Phase PR: gold styling (overrides committed) */
+.set-row.phase-pr {
   background: var(--acc-amber-bg);
   border-color: var(--c-yellow);
 }
 
-.set-row.weight-pr .set-label {
+.set-row.phase-pr .set-label {
   color: var(--c-yellow);
 }
 
-/* Rep PR: blue styling (overrides committed) */
+/* Rep PR (same weight, more reps): green styling (overrides committed) */
 .set-row.rep-pr {
-  background: var(--acc-blue-bg);
-  border-color: var(--c-blue);
+  background: var(--acc-green-bg-grad);
+  border-color: var(--c-green);
 }
 
 .set-row.rep-pr .set-label {
-  color: var(--c-blue);
+  color: var(--c-green);
 }
 
 .set-label {
@@ -1918,6 +1938,9 @@ body:has(textarea:focus) .navbar {
 .sess-head .date { font-size: 13px; font-weight: 500; color: var(--text); }
 .sess-head .meta { font-size: 11px; color: var(--text-sub); display: flex; gap: 8px; align-items: center; }
 .sess-head .meta .pr { color: var(--c-yellow); }
+.sess-head .meta .pr.t-overall { color: var(--c-red); }
+.sess-head .meta .pr.t-phase { color: var(--c-yellow); }
+.sess-head .meta .pr.t-rep { color: var(--c-green); }
 .sess-head .chev { font-size: 11px; color: var(--text-overlay); }
 .sess-body { padding: 0 12px 12px; border-top: 1px solid var(--bg-surface1); }
 .sess-rest { font-size: 11px; color: var(--text-sub); padding: 8px 0; }
@@ -1925,6 +1948,9 @@ body:has(textarea:focus) .navbar {
 .sess-ex:last-child { border-bottom: none; }
 .sess-ex .nm { font-size: 12px; font-weight: 500; color: var(--text); margin-bottom: 3px; display: flex; justify-content: space-between; }
 .sess-ex .nm .pr { color: var(--c-yellow); font-size: 10px; }
+.sess-ex .nm .pr.t-overall { color: var(--c-red); }
+.sess-ex .nm .pr.t-phase { color: var(--c-yellow); }
+.sess-ex .nm .pr.t-rep { color: var(--c-green); }
 .sess-ex .sets { font-size: 11px; color: var(--text-sub); font-variant-numeric: tabular-nums; }
 .sess-ex .sets .work { color: var(--text); }
 .sess-ex .sets .warm { color: var(--text-overlay); }

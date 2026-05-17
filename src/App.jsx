@@ -223,6 +223,7 @@ export default function App() {
             activeRoutineId={activeRoutineId}
             exerciseNotes={exerciseNotes}
             setExerciseNotes={setExerciseNotes}
+            phases={phases}
           />
         )}
         {tab === 'stats' && (
