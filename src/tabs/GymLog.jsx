@@ -36,7 +36,7 @@ const defaultGetWorkoutFromTemplate = (templateKey, template, exercises, exercis
   }
 }
 
-export default function GymLog({ workouts, setWorkouts, exercises, routines, activeRoutineId, exerciseNotes, setExerciseNotes }) {
+export default function GymLog({ workouts, setWorkouts, exercises, routines, activeRoutineId, exerciseNotes, setExerciseNotes, phases }) {
   const [date, setDate] = useState(todayKey())
   // Persist current exercise index keyed by date so reopening today's session
   // lands back where the user left off (PWA reload, app switch, etc.).
@@ -212,30 +212,38 @@ export default function GymLog({ workouts, setWorkouts, exercises, routines, act
     return null
   }
 
+  // Returns { overall, phase } PRs prior to `date`. `phase` is scoped to the
+  // current (open) phase if one exists; otherwise it matches `overall` so any
+  // weight beat counts as a phase PR too.
   const getExercisePR = (exerciseName, exerciseId) => {
-    let maxWeight = 0
-    let maxRepsAtMaxWeight = 0
     const config = getExerciseConfig(exerciseName, exerciseId)
+    const curPhase = (phases || []).find(p => !p.end)
+    const phaseStart = curPhase?.start || null
+    const acc = { overall: { maxWeight: 0, maxRepsAtMaxWeight: 0 }, phase: { maxWeight: 0, maxRepsAtMaxWeight: 0 } }
+    const fold = (bucket, w, r) => {
+      if (w > bucket.maxWeight) {
+        bucket.maxWeight = w
+        bucket.maxRepsAtMaxWeight = r
+      } else if (Math.abs(w - bucket.maxWeight) < 0.1 && r > bucket.maxRepsAtMaxWeight) {
+        bucket.maxRepsAtMaxWeight = r
+      }
+    }
     Object.entries(workouts).forEach(([d, w]) => {
       if (d >= date || !w.committed) return
       const ex = findExerciseInWorkout(w, exerciseId, exerciseName)
-      if (ex) {
-        ex.workSets?.forEach(set => {
-          if (set.committed === false) return
-          const weight = toKg(set.weight, set.unit || config.unit, config.kgPerUnit)
-          const reps = parseInt(set.reps) || 0
-          if (weight > 0 && reps > 0) {
-            if (weight > maxWeight) {
-              maxWeight = weight
-              maxRepsAtMaxWeight = reps
-            } else if (Math.abs(weight - maxWeight) < 0.1 && reps > maxRepsAtMaxWeight) {
-              maxRepsAtMaxWeight = reps
-            }
-          }
-        })
-      }
+      if (!ex) return
+      const inPhase = !phaseStart || d >= phaseStart
+      ex.workSets?.forEach(set => {
+        if (set.committed === false) return
+        const weight = toKg(set.weight, set.unit || config.unit, config.kgPerUnit)
+        const reps = parseInt(set.reps) || 0
+        if (weight <= 0 || reps <= 0) return
+        fold(acc.overall, weight, reps)
+        if (inPhase) fold(acc.phase, weight, reps)
+      })
     })
-    return { maxWeight: Math.round(maxWeight * 10) / 10, maxRepsAtMaxWeight }
+    const round = (b) => ({ maxWeight: Math.round(b.maxWeight * 10) / 10, maxRepsAtMaxWeight: b.maxRepsAtMaxWeight })
+    return { overall: round(acc.overall), phase: round(acc.phase) }
   }
 
   const lastExerciseValues = currentExercise ? getLastExerciseValues(currentExercise.name, currentExercise.id) : { warmupSets: [], workSets: [] }
@@ -447,13 +455,10 @@ export default function GymLog({ workouts, setWorkouts, exercises, routines, act
     // Only the single best work set today gets the PR flag, and only when it
     // actually beats prior history (avoids tagging every set tied at same load).
     const isThisBest = type === 'work' && bestThis && bestThis.idx === idx
-    const prStatus = {
-      isWeightPR: !!(isThisBest && isWeightPR),
-      isRepPR: !!(isThisBest && isRepPR),
-    }
+    const tier = isThisBest ? prTier : null
 
     return (
-      <div key={`${type}${idx}`} className={`set-row ${type === 'work' ? 'work' : ''} ${isCommitted ? 'committed' : 'uncommitted'} ${prStatus.isWeightPR ? 'weight-pr' : ''} ${prStatus.isRepPR ? 'rep-pr' : ''}`}>
+      <div key={`${type}${idx}`} className={`set-row ${type === 'work' ? 'work' : ''} ${isCommitted ? 'committed' : 'uncommitted'} ${tier ? tier + '-pr' : ''}`}>
         <div className="set-controls">
           <div className="set-field">
             <button className="adj-btn" onClick={() => adjustWeight(type, idx, -1)}>−</button>
@@ -469,7 +474,7 @@ export default function GymLog({ workouts, setWorkouts, exercises, routines, act
             <button className="adj-btn" onClick={() => adjustWeight(type, idx, 1)}>+</button>
           </div>
           <span className="set-label clickable" onClick={() => toggleSetCommitted(type, idx)}>
-            {label}{prStatus.isWeightPR && '⭐'}{prStatus.isRepPR && '✓'}
+            {label}{(tier === 'overall' || tier === 'phase') && '⭐'}{tier === 'rep' && '✓'}
           </span>
           <div className="set-field reps">
             <button className="adj-btn" onClick={() => adjustReps(type, idx, -1)}>−</button>
@@ -560,13 +565,21 @@ export default function GymLog({ workouts, setWorkouts, exercises, routines, act
     )
   }
 
-  const pr = currentExercise ? getExercisePR(currentExercise.name, currentExercise.id) : { maxWeight: 0, maxRepsAtMaxWeight: 0 }
+  const pr = currentExercise ? getExercisePR(currentExercise.name, currentExercise.id) : { overall: { maxWeight: 0, maxRepsAtMaxWeight: 0 }, phase: { maxWeight: 0, maxRepsAtMaxWeight: 0 } }
   const unit = routineTemplate?.unit || 'kg'
   const kgPerUnit = routineTemplate?.kgPerUnit
   const bestThis = currentExercise ? todayBestSet(currentExercise.workSets, { unit, kgPerUnit }) : null
-  const isWeightPR = !!(bestThis && bestThis.weightKg > pr.maxWeight)
-  const isRepPR = !!(bestThis && !isWeightPR && bestThis.weightKg === pr.maxWeight && bestThis.reps > pr.maxRepsAtMaxWeight)
-  const isAnyPR = isWeightPR || isRepPR
+  // Tier: 'overall' beats all-time, 'phase' beats phase only, 'rep' matches a
+  // prior best weight with more reps. Overall implies phase but we surface the
+  // strongest tier only.
+  let prTier = null
+  if (bestThis) {
+    if (bestThis.weightKg > pr.overall.maxWeight) prTier = 'overall'
+    else if (bestThis.weightKg > pr.phase.maxWeight) prTier = 'phase'
+    else if (bestThis.weightKg === pr.overall.maxWeight && bestThis.reps > pr.overall.maxRepsAtMaxWeight) prTier = 'rep'
+    else if (bestThis.weightKg === pr.phase.maxWeight && bestThis.reps > pr.phase.maxRepsAtMaxWeight) prTier = 'rep'
+  }
+  const isAnyPR = prTier !== null
   const lastDataKg = lastData ? toKg(lastData.weight, unit, kgPerUnit) : 0
   const anyCommitted = currentExercise?.warmupSets.some(s => s.committed === true) || currentExercise?.workSets.some(s => s.committed === true)
   const allWorkDone = currentExercise?.workSets.length > 0 && currentExercise?.workSets.every(s => s.committed === true)
@@ -620,13 +633,13 @@ export default function GymLog({ workouts, setWorkouts, exercises, routines, act
         <>
           {/* Top bar always rendered so the layout stays put. Falls back to
               an em-dash when no PR / last data exists. */}
-          <div className={`pr-info ${isWeightPR ? 'new-weight-pr' : ''} ${isRepPR ? 'new-rep-pr' : ''}`}>
+          <div className={`pr-info ${prTier ? 'new-' + prTier + '-pr' : ''}`}>
             <span className="pr-label">{isAnyPR ? 'NEW PR' : 'PR'}</span>
             <span className="pr-value">
               {isAnyPR
                 ? `${bestThis.weightKg}kg×${bestThis.reps}`
-                : pr.maxWeight > 0
-                  ? `${pr.maxWeight}kg×${pr.maxRepsAtMaxWeight}`
+                : pr.overall.maxWeight > 0
+                  ? `${pr.overall.maxWeight}kg×${pr.overall.maxRepsAtMaxWeight}`
                   : '—'}
             </span>
             {lastData && !isAnyPR && (
