@@ -1938,6 +1938,9 @@ body:has(textarea:focus) .navbar {
 .sess-head .date { font-size: 13px; font-weight: 500; color: var(--text); }
 .sess-head .meta { font-size: 11px; color: var(--text-sub); display: flex; gap: 8px; align-items: center; }
 .sess-head .meta .pr { color: var(--c-yellow); }
+.sess-head .meta .pr.t-overall { color: var(--c-red); }
+.sess-head .meta .pr.t-phase { color: var(--c-yellow); }
+.sess-head .meta .pr.t-rep { color: var(--c-green); }
 .sess-head .chev { font-size: 11px; color: var(--text-overlay); }
 .sess-body { padding: 0 12px 12px; border-top: 1px solid var(--bg-surface1); }
 .sess-rest { font-size: 11px; color: var(--text-sub); padding: 8px 0; }
@@ -1945,6 +1948,9 @@ body:has(textarea:focus) .navbar {
 .sess-ex:last-child { border-bottom: none; }
 .sess-ex .nm { font-size: 12px; font-weight: 500; color: var(--text); margin-bottom: 3px; display: flex; justify-content: space-between; }
 .sess-ex .nm .pr { color: var(--c-yellow); font-size: 10px; }
+.sess-ex .nm .pr.t-overall { color: var(--c-red); }
+.sess-ex .nm .pr.t-phase { color: var(--c-yellow); }
+.sess-ex .nm .pr.t-rep { color: var(--c-green); }
 .sess-ex .sets { font-size: 11px; color: var(--text-sub); font-variant-numeric: tabular-nums; }
 .sess-ex .sets .work { color: var(--text); }
 .sess-ex .sets .warm { color: var(--text-overlay); }

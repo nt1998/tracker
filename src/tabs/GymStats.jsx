@@ -196,32 +196,54 @@ function buildExerciseIndex(exercises, workouts, phases, statsFilter) {
   return idx
 }
 
+// Walks every committed workout chronologically, tracks per-exercise running
+// bests both all-time and per-phase, and tags each PR moment by tier:
+//   overall — beats all-time top weight
+//   phase   — beats the containing phase's top weight (but not all-time)
+//   rep     — matches a prior top weight with more reps
+// Only PRs whose date falls in the filtered range are returned.
 function detectPRsInRange(exercises, workouts, phases, statsFilter) {
   const filtered = filterByPhase(workouts, phases, statsFilter)
-  const sorted = Object.entries(filtered).sort(([a], [b]) => a.localeCompare(b))
-  const best = {}
+  const inRange = new Set(Object.keys(filtered))
+  const phaseFor = (d) => {
+    const p = (phases || []).find(p => d >= (p.start || '') && (!p.end || d <= p.end))
+    return p ? p.id : '__none__'
+  }
+  const allDates = Object.keys(workouts).filter(d => workouts[d]?.committed).sort()
+  const overall = {}
+  const phaseBest = {}
   const prs = []
-  sorted.forEach(([date, w]) => {
+  allDates.forEach(date => {
+    const w = workouts[date]
     if (isRestWorkout(w)) return
+    const pid = phaseFor(date)
+    if (!phaseBest[pid]) phaseBest[pid] = {}
     w.exercises?.forEach(ex => {
       const cfg = getExerciseConfig(exercises, ex.name)
-      let topW = 0, topR = 0, e1RM = 0
+      let topW = 0, topR = 0
       ex.workSets?.forEach(s => {
         if (s.committed === false) return
         const wt = toKg(s.weight, cfg.unit, cfg.kgPerUnit)
         const r = parseInt(s.reps) || 0
-        if (wt > 0 && r > 0) {
-          if (wt > topW) { topW = wt; topR = r }
-          const e = wt * (1 + r / 30)
-          if (e > e1RM) e1RM = e
-        }
+        if (wt <= 0 || r <= 0) return
+        if (wt > topW || (Math.abs(wt - topW) < 0.01 && r > topR)) { topW = wt; topR = r }
       })
-      if (e1RM === 0) return
-      const cur = best[ex.name] || 0
-      if (e1RM > cur + 0.1) {
-        if (cur > 0) prs.push({ date, name: ex.name, weight: topW, reps: topR, e1RM })
-        best[ex.name] = e1RM
-      } else { best[ex.name] = Math.max(cur, e1RM) }
+      if (topW === 0) return
+      const ob = overall[ex.name] || { weight: 0, reps: 0 }
+      const pb = phaseBest[pid][ex.name] || { weight: 0, reps: 0 }
+      let tier = null
+      if (topW > ob.weight + 0.01) tier = 'overall'
+      else if (topW > pb.weight + 0.01) tier = 'phase'
+      else if (Math.abs(topW - ob.weight) < 0.01 && topR > ob.reps) tier = 'rep'
+      else if (Math.abs(topW - pb.weight) < 0.01 && topR > pb.reps) tier = 'rep'
+      // Update running bests after classification.
+      if (topW > ob.weight) overall[ex.name] = { weight: topW, reps: topR }
+      else if (Math.abs(topW - ob.weight) < 0.01 && topR > ob.reps) overall[ex.name] = { weight: ob.weight, reps: topR }
+      else overall[ex.name] = ob
+      if (topW > pb.weight) phaseBest[pid][ex.name] = { weight: topW, reps: topR }
+      else if (Math.abs(topW - pb.weight) < 0.01 && topR > pb.reps) phaseBest[pid][ex.name] = { weight: pb.weight, reps: topR }
+      else phaseBest[pid][ex.name] = pb
+      if (tier && inRange.has(date)) prs.push({ date, name: ex.name, weight: topW, reps: topR, tier })
     })
   })
   return prs
@@ -288,7 +310,9 @@ export default function GymStats({ workouts, phases, exercises, routines, active
     if (!histGroups[wk]) histGroups[wk] = []
     histGroups[wk].push([d, w])
   })
-  const prSet = new Set(); prs.forEach(p => prSet.add(p.date + '|' + p.name))
+  const prMap = {}; prs.forEach(p => { prMap[p.date + '|' + p.name] = p.tier })
+  // Rank used to pick the dominant tier in a session header (red > yellow > green).
+  const tierRank = { overall: 3, phase: 2, rep: 1 }
 
   return (
     <div className="stats-page">
@@ -500,7 +524,9 @@ export default function GymStats({ workouts, phases, exercises, routines, active
                 const isRest = isRestWorkout(w)
                 const { volume, sets } = isRest ? { volume: 0, sets: 0 } : getSessionVolume(exercises, w)
                 const open = openHistDates.has(d)
-                const exPRs = isRest ? 0 : (w.exercises || []).filter(ex => prSet.has(d + '|' + ex.name)).length
+                const exPRTiers = isRest ? [] : (w.exercises || []).map(ex => prMap[d + '|' + ex.name]).filter(Boolean)
+                const exPRs = exPRTiers.length
+                const headTier = exPRTiers.reduce((best, t) => tierRank[t] > tierRank[best] ? t : best, exPRTiers[0] || 'rep')
                 return (
                   <div key={d} className="sess-card">
                     <div className="sess-head" onClick={() => {
@@ -514,7 +540,7 @@ export default function GymStats({ workouts, phases, exercises, routines, active
                       </div>
                       <div className="meta">
                         {isRest ? <span>rehab ✓</span> : <><span>{fmtKg(volume)}</span><span>{sets} sets</span></>}
-                        {exPRs > 0 && <span className="pr">{exPRs}⭐</span>}
+                        {exPRs > 0 && <span className={`pr t-${headTier}`}>{exPRs}⭐</span>}
                         <span className="chev">{open ? '▴' : '▾'}</span>
                       </div>
                     </div>
@@ -526,13 +552,13 @@ export default function GymStats({ workouts, phases, exercises, routines, active
                           const cfg = getExerciseConfig(exercises, ex.name)
                           const work = (ex.workSets || []).filter(s => s.committed !== false && parseFloat(s.weight) > 0)
                           const warm = (ex.warmupSets || []).filter(s => parseFloat(s.weight) > 0)
-                          const isPR = prSet.has(d + '|' + ex.name)
+                          const prTier = prMap[d + '|' + ex.name]
                           if (!work.length && !warm.length) return null
                           return (
                             <div key={ei} className="sess-ex">
                               <div className="nm">
                                 <span>{ex.name}</span>
-                                {isPR && <span className="pr">⭐ PR</span>}
+                                {prTier && <span className={`pr t-${prTier}`}>⭐ PR</span>}
                               </div>
                               <div className="sets">
                                 {work.map((s, si) => (
